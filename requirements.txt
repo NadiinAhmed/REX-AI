@@ -1,0 +1,7 @@
+# Versions verified together on Python 3.12 on 2026-10-16 (see docs/test_report.md).
+pydantic>=2.6,<3            # tested 2.14.1
+streamlit>=1.35,<2          # tested 1.66.0
+python-dotenv>=1.0,<2       # tested 1.2.2
+pytest>=8,<10               # tested 9.1.1
+# Optional: only needed when LLM_PROVIDER=anthropic. The app runs without it.
+anthropic>=0.40,<2          # tested 1.15.0
