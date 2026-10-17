@@ -1,0 +1,17 @@
+.gitignore
+.env.example
+requirements.txt
+pytest.ini
+.github/pull_request_template.md
+src/__init__.py
+src/config.py
+src/utils/__init__.py
+src/utils/logging_config.py
+src/agents/__init__.py
+src/agents/base.py
+src/agents/registry.py
+tests/conftest.py
+tests/test_config.py
+tests/test_registry.py
+docs/interfaces.md
+docs/ROLE_3_ARCHITECTURE_INTEGRATION_QA_GUIDE.md
