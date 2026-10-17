@@ -1,0 +1,12 @@
+src/services/__init__.py
+src/services/llm_service.py
+src/workflows/__init__.py
+src/workflows/learner_profile.py
+src/workflows/recommendation.py
+src/agents/prompts.py
+src/agents/rex_assistant.py
+tests/test_learner_profile.py
+tests/test_recommendation.py
+tests/test_rex_assistant.py
+tests/test_llm_service.py
+docs/ROLE_1_AI_CHATBOT_GUIDE.md
