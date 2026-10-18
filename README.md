@@ -100,10 +100,6 @@ docs/                        architecture, interfaces, WBS, RACI, task board, gi
 
 No one commits to `main` directly: every change arrives through a reviewed pull request.
 
-## Role guides (start here)
-- [Role 1 — AI Agent & Chatbot](docs/ROLE_1_AI_CHATBOT_GUIDE.md)
-- [Role 2 — Knowledge Base & Data](docs/ROLE_2_KNOWLEDGE_BASE_GUIDE.md)
-- [Role 3 — Architecture, UI, Integration & QA](docs/ROLE_3_ARCHITECTURE_INTEGRATION_QA_GUIDE.md)
 
 ## Documentation
 - [Architecture](docs/architecture.md) · [Shared interfaces](docs/interfaces.md)
