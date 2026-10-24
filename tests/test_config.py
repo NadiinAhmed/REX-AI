@@ -7,7 +7,8 @@ from src.config import PROJECT_ROOT, ConfigError, load_settings
 def test_defaults_are_safe():
     s = load_settings({})
     assert s.llm_enabled is False
-    assert s.courses_path == PROJECT_ROOT / "data" / "courses.json"
+    # Sprint 2: the official academy catalog is the default; the synthetic file is a test fixture.
+    assert s.courses_path == PROJECT_ROOT / "data" / "courses_official.json"
 
 
 def test_invalid_provider_and_timeout_rejected():

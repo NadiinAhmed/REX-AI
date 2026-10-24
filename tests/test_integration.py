@@ -8,8 +8,9 @@ from src.knowledge_base.loader import KnowledgeBaseError
 
 
 @pytest.fixture
-def ctx():
-    return build_app(load_settings({"LLM_PROVIDER": "none"}))
+def ctx(test_env):
+    # Pinned to the synthetic demo catalog and a temporary database (see conftest.test_env).
+    return build_app(load_settings(test_env()), enable_rag=False)
 
 
 def test_app_builds_in_deterministic_mode(ctx):
@@ -35,6 +36,6 @@ def test_full_bilingual_conversation_through_registry(ctx):
     assert r.language == "ar" and r.sources[0].course_id == "SEC-210"
 
 
-def test_bad_data_path_fails_with_clear_error():
+def test_bad_data_path_fails_with_clear_error(test_env):
     with pytest.raises(KnowledgeBaseError, match="REX_COURSES_PATH"):
-        build_app(load_settings({"REX_COURSES_PATH": "missing/courses.json"}))
+        build_app(load_settings(test_env(REX_COURSES_PATH="missing/courses.json")), enable_rag=False)

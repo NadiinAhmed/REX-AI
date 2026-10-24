@@ -88,6 +88,10 @@ def explain_match(course: Course, matched_terms: list[str], profile: LearnerProf
 # Drop results scoring below this fraction of the best match (removes incidental matches,
 # e.g. a marketing course that merely has an "Analytics" module).
 MIN_RELATIVE_SCORE = 0.4
+# A course must also match on a strong field (title 3.0, keywords 2.5, career paths 2.0) or on
+# several weaker ones. One word in a module list, description or outcome (<= 1.5) is not
+# evidence that the course fits (bug B2: "build" or "mobile-friendly" alone matched).
+MIN_ABSOLUTE_SCORE = 2.0
 
 
 def recommend_courses(
@@ -104,6 +108,7 @@ def recommend_courses(
     if not results:
         results = retriever.search(query, top_k=top_k)
         relaxed = bool(results)
+    results = [r for r in results if r.score >= MIN_ABSOLUTE_SCORE]
     if results:
         cutoff = results[0].score * MIN_RELATIVE_SCORE
         results = [r for r in results if r.score >= cutoff]

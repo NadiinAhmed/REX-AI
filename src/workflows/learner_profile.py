@@ -30,6 +30,11 @@ class LearnerProfile(BaseModel):
     def has_topic(self) -> bool:
         return bool(self.interests or self.career_goal)
 
+    def has_preferences(self) -> bool:
+        """True when the turn states a practical preference (level, format, budget, hours)."""
+        return any(v is not None for v in (self.skill_level, self.preferred_format,
+                                            self.budget, self.hours_per_week))
+
     def search_query(self) -> str:
         return " ".join(self.interests + ([self.career_goal] if self.career_goal else []))
 

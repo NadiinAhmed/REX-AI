@@ -1,95 +1,75 @@
-# REX AI — System Architecture (Sprint 1)
+# REX AI — System Architecture (Sprint 2)
 
-## Component diagram
+## Layers
 
-```mermaid
-flowchart TB
-    subgraph UI["Presentation (Role 3)"]
-        APP["app.py<br/>Streamlit chat UI"]
-    end
-    subgraph CORE["Coordination (Role 3)"]
-        BOOT["bootstrap.py<br/>composition root"]
-        REG["AgentRegistry<br/>router"]
-        CFG["config.py<br/>env settings"]
-    end
-    subgraph AGENTS["Agents"]
-        REX["REX Assistant ✅<br/>(Role 1)"]
-        RFP["RFP Research 🕓"]
-        CUR["Curriculum 🕓"]
-        DOC["Document Gen 🕓"]
-        MKT["Marketing 🕓"]
-    end
-    subgraph WF["Workflows (Role 1)"]
-        PROF["learner_profile.py<br/>needs extraction"]
-        RECO["recommendation.py<br/>scoring + reasons"]
-    end
-    subgraph KB["Knowledge base (Role 2)"]
-        RET["CourseRetriever<br/>KeywordRetriever"]
-        LOAD["loader.py<br/>validation"]
-        MODEL["Course model"]
-        DATA[("data/courses.json<br/>SYNTHETIC demo")]
-    end
-    subgraph SVC["Services (Role 1)"]
-        LLM["LLMService interface"]
-        ANT["Anthropic provider"]
-        NONE["None → deterministic mode"]
-    end
-
-    APP --> BOOT --> REG
-    CFG --> BOOT
-    REG --> REX
-    REG -.planned.-> RFP & CUR & DOC & MKT
-    REX --> PROF & RECO
-    RECO --> RET
-    REX --> RET
-    RET --> MODEL
-    LOAD --> MODEL
-    LOAD --> DATA
-    REX --> LLM
-    LLM --> ANT
-    LLM --> NONE
-```
-
-## Request flow (one chat turn)
-
-```mermaid
-sequenceDiagram
-    participant U as Learner
-    participant A as app.py
-    participant R as AgentRegistry
-    participant X as RexAssistant
-    participant K as CourseRetriever
-    participant L as LLMService
-    U->>A: message (AR/EN)
-    A->>R: dispatch("rex_assistant", AgentRequest(message, state))
-    R->>X: handle(request)
-    X->>X: detect language, refuse contact details, update profile
-    alt course named / referenced
-        X->>K: find_by_title / get_by_id
-    else enough info to recommend
-        X->>K: search(query, filters)
-        K-->>X: RetrievalResult[] (+ source metadata)
-    else missing info
-        X-->>A: follow-up questions (deterministic)
-    end
-    opt LLM configured
-        X->>L: generate(system rules, <course_data> as data)
-        L-->>X: text, or LLMError → deterministic fallback
-    end
-    X-->>A: AgentResponse(text, mode, sources, state)
-    A-->>U: answer + mode badge + sources
-```
-
-## Key design decisions
-
-| Decision | Why | Upgrade path |
+| Layer | Modules | Responsibility |
 |---|---|---|
-| Keyword retrieval with Arabic normalisation + bilingual synonyms | Small catalog, no infra, fully testable | Implement `CourseRetriever` with embeddings; assistant unchanged |
-| Deterministic layer always computes the facts | Facts never depend on the LLM; app works without an API key | LLM only rewrites grounded facts |
-| Structured match reasons (`Reason(code, facts)`) | Bilingual rendering, testable, safe LLM context | Add reason codes as rules grow |
-| Topic follows the learner's latest statement | Avoids stale interests producing wrong recommendations | Add explicit "add to my interests" handling |
-| State returned in `AgentResponse.state` | Agents stay stateless and testable | Persist state in SQLite for lead management |
-| `ResponseMode` shown in UI | Never pass rule-based text off as LLM output | — |
+| UI | `app.py`, `pages/1_Knowledge_Base.py`, `pages/2_Leads.py`, `src/ui_context.py` | Chat; admin upload/approve/remove PDFs; consented leads |
+| Composition root | `src/bootstrap.py` | Creates and connects every component (dependency injection) |
+| Agents | `src/agents/` (contract, registry, REX Assistant, prompts) | Conversation logic per agent |
+| Workflows | `src/workflows/` | Learner-profile extraction, course scoring + explanations |
+| Course catalog | `src/models/course.py`, `src/knowledge_base/` | Validated course schema, keyword course retrieval |
+| RAG | `src/ingestion/`, `src/rag/` | PDF validation/extraction/chunking, embeddings, Chroma, passage retrieval |
+| Services | `src/services/` | LLM (LangChain: Grok/Groq; Anthropic SDK), consent-based leads |
+| Data | `src/db/`, `migrations/` | Shared SQLite database, repositories, Alembic migrations |
+| Integration | `src/mcp_server/`, `src/mcp_client/` | `rex-academy` MCP server + client adapter |
+| Evaluation | `evaluation/` | RAGAS evaluation, kept outside the request path |
 
-## Out of scope for Sprint 1
-Lead capture (needs a consent flow), embeddings/vector DB, the four other agents, deployment, CI.
+## Agent 1 conversation graph (generated from the code with `graph_diagram()`)
+
+```mermaid
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	analyze(analyze)
+	lead_capture(lead_capture)
+	catalog_overview(catalog_overview)
+	course_question(course_question)
+	clarify_course(clarify_course)
+	document_question(document_question)
+	recommend(recommend)
+	follow_up(follow_up)
+	finalize(finalize)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> analyze;
+	analyze -.-> catalog_overview;
+	analyze -.-> clarify_course;
+	analyze -.-> course_question;
+	analyze -.-> document_question;
+	analyze -.-> follow_up;
+	analyze -.-> lead_capture;
+	analyze -.-> recommend;
+	catalog_overview --> finalize;
+	clarify_course --> finalize;
+	course_question --> finalize;
+	document_question --> finalize;
+	follow_up --> finalize;
+	lead_capture --> finalize;
+	recommend --> finalize;
+	finalize --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
+```
+
+- **analyze** makes a deterministic, testable routing decision (language, consent flow, course reference, question type, learner profile).
+- **recommend / course_question / catalog_overview** answer from the approved *structured* course records.
+- **document_question** answers from approved *PDF passages* with page citations, or says the documents do not contain the answer.
+- **lead_capture** runs the consent flow; nothing is stored before "yes".
+- **finalize** adds notes, language and the conversation state returned to the UI.
+- The LLM (Grok/Groq via LangChain) only rewrites facts that were already retrieved. Any LLM failure falls back to the deterministic answer, labelled as such.
+
+## Two kinds of knowledge
+
+1. **Structured course records** (`courses` table): the only source of course facts (hours, tools, careers, fees...). Missing values stay `null` and are reported as "not available".
+2. **Document passages** (approved PDFs): FAQs, accreditation statements, contact details, anything not in the structured record. Only **approved** documents are searched.
+
+## How the other four agents reuse this
+
+| Shared component | Reused by |
+|---|---|
+| `Agent` contract + `AgentRegistry` | every agent registers and is dispatched the same way |
+| `courses` table + `CourseRepository` (or MCP `get_course`/`search_courses`) | Curriculum, Document Generation, Marketing read the same catalog — no copies |
+| `PassageRetriever` / MCP `search_knowledge_base` | Curriculum (accreditation docs), Document Generation (templates) |
+| `LLMService` (LangChain adapter) | every agent that generates text |
+| `Database`, migrations, repositories | new tables (`curricula`, `generated_documents`, `rfp_opportunities`, `marketing_contents`) are added by migration and reference `courses.course_id` |
+| LangGraph pattern (analyze → route → finalize) | each agent's workflow, and later the multi-agent orchestrator |

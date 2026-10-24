@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -33,10 +33,21 @@ class AgentRequest(BaseModel):
 
 
 class SourceReference(BaseModel):
-    course_id: str
+    """Where a fact came from: a structured course record or a page of an approved document."""
+    source_type: Literal["course", "document"] = "course"
     reference: str
+    course_id: str | None = None
     last_updated: str | None = None
-    synthetic: bool
+    synthetic: bool = False
+    document_id: str | None = None
+    filename: str | None = None
+    page: int | None = None
+    score: float | None = None      # retrieval similarity, for document sources
+
+    def label(self) -> str:
+        if self.source_type == "document":
+            return f"{self.filename}, p.{self.page}"
+        return f"{self.course_id} ({'synthetic demo data' if self.synthetic else self.reference})"
 
 
 class AgentResponse(BaseModel):

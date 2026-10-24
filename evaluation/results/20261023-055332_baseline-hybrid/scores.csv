@@ -1,0 +1,23 @@
+id,lang,answerable,abstained,top_score,id_context_precision,id_context_recall,nonllm_context_precision,nonllm_context_recall,retrieved_context_ids,reference_context_ids,question
+en01,en,True,False,0.4478,0.5,1.0,1.0,0.75,p3 p3 p3 p7,p3,How many training hours is the Software Testing track?
+en02,en,True,False,0.4629,1.0,1.0,1.0,1.0,p3 p3 p3 p3,p3,Which tools are covered in the Software Testing track?
+en03,en,True,False,0.4655,0.3333,1.0,1.0,0.3333,p4 p2 p2 p7,p4,What is the capstone project of the Flutter Development track?
+en04,en,True,False,0.423,0.3333,1.0,0.8333,0.6667,p7 p4 p7 p2,p7,What tech stack does the Full Stack Development track use?
+en05,en,True,False,0.5531,1.0,1.0,1.0,0.5,p6 p5 p5 p6,p5 p6,What career roles does the Data Engineering track prepare students for?
+en06,en,True,False,0.5673,0.3333,1.0,1.0,0.4,p8 p8 p6 p5,p8,"Does the Data Science, AI & Machine Learning track teach RAG systems?"
+en07,en,True,False,0.4645,0.5,1.0,0.8333,0.5,p1 p8 p2 p7,p1 p2,Who are the training programs designed for?
+en08,en,True,False,0.39,0.25,1.0,1.0,1.0,p1 p2 p8 p5,p1,How many programs and training hours are in the portfolio?
+en09,en,True,False,0.322,0.3333,1.0,1.0,1.0,p9 p2 p2 p3,p9,What is the contact email for partnerships?
+en10,en,True,False,0.396,0.3333,0.2,0.5,0.0526,p2 p3 p6 p6,p3 p4 p5 p7 p8,What certificate do graduates receive after completing a track?
+en11,en,True,False,0.5971,1.0,1.0,1.0,0.5,p6 p5 p5 p6,p5 p6,Which orchestration tool is taught in the Data Engineering track?
+ar01,ar,True,False,0.2689,0.5,1.0,0.8333,0.6667,p4 p3 p4 p3,p4,كم عدد ساعات مسار تطوير تطبيقات فلاتر؟
+ar02,ar,True,False,0.4779,0.5,1.0,0.5833,0.5,p6 p5 p5 p6,p5,ما هي أدوات مسار هندسة البيانات؟
+ar03,ar,True,False,0.2424,0.3333,1.0,1.0,1.0,p9 p2 p2 p3,p9,ما هو البريد الإلكتروني للتواصل والشراكات؟
+ar04,ar,True,False,0.3216,0.5,0.5,1.0,0.25,p1 p9,p1 p2,هل البرامج معتمدة؟
+ar05,ar,True,False,0.2738,1.0,1.0,1.0,1.0,p3 p3 p3 p3,p3,ما هي الوظائف المتاحة بعد مسار اختبار البرمجيات؟
+un01,en,False,False,0.4347,,,,,p4 p7 p7 p6,,How much does the Flutter Development track cost?
+un02,en,False,False,0.5686,,,,,p6 p5 p5 p6,,Who is the instructor of the Data Engineering track?
+un03,en,False,True,0.1543,,,,,,,When does the next cohort start?
+un04,en,False,True,0.1638,,,,,,,Do you offer scholarships?
+un05,ar,False,True,0.135,,,,,,,هل الدراسة أونلاين أم حضوري؟
+un06,en,False,True,0.166,,,,,,,Is there a refund policy?

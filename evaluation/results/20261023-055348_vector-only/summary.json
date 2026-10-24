@@ -1,0 +1,34 @@
+{
+  "id_context_precision": {
+    "mean": 0.5781,
+    "n": 16
+  },
+  "id_context_recall": {
+    "mean": 0.95,
+    "n": 16
+  },
+  "nonllm_context_precision": {
+    "mean": 0.901,
+    "n": 16
+  },
+  "nonllm_context_recall": {
+    "mean": 0.6481,
+    "n": 16
+  },
+  "id_context_recall_en": {
+    "mean": 0.9273,
+    "n": 11
+  },
+  "id_context_recall_ar": {
+    "mean": 1.0,
+    "n": 5
+  },
+  "rex_answered_rate_on_answerable": {
+    "mean": 1.0,
+    "n": 16
+  },
+  "rex_correct_abstention_rate_on_unanswerable": {
+    "mean": 0.1667,
+    "n": 6
+  }
+}
