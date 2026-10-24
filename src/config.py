@@ -17,7 +17,7 @@ SUPPORTED_COURSE_BACKENDS = ("direct", "mcp")
 # Default model per provider. Model names change often: check the provider console.
 DEFAULT_MODELS = {
     "anthropic": "claude-sonnet-5-5",
-    "groq": "llama-3.3-70b-versatile",
+    "groq": "openai/gpt-oss-120b",
     "xai": "grok-4",
     "none": "",
 }
