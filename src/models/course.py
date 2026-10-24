@@ -79,6 +79,9 @@ class Course(BaseModel):
     modules: list[str] = Field(default_factory=list)
     career_paths: list[str] = Field(default_factory=list)
     keywords: list[str] = Field(default_factory=list)
+    tools: list[str] = Field(default_factory=list)         # tools / tech stack taught
+    capstone: str | None = None                            # capstone project description
+    deliverables: list[str] = Field(default_factory=list)  # what the learner produces
     fee: Fee = Field(default_factory=Fee)
     schedule: str | None = None
     promotions: str | None = None
@@ -89,7 +92,7 @@ class Course(BaseModel):
     _OPTIONAL_FIELDS = (
         "department", "description", "target_audience", "industry", "duration_hours",
         "prerequisites", "learning_outcomes", "modules", "schedule", "promotions",
-        "instructor", "country",
+        "instructor", "country", "tools", "capstone",
     )
 
     def missing_fields(self) -> list[str]:
