@@ -14,10 +14,26 @@ STOPWORDS = {
     "that", "please", "recommend", "suggest", "interested", "become", "work", "job",
     "actually", "really", "also", "maybe", "just", "now", "instead", "more", "get", "know",
     "think", "something", "things", "thing", "good", "best", "start", "career", "field",
+    # Function/filler words that must never count as a course topic (bug B1/B2: "into",
+    # "build" or "where" alone were enough to produce a recommendation).
+    "into", "but", "don", "dont", "where", "there", "then", "than", "when", "who", "why",
+    "will", "should", "could", "your", "our", "we", "they", "them", "its", "at", "by", "from",
+    "up", "out", "as", "if", "all", "other", "kind", "type", "help", "tell", "show", "give",
+    "find", "looking", "look", "go", "going", "use", "using", "build", "make", "made", "new",
+    "cheaper", "cheap", "expensive", "less", "under", "below", "over", "very", "too", "so",
+    "not", "no", "yes", "ok", "okay", "please", "thanks", "thank", "hi", "hello", "hey",
+    "programs", "program", "track", "tracks", "academy", "offer", "available", "there",
+    "take", "join", "enroll", "register", "apply", "sign",
     # Arabic (normalized forms)
     "في", "من", "الي", "على", "علي", "عن", "و", "او", "انا", "اريد", "عايز", "عاوز", "ابغي",
     "هل", "ما", "ماذا", "كورس", "كورسات", "دوره", "دورات", "تعلم", "اتعلم", "مهتم", "ممكن", "لو",
     "ان", "هو", "هي", "عندكم", "عندك", "اي", "ايه", "شيء", "حاجه",
+    "ابقي", "بس", "لكن", "ازاي", "كيف", "فين", "اين", "متي", "امتي", "مين", "ليه", "لماذا",
+    "ارخص", "اقل", "اكتر", "اكثر", "جدا", "برنامج", "برامج", "مسار", "مسارات", "الاكاديميه",
+    "اكاديميه", "اسجل", "التسجيل", "تسجيل", "اشترك",
+    # Question-attribute words (fees, schedule, ...) are never topics (bug B4)
+    "مواعيد", "موعد", "ميعاد", "اسعار", "سعر", "مدربين", "مدرب", "مدرسين", "محتوي", "مده",
+    "متطلبات", "رسوم", "تكلفه", "بكام", "بكم",
     # Arabic preference/filler words that are never course topics
     "مبتدي", "متوسط", "متقدم", "اونلاين", "حضوري", "ميزانيتي", "ميزانيه", "جنيه", "ريال",
     "خريج", "خريجه", "اشتغل", "اعمل", "اصبح", "اكون", "مرحبا", "اهلا", "شكرا", "السلام", "عليكم",
@@ -43,6 +59,21 @@ SYNONYMS: dict[str, str] = {
     "ويب": "web", "مواقع": "web", "website": "web", "websites": "web",
     "اكسل": "excel", "spreadsheets": "excel",
     "سحابه": "cloud", "سحابيه": "cloud",
+    # Official catalog domains (Andalusia Academy portfolio 2026-2027)
+    "testing": "testing", "tester": "testing", "test": "testing", "tests": "testing",
+    "qa": "testing", "quality": "testing", "اختبار": "testing", "اختبارات": "testing",
+    "تيستنج": "testing", "تيستر": "testing", "جوده": "testing",
+    "flutter": "flutter", "فلاتر": "flutter", "dart": "flutter", "دارت": "flutter",
+    "mobile": "mobile", "موبايل": "mobile", "تطبيقات": "mobile", "app": "mobile", "apps": "mobile",
+    "android": "mobile", "ios": "mobile", "اندرويد": "mobile",
+    "engineering": "engineering", "هندسه": "engineering", "مهندس": "engineering",
+    "engineer": "engineering",
+    "dotnet": ".net", "net": ".net", "دوت": ".net", "csharp": "c#",
+    "رياكت": "react", "فرونت": "frontend", "باك": "backend", "فول": "full", "ستاك": "stack",
+    "fullstack": "full stack",
+    "scientist": "science", "علم": "science", "علوم": "science",
+    "llm": "ai", "llms": "ai", "rag": "ai", "تعلم الاله": "machine learning",
+    "learning": "learning",
 }
 
 

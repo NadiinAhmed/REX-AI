@@ -27,11 +27,11 @@ logger = get_logger("rex_assistant")
 
 # Course question topics: field name -> regex over normalized lower text
 _ATTRIBUTE_PATTERNS: dict[str, str] = {
-    "fee": r"\b(price|cost|fees?|how much)\b|سعر|تكلفه|بكام|رسوم|كم سعر|بكم",
+    "fee": r"\b(price|prices|cost|fees?|how much)\b|سعر|اسعار|تكلفه|بكام|رسوم|كم سعر|بكم",
     "duration": r"\b(duration|how long|hours|weeks|length)\b|مده|كام ساعه|كم ساعه|كم اسبوع",
     "prerequisites": r"\b(prerequisites?|requirements?|need to know)\b|متطلبات|شروط",
-    "instructor": r"\b(instructor|trainer|teacher|lecturer)\b|مدرب|محاضر|مدرس",
-    "schedule": r"\b(schedule|when|start|dates?|timing)\b|موعد|ميعاد|امتي|متي|يبدا",
+    "instructor": r"\b(instructors?|trainers?|teachers?|lecturers?)\b|مدرب|مدربين|محاضر|مدرس|مدرسين",
+    "schedule": r"\b(schedule|when does|when is|start date|starts?\s+on|dates?|timing)\b|موعد|مواعيد|ميعاد|امتي|متي|يبدا",
     "modules": r"\b(content|modules?|syllabus|topics|curriculum)\b|محتوي|محاور|منهج",
     "learning_outcomes": r"\b(outcomes?|will i learn|skills)\b|مخرجات|ماذا سأتعلم|هتعلم ايه",
     "delivery_format": r"\b(format|delivered|delivery)\b|طريقه الدراسه|طريقه التدريس",
@@ -104,7 +104,7 @@ class RexAssistant(Agent):
         elif attributes and not turn.has_topic():
             profile = prior
             intent, response = "clarify_course", self._ask_which_course(last_ids, lang)
-        elif (profile := prior.merge(turn)).has_topic():
+        elif (profile := self._merge_profile(prior, turn)).has_topic():
             intent, response = "recommendation", self._recommend(profile, lang, message)
         else:
             intent, response = "follow_up", self._ask_follow_up(profile, lang)
@@ -297,6 +297,19 @@ class RexAssistant(Agent):
         return value or unavailable
 
     # ------------------------------------------------------------------ helpers
+    def _merge_profile(self, prior: LearnerProfile, turn: LearnerProfile) -> LearnerProfile:
+        """Merge a turn into the stored profile without losing the topic (bug B3).
+
+        "Actually make it cheaper than 3000 EGP" states a preference, not a new subject. If a
+        turn carries a preference AND leftover words that match no course, those words are noise,
+        so the previous topic is kept. A turn with no preference ("I want cooking") still
+        replaces the topic, so the assistant can honestly say there is no such course.
+        """
+        if (turn.has_topic() and turn.has_preferences() and prior.has_topic()
+                and not self._retriever.search(turn.search_query(), top_k=1)):
+            turn = turn.model_copy(update={"interests": [], "career_goal": None})
+        return prior.merge(turn)
+
     def _referenced_course(self, message: str, last_ids: list[str]) -> tuple[Course | None, bool]:
         """Return (course, explicit). Explicit = named by ID or title in this message."""
         course = self._retriever.find_by_title(message)
