@@ -8,9 +8,11 @@ from src.config import PROJECT_ROOT  # noqa: E402
 
 
 @pytest.fixture
-def app(monkeypatch):
-    monkeypatch.setenv("LLM_PROVIDER", "none")
-    monkeypatch.setenv("REX_COURSES_PATH", "data/courses.json")   # demo data for this test
+def app(monkeypatch, test_env):
+    from src.ui_context import get_context
+    get_context.clear()                       # a fresh cached context per test
+    for key, value in test_env().items():     # synthetic catalog + temporary DB/vector store
+        monkeypatch.setenv(key, value)
     at = AppTest.from_file(str(PROJECT_ROOT / "app.py"), default_timeout=30)
     at.run()
     return at

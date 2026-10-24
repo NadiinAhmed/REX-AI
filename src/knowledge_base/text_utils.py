@@ -74,6 +74,12 @@ SYNONYMS: dict[str, str] = {
     "scientist": "science", "علم": "science", "علوم": "science",
     "llm": "ai", "llms": "ai", "rag": "ai", "تعلم الاله": "machine learning",
     "learning": "learning",
+    # Document Q&A vocabulary (Arabic question -> English document terms)
+    "معتمد": "accredited", "معتمده": "accredited", "اعتماد": "accredited", "accreditation": "accredited",
+    "شهاده": "certificate", "شهادات": "certificate", "certification": "certificate",
+    "ادوات": "tools", "تواصل": "contact", "التواصل": "contact", "شراكه": "partnership",
+    "شراكات": "partnership", "partnerships": "partnership", "مشروع": "project", "تخرج": "capstone",
+    "وظائف": "career", "مخرجات": "outcomes",
 }
 
 
