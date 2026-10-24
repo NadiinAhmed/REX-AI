@@ -1,0 +1,20 @@
+{
+  "label": "vector-only",
+  "git_commit": "939837b",
+  "ragas_version": "0.4.3",
+  "dataset": "evaluation/dataset.jsonl",
+  "dataset_size": 22,
+  "answerable": 16,
+  "unanswerable": 6,
+  "embedding_model": "hashing-char3to5-2048",
+  "generation": "LLM disabled (LLM_PROVIDER=none). Running in deterministic demo mode.",
+  "judge": null,
+  "chunk_size": 800,
+  "chunk_overlap": 120,
+  "top_k": 4,
+  "min_score": 0.15,
+  "keyword_gate": false,
+  "overrides": {
+    "RETRIEVAL_KEYWORD_GATE": "off"
+  }
+}
