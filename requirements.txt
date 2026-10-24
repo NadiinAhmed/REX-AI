@@ -1,7 +1,16 @@
-# Versions verified together on Python 3.12 on 2026-10-16 (see docs/test_report.md).
-pydantic>=2.6,<3            # tested 2.14.1
-streamlit>=1.35,<2          # tested 1.66.0
-python-dotenv>=1.0,<2       # tested 1.2.2
-pytest>=8,<10               # tested 9.1.1
-# Optional: only needed when LLM_PROVIDER=anthropic. The app runs without it.
-anthropic>=0.40,<2          # tested 1.15.0
+# Runtime dependencies. Versions verified together on Python 3.12 on 2026-10-23 (docs/testing.md).
+pydantic>=2.6,<3              # tested 2.14.1
+streamlit>=1.35,<2            # tested 1.66.1
+python-dotenv>=1.0,<2         # tested 1.2.4
+SQLAlchemy>=2.0,<3            # tested 2.1.6   shared database
+alembic>=1.13,<2              # tested 1.20.1  migrations
+pypdf>=5,<7                   # tested 6.21.2  PDF text extraction
+chromadb>=1.0,<2              # tested 1.5.9   vector store
+scikit-learn>=1.4,<2          # tested 1.9.1   offline hashing embeddings
+langchain-core>=1.0,<2        # tested 1.7.0
+langchain-text-splitters>=1.0,<2   # tested 1.1.3
+langgraph>=1.0,<2             # tested 1.2.16  Agent 1 conversation graph
+langchain-xai>=1.0,<2         # tested 1.3.0   LLM_PROVIDER=xai (Grok)
+langchain-groq>=1.0,<2        # tested 1.1.3   LLM_PROVIDER=groq
+mcp>=2.3,<3                   # tested 2.3.0   rex-academy MCP server/client (v2 API!)
+anthropic>=0.40,<2            # tested 1.17.0  LLM_PROVIDER=anthropic (optional)

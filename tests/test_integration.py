@@ -9,7 +9,7 @@ from src.knowledge_base.loader import KnowledgeBaseError
 
 @pytest.fixture
 def ctx():
-    return build_app(load_settings({"LLM_PROVIDER": "none"}))
+    return build_app(load_settings({"LLM_PROVIDER": "none", "REX_COURSES_PATH": "data/courses.json"}))
 
 
 def test_app_builds_in_deterministic_mode(ctx):

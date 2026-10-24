@@ -10,6 +10,7 @@ from src.config import PROJECT_ROOT  # noqa: E402
 @pytest.fixture
 def app(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "none")
+    monkeypatch.setenv("REX_COURSES_PATH", "data/courses.json")   # demo data for this test
     at = AppTest.from_file(str(PROJECT_ROOT / "app.py"), default_timeout=30)
     at.run()
     return at
