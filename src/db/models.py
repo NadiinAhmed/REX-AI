@@ -10,10 +10,10 @@ Design rules
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from enum import Enum
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -109,6 +109,39 @@ class LeadRecord(Base):
     status: Mapped[str] = mapped_column(String(20), default="new")    # new / contacted / closed
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
+
+class RfpOpportunityRecord(Base):
+    """A relevant Egypt / Saudi tender found by Agent 2 (RFP Research). Added in migration 0002.
+
+    Only screened opportunities are stored: out-of-market, expired and unrelated listings are
+    reported by the scan but never saved. `dedup_key` makes re-scans idempotent.
+    """
+    __tablename__ = "rfp_opportunities"
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)            # "RFP-1A2B3C"
+    dedup_key: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    title: Mapped[str] = mapped_column(String(500))
+    title_norm: Mapped[str] = mapped_column(String(500))                    # for near-duplicate checks
+    issuing_organization: Mapped[str | None] = mapped_column(String(300))
+    country: Mapped[str] = mapped_column(String(10), index=True)            # "EG" | "SA"
+    deadline: Mapped[date | None] = mapped_column(Date, index=True)
+    publication_date: Mapped[date | None] = mapped_column(Date)
+    categories: Mapped[list] = mapped_column(JSON, default=list)
+    description: Mapped[str] = mapped_column(Text, default="")
+    eligibility: Mapped[str | None] = mapped_column(Text)
+    submission_link: Mapped[str | None] = mapped_column(String(1000))
+    documents: Mapped[list] = mapped_column(JSON, default=list)
+    source_name: Mapped[str] = mapped_column(String(200))
+    language: Mapped[str] = mapped_column(String(5), default="en")
+    summary: Mapped[str] = mapped_column(Text, default="")
+    summary_mode: Mapped[str] = mapped_column(String(20), default="deterministic")
+    fit: Mapped[str | None] = mapped_column(String(20))
+    fit_reasons: Mapped[list] = mapped_column(JSON, default=list)
+    matched_course_ids: Mapped[list] = mapped_column(JSON, default=list)
+    status: Mapped[str] = mapped_column(String(30), index=True)
+    synthetic: Mapped[bool] = mapped_column(Boolean, default=False)
+    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    alerted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 class EvaluationRunRecord(Base):
     __tablename__ = "evaluation_runs"
