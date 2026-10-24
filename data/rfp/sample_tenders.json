@@ -1,0 +1,162 @@
+{
+  "feed": {
+    "name": "REX AI demo tender feed",
+    "synthetic": true,
+    "notice": "SYNTHETIC demo feed: every listing, organization and link below is invented to test the RFP agent's rules. None of them is a real tender. Replace RFP_FEED_PATH with a curated export of real listings before any business use."
+  },
+  "tenders": [
+    {
+      "title": "Capacity building programme in data analysis and AI for government employees",
+      "organization": "Nile Valley Digital Skills Authority (fictional)",
+      "country": "Egypt",
+      "deadline": "2026-11-20",
+      "published": "2026-10-12",
+      "description": "Design and delivery of a 12-week training programme in data analysis, machine learning and AI fundamentals for 200 public-sector employees in Cairo. Blended delivery with hands-on workshops and a final project.",
+      "eligibility": "Registered training provider. Commercial registration required. Minimum 3 years of experience delivering technical training.",
+      "category": "Education & Training",
+      "link": "https://example.com/demo-tenders/eg-001",
+      "documents": ["Terms of reference (PDF)", "Bill of quantities (XLSX)"],
+      "source": "demo-feed"
+    },
+    {
+      "title": "Software testing and QA automation training for the national e-government team",
+      "organization": "Delta Digital Services Agency (fictional)",
+      "country": "مصر",
+      "deadline": "05/12/2026",
+      "published": "18/10/2026",
+      "description": "Professional development bootcamp on software testing, test automation with Selenium and Playwright, and quality assurance practices for 40 engineers. Delivered in Cairo.",
+      "eligibility": "Training provider with a published software testing curriculum and named instructors.",
+      "link": "https://example.com/demo-tenders/eg-002",
+      "documents": ["Request for proposal (PDF)"],
+      "source": "demo-feed"
+    },
+    {
+      "title": "مناقصة لتقديم برنامج تدريبي في تطوير تطبيقات الموبايل باستخدام فلاتر",
+      "organization": "هيئة الإسكندرية للتعليم التقني (جهة وهمية)",
+      "country": "",
+      "deadline": "١٥ ديسمبر ٢٠٢٦",
+      "published": "2026-10-20",
+      "description": "تقديم دورات تدريبية لخريجي الجامعات في الإسكندرية في تطوير تطبيقات الموبايل باستخدام Flutter و Dart لمدة ثمانية أسابيع.",
+      "eligibility": "شركة مسجلة في مصر ولديها سابقة أعمال في مشاريع مماثلة.",
+      "link": "https://example.com/demo-tenders/eg-003",
+      "documents": ["كراسة الشروط"],
+      "source": "demo-feed"
+    },
+    {
+      "title": "Capacity building program in data analysis & AI for government employees",
+      "organization": "Nile Valley Digital Skills Authority (fictional)",
+      "country": "Egypt",
+      "deadline": "2026-11-20",
+      "published": "2026-10-14",
+      "description": "Re-posted listing of the same programme on a second portal.",
+      "eligibility": "Registered training provider.",
+      "link": "https://example.com/demo-portal-b/eg-001-repost",
+      "documents": [],
+      "source": "demo-feed"
+    },
+    {
+      "title": "Leadership development workshops for school principals",
+      "organization": "Upper Egypt Education Directorate (fictional)",
+      "country": "Egypt",
+      "deadline": "2026-09-30",
+      "published": "2026-09-01",
+      "description": "Professional development workshops for 150 school principals in Assiut.",
+      "eligibility": "Accredited training provider.",
+      "link": "https://example.com/demo-tenders/eg-004",
+      "documents": [],
+      "source": "demo-feed"
+    },
+    {
+      "title": "Supply and installation of IT hardware and network equipment",
+      "organization": "Giza Governorate IT Directorate (fictional)",
+      "country": "Egypt",
+      "deadline": "2026-11-30",
+      "published": "2026-10-15",
+      "description": "Supply of 300 laptops, servers and network switches including installation and warranty.",
+      "eligibility": "Authorized hardware distributor.",
+      "link": "https://example.com/demo-tenders/eg-005",
+      "documents": [],
+      "source": "demo-feed"
+    },
+    {
+      "title": "Full stack web development upskilling programme for university graduates",
+      "organization": "Riyadh Future Skills Programme (fictional)",
+      "country": "Saudi Arabia",
+      "deadline": "Dec 10, 2026",
+      "published": "2026-10-16",
+      "description": "Reskilling programme in full stack web development with .NET and React for 120 graduates in Riyadh, including a capstone project.",
+      "eligibility": "Licensed by TVTC. Saudization (Nitaqat) compliance required. Bank guarantee of 2% of the bid value.",
+      "link": "https://example.com/demo-tenders/sa-001",
+      "documents": ["Scope of work (PDF)"],
+      "source": "demo-feed"
+    },
+    {
+      "title": "Corporate learning: data engineering training for bank staff",
+      "organization": "Gulf Coast Financial Academy (fictional)",
+      "country": "KSA",
+      "deadline": "2026-12-01",
+      "published": "2026-10-19",
+      "description": "Employee training in data engineering, ETL pipelines, Spark and Airflow for 60 analysts in Jeddah.",
+      "eligibility": "At least 5 years of experience in corporate training.",
+      "link": "https://example.com/demo-tenders/sa-002",
+      "documents": [],
+      "source": "demo-feed"
+    },
+    {
+      "title": "Digital transformation training for municipal staff",
+      "organization": "Eastern Province Municipal Services (fictional)",
+      "country": "",
+      "deadline": "1448/06/20 هـ",
+      "published": "",
+      "description": "Training courses on digital transformation and e-government services for staff in Dammam.",
+      "eligibility": null,
+      "link": "https://example.com/demo-tenders/sa-003",
+      "documents": [],
+      "source": "demo-feed"
+    },
+    {
+      "title": "Cybersecurity awareness training for employees",
+      "organization": "Emirates Learning Hub (fictional)",
+      "country": "United Arab Emirates",
+      "deadline": "2026-11-25",
+      "published": "2026-10-10",
+      "description": "Employee training on cybersecurity awareness in Dubai.",
+      "eligibility": "",
+      "link": "https://example.com/demo-tenders/ae-001",
+      "documents": [],
+      "source": "demo-feed"
+    },
+    {
+      "title": "Teacher training framework contract",
+      "organization": "Northern Europe Education Agency (fictional)",
+      "country": "Germany",
+      "deadline": "2026-12-15",
+      "published": "2026-10-01",
+      "description": "Professional development for teachers.",
+      "eligibility": "",
+      "link": "https://example.com/demo-tenders/eu-001",
+      "documents": [],
+      "source": "demo-feed"
+    },
+    {
+      "title": "Regional training programme on cloud skills",
+      "organization": "Middle East Skills Network (fictional)",
+      "country": "",
+      "deadline": "2026-12-20",
+      "published": "2026-10-11",
+      "description": "Cloud skills training delivered in both Cairo and Riyadh.",
+      "eligibility": "",
+      "link": "https://example.com/demo-tenders/multi-001",
+      "documents": [],
+      "source": "demo-feed"
+    },
+    {
+      "title": "",
+      "organization": "Unknown",
+      "country": "Egypt",
+      "deadline": "2026-12-01",
+      "description": "Listing with no title.",
+      "source": "demo-feed"
+    }
+  ]
+}
