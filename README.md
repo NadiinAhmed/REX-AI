@@ -6,7 +6,7 @@ catalog and one knowledge base. **Agent 1 — REX Assistant — is implemented**
 | Agent | Status |
 |---|---|
 | REX Assistant — bilingual course advisor with document RAG, MCP and lead capture | ✅ implemented |
-| Educational RFP Research Agent | 🕓 planned |
+| Educational RFP Research Agent — Egypt & Saudi training tenders: strict market filter, expiry, duplicates, fit, dashboard | ✅ implemented ([docs](docs/rfp_agent.md)) |
 | Curriculum Research & Accreditation Agent | 🕓 planned |
 | Educational Content & Document Generation Agent | 🕓 planned |
 | AI Marketing Agent | 🕓 planned |
@@ -67,6 +67,12 @@ deterministic one and is labelled. **Live calls were not tested in the build env
 | 8 | `عايز اشتغل مطور فلاتر` | Arabic answer, Flutter (TRK-002) |
 | 9 | `What programs do you offer?` | all 5 tracks |
 | 10 | `register` → `yes` → `Sara Ahmed, sara@example.com` | consent, then saved (see Leads page) |
+
+## RFP Research (Agent 2)
+Sidebar → **RFP Opportunities** → *Run scan*. Egypt tenders are flagged for immediate review, Saudi
+tenders go to the monitored pipeline, everything else is excluded with a reason. The default feed
+(`data/rfp/sample_tenders.json`) is **synthetic** demo data. Chat commands: `scan`, `egypt`, `saudi`,
+`RFP-XXXXXX` (Arabic: `ابحث`, `مصر`, `السعودية`). Details: [docs/rfp_agent.md](docs/rfp_agent.md).
 
 ## Documentation
 [Architecture](docs/architecture.md) · [RAG workflow](docs/rag_workflow.md) ·
