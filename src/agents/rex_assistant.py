@@ -189,6 +189,11 @@ class RexAssistant(Agent):
 
         turn = extract_profile(message)
         attributes = self._asked_attributes(message)
+        # Bug B7: in "how many hours?" or "بكام الكورس ده؟" the leftover words ("many", "ده")
+        # looked like a new topic and replaced the course being discussed. When the turn asks
+        # about a course attribute, leftover words that match no course are noise, not a topic.
+        if attributes and turn.has_topic() and not self._retriever.search(turn.search_query(), top_k=1):
+            turn = turn.model_copy(update={"interests": [], "career_goal": None})
         course, explicit = self._referenced_course(message, last_ids)
         out |= {"turn": turn, "attributes": attributes, "course": course, "explicit_course": explicit}
 

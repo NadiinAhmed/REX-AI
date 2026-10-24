@@ -10,7 +10,9 @@
 | B5 | "analyze sales numbers" no match | keyword retrieval limit | partly: synonyms; fully needs semantic embeddings |
 | B6 | `.gitignore` lines in UTF-16 | encoding | rewritten as UTF-8 |
 | — | `replace()` kept the old filename (found by new tests) | wrong default | uses the new file's name |
+| B7 | after a recommendation, "how many hours?" / "بكام الكورس ده؟" → "not found in the documents" | leftover question words ("many", "كم", "ده") became a new topic and replaced the course | on attribute questions, leftover words that match no course are ignored (`tests/test_followup_regressions.py`) |
 
 ## Still open
+- Course names are only recognised by their **full** title or ID ("the data science track" is not matched to "Data Science, AI & Machine Learning"). Learners can use the code, e.g. TRK-005.
 `docs/ROLE_3_ARCHITECTURE_INTEGRATION_QA_GUIDE.md` is still tracked although other role guides were
 removed; README/RACI no longer use role ownership in new docs. Deleting the file is a team decision.
