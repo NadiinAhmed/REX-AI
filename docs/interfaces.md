@@ -73,3 +73,12 @@ create_llm_service(settings) -> tuple[LLMService | None, str]   # never raises f
 | `AgentNotImplementedError`, `UnknownAgentError` | `AgentRegistry` | caller |
 
 Logs record intent, language, mode and course IDs. They never record message text, API keys or contact details.
+
+## Sprint 2 changes (agreed shared-interface updates)
+- `SourceReference` now describes either a course record or a document page:
+  `source_type` ("course" | "document"), `course_id` (optional), `document_id`, `filename`, `page`, `score`,
+  and `label()` for display. Existing course sources are unchanged.
+- `Course` gained optional `tools`, `capstone`, `deliverables` (defaults keep old data valid).
+- `RexAssistant(retriever, llm=None, dataset_notice="", top_k=3, passages=None, lead_service=None)`:
+  the two new arguments are optional; old callers work unchanged.
+- `CourseRetriever` now has three implementations: `KeywordRetriever` (direct) and `McpCourseRetriever` (over MCP).

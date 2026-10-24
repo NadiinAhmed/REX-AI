@@ -1,0 +1,64 @@
+# Shared database schema
+
+SQLite via SQLAlchemy 2, migrations with Alembic (`migrations/versions/0001_initial_shared_schema.py`).
+The app migrates automatically at start-up; manually: `alembic upgrade head`.
+
+**Why SQLite:** no server, one file, enough for a single-process Streamlit MVP and a three-person team.
+Moving to PostgreSQL is a `DATABASE_URL` change (the models use portable types).
+
+```mermaid
+erDiagram
+    catalog_meta ||--o{ courses : "describes loaded dataset"
+    documents ||--o{ document_chunks : "cascade delete"
+    courses {
+        string course_id PK
+        string title
+        string department
+        string skill_level
+        string delivery_format
+        bool approved
+        json data "full validated Course record"
+    }
+    documents {
+        string id PK
+        string filename
+        string sha256 UK "duplicate detection"
+        string approval_status "pending|approved|rejected"
+        string index_status "pending|indexed|failed"
+        string embedding_model
+    }
+    document_chunks {
+        string id PK "= vector id"
+        string document_id FK
+        int page
+        int chunk_index
+        text text
+    }
+    leads {
+        string id PK
+        string name
+        string email
+        string phone
+        json interested_course_ids
+        datetime consent_given_at
+        string consent_version
+    }
+    evaluation_runs {
+        string id PK
+        json config
+        json summary
+        string results_path
+    }
+```
+
+| Table | Owner today | Future users |
+|---|---|---|
+| `courses`, `catalog_meta` | Agent 1 | Curriculum, Document Generation, Marketing (read) |
+| `documents`, `document_chunks` | knowledge base | Curriculum (standards), Document Generation (templates) |
+| `leads` | Agent 1 (only after consent) | Marketing follow-up (human-approved) |
+| `evaluation_runs` | evaluation | all agents' evaluations |
+
+Planned (added by migration when each agent starts, referencing `courses.course_id`): `curricula`,
+`generated_documents`, `rfp_opportunities`, `marketing_contents` (with `approval_status`).
+
+**Rule:** only `src/db/repositories.py` reads or writes these tables.
