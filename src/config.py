@@ -87,6 +87,9 @@ class Settings:
     course_backend: str = "direct"
     mcp_timeout_seconds: float = 20.0
     admin_password: str | None = field(default=None, repr=False)
+    # --- Agent 2: RFP research -----------------------------------------------------------
+    rfp_feed_path: Path = PROJECT_ROOT / "data" / "rfp" / "sample_tenders.json"
+    rfp_llm_summaries: bool = False      # off by default: one LLM call per new tender
     log_level: str = "INFO"
 
     @property
@@ -151,5 +154,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         course_backend=_choice(env, "COURSE_BACKEND", "direct", SUPPORTED_COURSE_BACKENDS),
         mcp_timeout_seconds=_number(env, "MCP_TIMEOUT_SECONDS", "20", minimum=1),
         admin_password=env.get("ADMIN_PASSWORD") or None,
+        rfp_feed_path=_path(env, "RFP_FEED_PATH", "data/rfp/sample_tenders.json"),
+        rfp_llm_summaries=_choice(env, "RFP_LLM_SUMMARIES", "off", ("on", "off")) == "on",
         log_level=env.get("LOG_LEVEL", "INFO").upper(),
     )

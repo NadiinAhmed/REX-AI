@@ -48,6 +48,7 @@ class AppContext:
     leads: LeadRepository | None = None
     course_backend_status: str = "direct"
     warnings: list[str] = field(default_factory=list)
+    rfp_repository: object | None = None       # RfpRepository (Agent 2 dashboard)
 
 
 def load_course_catalog(settings: Settings, courses: CourseRepository) -> tuple[DatasetInfo, list[str]]:
@@ -147,6 +148,29 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
     registry.register(RexAssistant(
         retriever=retriever, llm=llm, dataset_notice=dataset.notice,
         passages=knowledge.passages if knowledge else None, lead_service=LeadService(leads)))
+    rfp_repository = register_rfp_agent(registry, settings, db, retriever, llm, warnings)
     return AppContext(registry=registry, dataset=dataset, course_count=len(retriever.all_courses()),
                       llm_status=status, settings=settings, database=db, courses=courses, knowledge=knowledge,
-                      rag_status=rag_status, leads=leads, course_backend_status=backend_status, warnings=warnings)
+                      rag_status=rag_status, leads=leads, course_backend_status=backend_status, warnings=warnings,
+                      rfp_repository=rfp_repository)
+
+
+def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database,
+                       courses: CourseRetriever, llm: LLMService | None, warnings: list[str]):
+    """Agent 2: tender feed → scan pipeline → shared DB. Its problems never stop the rest of the app."""
+    try:
+        from src.agents.rfp_research import RfpResearchAgent
+        from src.db.rfp_repository import RfpRepository
+        from src.rfp.pipeline import RfpScanPipeline
+        from src.rfp.sources import JsonFileSource
+
+        repository = RfpRepository(db)
+        pipeline = RfpScanPipeline(
+            sources=[JsonFileSource(settings.rfp_feed_path)], repository=repository,
+            courses=courses.all_courses, llm=llm if settings.rfp_llm_summaries else None)
+        registry.register(RfpResearchAgent(pipeline, repository))
+        return repository
+    except Exception as exc:
+        logger.exception("RFP research agent unavailable")
+        warnings.append(f"RFP research agent unavailable: {exc}")
+        return None
