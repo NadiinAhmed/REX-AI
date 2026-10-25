@@ -1,0 +1,160 @@
+{
+  "framework_id": "data-eng-lifecycle",
+  "name": "Data engineering lifecycle (practitioner reference)",
+  "issuer": "Practitioner literature (not a standards body)",
+  "kind": "practice_framework",
+  "status": "reference_checklist",
+  "verified": false,
+  "source_url": null,
+  "notice": "Reference checklist assembled by the REX AI team from the framework's publicly known area names. The wording and search keywords are the team's, NOT the issuer's text, and nothing here has been verified by the issuer. Use it to find possible gaps; check the official source before relying on it.",
+  "suggested_for_departments": [
+    "Data"
+  ],
+  "areas": [
+    {
+      "id": "1",
+      "title": "Source systems and data generation",
+      "keywords": [
+        "source systems",
+        "apis",
+        "data sources",
+        "cdc",
+        "connectors",
+        "file formats"
+      ],
+      "expected_outcome": "Understand the systems data comes from."
+    },
+    {
+      "id": "2",
+      "title": "Ingestion",
+      "keywords": [
+        "ingestion",
+        "batch",
+        "streaming",
+        "kafka",
+        "etl",
+        "elt",
+        "cdc",
+        "incremental"
+      ],
+      "expected_outcome": "Move data reliably into the platform."
+    },
+    {
+      "id": "3",
+      "title": "Transformation",
+      "keywords": [
+        "transformation",
+        "dbt",
+        "spark",
+        "sql",
+        "data modeling",
+        "pyspark",
+        "analytics engineering"
+      ],
+      "expected_outcome": "Transform raw data into usable models."
+    },
+    {
+      "id": "4",
+      "title": "Storage",
+      "keywords": [
+        "storage",
+        "data lake",
+        "lakehouse",
+        "warehouse",
+        "parquet",
+        "delta lake",
+        "nosql",
+        "database design"
+      ],
+      "expected_outcome": "Choose and design storage layers."
+    },
+    {
+      "id": "5",
+      "title": "Serving",
+      "keywords": [
+        "serving",
+        "analytics",
+        "bi",
+        "feature pipelines",
+        "data products",
+        "machine learning"
+      ],
+      "expected_outcome": "Serve data to analytics, BI and ML."
+    },
+    {
+      "id": "6",
+      "title": "Security",
+      "keywords": [
+        "security",
+        "access control",
+        "encryption",
+        "privacy",
+        "governance"
+      ],
+      "expected_outcome": "Protect data across the lifecycle."
+    },
+    {
+      "id": "7",
+      "title": "Data management",
+      "keywords": [
+        "data quality",
+        "governance",
+        "lineage",
+        "master data",
+        "metadata",
+        "interoperability"
+      ],
+      "expected_outcome": "Govern quality, lineage and master data."
+    },
+    {
+      "id": "8",
+      "title": "DataOps",
+      "keywords": [
+        "dataops",
+        "ci/cd",
+        "monitoring",
+        "observability",
+        "infrastructure as code"
+      ],
+      "expected_outcome": "Automate, monitor and operate data systems."
+    },
+    {
+      "id": "9",
+      "title": "Data architecture",
+      "keywords": [
+        "architecture",
+        "distributed systems",
+        "cloud data platforms",
+        "lakehouse",
+        "trade-offs",
+        "cost-aware"
+      ],
+      "expected_outcome": "Design fit-for-purpose, cost-aware architectures."
+    },
+    {
+      "id": "10",
+      "title": "Orchestration",
+      "keywords": [
+        "orchestration",
+        "airflow",
+        "scheduling",
+        "dags",
+        "workflow"
+      ],
+      "expected_outcome": "Schedule and coordinate pipelines."
+    },
+    {
+      "id": "11",
+      "title": "Software engineering practice",
+      "keywords": [
+        "python",
+        "testable",
+        "code quality",
+        "version control",
+        "terraform",
+        "docker"
+      ],
+      "expected_outcome": "Apply software engineering discipline to data code."
+    }
+  ]
+}

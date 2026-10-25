@@ -1,0 +1,102 @@
+{
+  "framework_id": "crisp-dm",
+  "name": "CRISP-DM data-mining process (six phases)",
+  "issuer": "CRISP-DM public methodology",
+  "kind": "process_model",
+  "status": "reference_checklist",
+  "verified": false,
+  "source_url": null,
+  "notice": "Reference checklist assembled by the REX AI team from the framework's publicly known area names. The wording and search keywords are the team's, NOT the issuer's text, and nothing here has been verified by the issuer. Use it to find possible gaps; check the official source before relying on it.",
+  "suggested_for_departments": [
+    "Artificial Intelligence",
+    "Data"
+  ],
+  "areas": [
+    {
+      "id": "1",
+      "title": "Business Understanding",
+      "keywords": [
+        "business understanding",
+        "business requirements",
+        "problem framing",
+        "success criteria",
+        "stakeholder",
+        "use case"
+      ],
+      "expected_outcome": "Translate a business problem into a data-science task with measurable success criteria."
+    },
+    {
+      "id": "2",
+      "title": "Data Understanding",
+      "keywords": [
+        "data understanding",
+        "exploratory data analysis",
+        "eda",
+        "data profiling",
+        "data quality",
+        "data collection",
+        "data sources"
+      ],
+      "expected_outcome": "Collect and explore data and assess its quality."
+    },
+    {
+      "id": "3",
+      "title": "Data Preparation",
+      "keywords": [
+        "data preparation",
+        "feature engineering",
+        "data cleaning",
+        "preprocessing",
+        "etl",
+        "feature stores",
+        "data pipeline",
+        "data extraction"
+      ],
+      "expected_outcome": "Prepare analysis-ready datasets and features reproducibly."
+    },
+    {
+      "id": "4",
+      "title": "Modeling",
+      "keywords": [
+        "modeling",
+        "model training",
+        "machine learning",
+        "fine-tuning",
+        "algorithm",
+        "neural",
+        "rag"
+      ],
+      "expected_outcome": "Select, train and tune models."
+    },
+    {
+      "id": "5",
+      "title": "Evaluation",
+      "keywords": [
+        "evaluation",
+        "metrics",
+        "model evaluation",
+        "validation",
+        "ragas",
+        "g-eval",
+        "benchmark"
+      ],
+      "expected_outcome": "Evaluate models against the business criteria before release."
+    },
+    {
+      "id": "6",
+      "title": "Deployment",
+      "keywords": [
+        "deployment",
+        "inference",
+        "serving",
+        "mlops",
+        "monitoring",
+        "drift",
+        "ci/cd",
+        "fastapi",
+        "bentoml"
+      ],
+      "expected_outcome": "Deploy, monitor and maintain a model in production."
+    }
+  ]
+}

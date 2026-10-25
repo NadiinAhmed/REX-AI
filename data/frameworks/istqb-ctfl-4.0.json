@@ -1,0 +1,110 @@
+{
+  "framework_id": "istqb-ctfl-4.0",
+  "name": "ISTQB Certified Tester Foundation Level v4.0 (syllabus areas)",
+  "issuer": "ISTQB",
+  "kind": "certification_syllabus",
+  "status": "reference_checklist",
+  "verified": false,
+  "source_url": "https://www.istqb.org/",
+  "notice": "Reference checklist assembled by the REX AI team from the framework's publicly known area names. The wording and search keywords are the team's, NOT the issuer's text, and nothing here has been verified by the issuer. Use it to find possible gaps; check the official source before relying on it.",
+  "suggested_for_departments": [
+    "Software Quality Assurance"
+  ],
+  "areas": [
+    {
+      "id": "1",
+      "title": "Fundamentals of Testing",
+      "keywords": [
+        "testing principles",
+        "test objectives",
+        "fundamentals of testing",
+        "quality assurance",
+        "qa",
+        "defect",
+        "test process",
+        "test strategy"
+      ],
+      "expected_outcome": "Explain the objectives, principles and process of software testing and its relation to quality."
+    },
+    {
+      "id": "2",
+      "title": "Testing Throughout the Software Development Lifecycle",
+      "keywords": [
+        "ci/cd",
+        "shift-left",
+        "sdlc",
+        "agile",
+        "devops",
+        "test levels",
+        "integration testing",
+        "regression testing",
+        "contract testing",
+        "pipeline"
+      ],
+      "expected_outcome": "Place testing activities correctly inside agile and DevOps delivery pipelines and across test levels."
+    },
+    {
+      "id": "3",
+      "title": "Static Testing",
+      "keywords": [
+        "static testing",
+        "code review",
+        "static analysis",
+        "dependency scanning",
+        "linting",
+        "review"
+      ],
+      "expected_outcome": "Apply reviews and static analysis to find defects before code is executed."
+    },
+    {
+      "id": "4",
+      "title": "Test Analysis and Design",
+      "keywords": [
+        "test design",
+        "test analysis",
+        "equivalence partitioning",
+        "boundary value",
+        "test cases",
+        "risk-based testing",
+        "test generation",
+        "test coverage",
+        "black-box"
+      ],
+      "expected_outcome": "Derive test conditions and test cases using black-box, white-box and experience-based techniques."
+    },
+    {
+      "id": "5",
+      "title": "Managing the Test Activities",
+      "keywords": [
+        "test planning",
+        "test management",
+        "risk-based",
+        "test strategy",
+        "defect management",
+        "test estimation",
+        "governance",
+        "test plan",
+        "test data management",
+        "reporting"
+      ],
+      "expected_outcome": "Plan, monitor and report test activities, manage risk and defects."
+    },
+    {
+      "id": "6",
+      "title": "Test Tools",
+      "keywords": [
+        "test automation",
+        "playwright",
+        "cypress",
+        "selenium",
+        "appium",
+        "jmeter",
+        "k6",
+        "browserstack",
+        "automation framework",
+        "test tools"
+      ],
+      "expected_outcome": "Select and use tools that support test management and automation."
+    }
+  ]
+}
