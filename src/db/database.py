@@ -66,7 +66,10 @@ class Database:
             session.close()
 
     def migrate(self) -> None:
-        """Upgrade the schema to the latest Alembic revision."""
+        """Upgrade the schema to the latest Alembic revision(s).
+
+        Agents add migrations on their own branches, so two PRs can briefly create two heads;
+        upgrading to 'heads' applies both. Add a merge revision (`alembic merge heads`) when convenient."""
         from alembic import command
         from alembic.config import Config
 
@@ -76,7 +79,7 @@ class Database:
         try:
             with self.engine.begin() as connection:
                 cfg.attributes["connection"] = connection   # reuse our engine (needed for :memory:)
-                command.upgrade(cfg, "head")
+                command.upgrade(cfg, "heads")   # "heads": parallel agent branches never block start-up
         except Exception as exc:
             raise DatabaseError(f"Database migration failed: {exc}") from exc
         logger.info("Database schema is up to date")
