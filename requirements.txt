@@ -14,3 +14,6 @@ langchain-xai>=1.0,<2         # tested 1.3.0   LLM_PROVIDER=xai (Grok)
 langchain-groq>=1.0,<2        # tested 1.1.3   LLM_PROVIDER=groq
 mcp>=2.3,<3                   # tested 2.3.0   rex-academy MCP server/client (v2 API!)
 anthropic>=0.40,<2            # tested 1.17.0  LLM_PROVIDER=anthropic (optional)
+reportlab>=4,<5               # tested 4.4.10  PDF export (Curriculum + Document Generation agents)
+arabic-reshaper>=3,<4         # tested 3.0.1   Arabic letter shaping in PDFs
+python-bidi==0.4.2            # PINNED: 0.6.x does not mirror brackets in right-to-left text (verified 2026-10-25)
