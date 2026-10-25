@@ -1,0 +1,184 @@
+{
+  "_notice": "Topic wording is transcribed from the approved Andalusia Academy portfolio PDF (page given per track). The portfolio lists topics without saying which module teaches them: the assignment of topics to modules is a proposal by the REX AI team and must be confirmed by the instructor.",
+  "_source": "Andalusia Academy Portfolio 2026-2027",
+  "tracks": {
+    "TRK-001": {
+      "page": "3",
+      "modules": {
+        "Advanced AI & Agentic Testing": [
+          "Agentic Test Generation — Natural Language to Playwright / Cypress",
+          "Self-Healing Automation Scripts — AI-Driven Locator Recovery",
+          "AI-Powered Defect Root-Cause Analysis — Log Intelligence & Pattern Detection",
+          "Predictive Analytics for High-Risk Module Identification"
+        ],
+        "Modern Automation & Infrastructure": [
+          "Shift-Left Integration — Testing in the CI/CD Pipeline via GitHub Actions",
+          "Containerized Testing Environments — Dockerized Test Grids",
+          "Cloud-Native Testing — AWS Device Farm / BrowserStack Orchestration",
+          "Visual Regression Testing — Pixel-Perfect Comparison Tools"
+        ],
+        "Deep-Tech & Performance Testing": [
+          "Contract Testing for Microservices — Pact / Postman Collections",
+          "Load & Scalability Profiling — Distributed JMeter / k6",
+          "Security-First QA — Automated Dependency Scanning & DevSecOps",
+          "API Reliability & Chaos Engineering Basics"
+        ],
+        "Specialized Domain Validation": [
+          "Synthetic Data Generation for Privacy-Compliant Testing",
+          "Accessibility (A11y) Automated Auditing — Lighthouse / Axe-core",
+          "Mobile-Specific Automation — Appium / Flutter Integration Testing",
+          "Cross-Browser & Cross-Platform Compatibility Matrixing"
+        ],
+        "QA Strategy & Governance": [
+          "Risk-Based Testing (RBT) Frameworks",
+          "Test Data Management (TDM) & Masking Strategies"
+        ]
+      },
+      "capstone_topics": []
+    },
+    "TRK-002": {
+      "page": "4",
+      "modules": {
+        "Advanced AI & Intelligence": [
+          "On-Device LLM Integration — AI Toolkit & AI Model Integration",
+          "Vector Databases & Semantic Local Search",
+          "Edge ML Inference — TFLite / Vision AI & other providers",
+          "Natural Language UI — Generative UX Patterns"
+        ],
+        "High-Performance Engineering": [
+          "WebAssembly (WASM) for High-Performance Web",
+          "Impeller Engine Optimization & Shader Warmup",
+          "Background Isolate Orchestration — Heavy Data Processing",
+          "Rive State Machines — Interactive Micro-Animations"
+        ],
+        "Enterprise-Grade Infrastructure": [
+          "Server-Driven UI — Dynamic Remote Layouts",
+          "Offline-First Data Sync — PowerSync / Drift",
+          "Over-the-Air (OTA) Updates — Shorebird Code Push",
+          "Feature Flagging & Remote Config Management"
+        ],
+        "Professional DevOps & Security": [
+          "Automated Visual Regression — Golden Testing",
+          "Hardware-Backed Security — Secure Enclave / Biometrics",
+          "Advanced Observability — Perf-Tracing & Memory Profiling",
+          "CI/CD Build Flavors — Dev / Staging / Prod Orchestration"
+        ],
+        "System Architecture": [
+          "Native Interop — Dart FFI / Rust Bridge",
+          "Micro-Frontend Architecture — Package-Based Modularization"
+        ]
+      },
+      "capstone_topics": []
+    },
+    "TRK-003": {
+      "page": "5",
+      "modules": {
+        "Foundations of Data Engineering & the Modern Data Stack": [
+          "Foundations of Data Engineering — data lifecycle, ingestion, storage, processing, and serving"
+        ],
+        "Distributed Systems Fundamentals": [
+          "Distributed Systems Fundamentals — CAP theorem, replication, sharding, fault tolerance, and consensus basics"
+        ],
+        "Advanced SQL for Data Engineering": [
+          "Advanced SQL — analytical queries, window functions, CTEs, indexing, partitioning, and optimization"
+        ],
+        "Python for Data Engineering": [
+          "Python for Data Engineering — APIs, file formats, Pandas, packaging, and testable pipeline code"
+        ],
+        "Data Modeling & Database Design": [
+          "Data Modeling & Database Design — relational, dimensional, star and snowflake schemas"
+        ],
+        "ETL vs. ELT & Pipeline Design Patterns": [
+          "ETL vs. ELT & Pipeline Patterns — batch, micro-batch, streaming, CDC, and incremental loading"
+        ],
+        "Data Orchestration with Apache Airflow": [
+          "Apache Airflow — DAGs, scheduling, operators, monitoring, alerting, and retries"
+        ],
+        "Big Data Processing with Apache Spark I": [
+          "Apache Spark — DataFrames, Spark SQL, PySpark ETL, partitioning, tuning, and job monitoring"
+        ],
+        "Big Data Processing with Apache Spark II": [],
+        "Data Lakes & Lakehouse Architecture": [
+          "Data Lakes & Lakehouse Architecture — Parquet, Delta Lake, Iceberg, Hudi, and medallion design"
+        ],
+        "Cloud Data Platforms": [
+          "Cloud Data Platforms — storage, warehouses, managed pipelines, and cost-aware architecture"
+        ],
+        "Streaming Data & Real-Time Pipelines": [],
+        "Analytics Engineering with dbt": [],
+        "Master Data Management & Integration Patterns": [],
+        "Data Quality, Governance & Security": [],
+        "Healthcare Data Interoperability & Standards": [],
+        "DataOps, CI/CD & Infrastructure as Code": [],
+        "NoSQL & Alternative Data Stores": [],
+        "MLOps & Feature Pipelines for Data Engineers": []
+      },
+      "capstone_topics": [
+        "Capstone Project & Certification Preparation"
+      ]
+    },
+    "TRK-004": {
+      "page": "7",
+      "modules": {
+        "Web Fundamentals & REST Principles": [
+          "Web Fundamentals — HTTP/HTTPS, REST principles, authentication methods"
+        ],
+        "C# & .NET Core Development": [
+          "C# & .NET Fundamentals — OOP, LINQ, async programming, and the .NET ecosystem",
+          "ASP.NET Core Web API — controllers, middleware, routing, and versioning",
+          "Database Design & EF Core — relational design, migrations, and repository pattern"
+        ],
+        "React 18 & TypeScript Frontend": [
+          "React Fundamentals — components, JSX, hooks, and the React lifecycle",
+          "State Management — Redux Toolkit or Zustand, global vs local state",
+          "Frontend Routing & Forms — React Router, form libraries, and validation",
+          "API Integration & Error Handling — Axios, interceptors, and loading states"
+        ],
+        "Authentication, Testing & Security": [
+          "Authentication & Authorization — JWT, Identity, and role-based access control",
+          "Testing — API testing with xUnit, frontend testing with Jest + Testing Library"
+        ],
+        "Deployment — IIS & Azure": [
+          "Deployment — IIS configuration and Azure App Service overview"
+        ]
+      },
+      "capstone_topics": [
+        "Capstone Application — full-stack project from design to deployment"
+      ]
+    },
+    "TRK-005": {
+      "page": "8",
+      "modules": {
+        "Vector Databases & Semantic Search": [
+          "Vector Databases & Semantic Search — applied retrieval for ML feature lookup and nearest-neighbour search",
+          "Hybrid Data Connectors — integrating real-time and batch data sources into ML training pipelines",
+          "LLM-Based Data Extraction & Annotation — using LLMs to generate labels, parse documents, and augment datasets",
+          "Feature Stores & Data Lineage — managing features at scale with reproducibility and audit trails"
+        ],
+        "RAG Systems & LLM Fine-Tuning": [
+          "RAG (Retrieval-Augmented Generation) Systems — building and evaluating retrieval-augmented LLM architectures",
+          "Model Fine-Tuning — PEFT and LoRA for efficient domain adaptation of large language models",
+          "LLM Evaluation Frameworks — systematic quality measurement using Ragas, G-Eval, and custom metrics"
+        ],
+        "Agentic Workflows & AI Orchestration": [
+          "Agentic Workflows & AI Orchestration — designing multi-agent systems with tool use, memory, and planning",
+          "Object-Oriented Design for ML Systems — structuring ML codebases for maintainability, testing, and scale",
+          "LLM Cost & Guardrail Management — latency budgeting, token optimization, and safe output enforcement"
+        ],
+        "MLOps CI/CD & Observability": [
+          "MLOps CI/CD Pipelines — automating training, evaluation, versioning, and deployment workflows",
+          "AI Observability & Drift Detection — monitoring predictions, input distributions, and model degradation",
+          "Distributed Training & Infrastructure as Code — multi-GPU / multi-node training and cloud provisioning with Terraform",
+          "Automated ML Workflow Orchestration — Airflow, Prefect, and Metaflow for end-to-end ML pipeline automation"
+        ],
+        "Scalable Inference & Deployment": [
+          "Model Serialization — ONNX and TensorRT export for portable, hardware-optimized inference",
+          "Quantization & Model Optimization — reducing model footprint via INT8/FP16 quantization and pruning",
+          "Scalable Inference APIs — FastAPI and BentoML for deploying ML models as production services",
+          "GPU-Accelerated Containerization — Docker and Kubernetes for reproducible, scalable ML environments"
+        ]
+      },
+      "capstone_topics": []
+    }
+  }
+}
