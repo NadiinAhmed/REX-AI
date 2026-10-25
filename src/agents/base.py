@@ -36,8 +36,10 @@ class SourceReference(BaseModel):
     """Where a fact came from: a course record, a page of an approved document, or a tender listing.
 
     Sprint 2 (Agent 2): "tender" added; `reference` holds the listing's link (or feed name).
+    Sprint 2 (Agents 3-4): "framework" (a competency framework checklist) and "curriculum"
+    (a stored curriculum, `reference` = its ID) added.
     """
-    source_type: Literal["course", "document", "tender"] = "course"
+    source_type: Literal["course", "document", "tender", "framework", "curriculum"] = "course"
     reference: str
     course_id: str | None = None
     last_updated: str | None = None
@@ -50,6 +52,8 @@ class SourceReference(BaseModel):
     def label(self) -> str:
         if self.source_type == "document":
             return f"{self.filename}, p.{self.page}"
+        if self.source_type in ("framework", "curriculum"):
+            return self.reference
         if self.source_type == "tender":
             return f"{self.reference} (synthetic demo listing)" if self.synthetic else self.reference
         return f"{self.course_id} ({'synthetic demo data' if self.synthetic else self.reference})"

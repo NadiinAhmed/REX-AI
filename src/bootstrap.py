@@ -49,6 +49,7 @@ class AppContext:
     course_backend_status: str = "direct"
     warnings: list[str] = field(default_factory=list)
     rfp_repository: object | None = None       # RfpRepository (Agent 2 dashboard)
+    curriculum_service: object | None = None   # CurriculumService (Agent 3 page + Agent 4 input)
 
 
 def load_course_catalog(settings: Settings, courses: CourseRepository) -> tuple[DatasetInfo, list[str]]:
@@ -149,10 +150,12 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
         retriever=retriever, llm=llm, dataset_notice=dataset.notice,
         passages=knowledge.passages if knowledge else None, lead_service=LeadService(leads)))
     rfp_repository = register_rfp_agent(registry, settings, db, retriever, llm, warnings)
+    curriculum_service = register_curriculum_agent(registry, db, courses, knowledge.passages if knowledge else None,
+                                                   llm, rfp_repository, warnings)
     return AppContext(registry=registry, dataset=dataset, course_count=len(retriever.all_courses()),
                       llm_status=status, settings=settings, database=db, courses=courses, knowledge=knowledge,
                       rag_status=rag_status, leads=leads, course_backend_status=backend_status, warnings=warnings,
-                      rfp_repository=rfp_repository)
+                      rfp_repository=rfp_repository, curriculum_service=curriculum_service)
 
 
 def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database,
@@ -173,4 +176,24 @@ def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database
     except Exception as exc:
         logger.exception("RFP research agent unavailable")
         warnings.append(f"RFP research agent unavailable: {exc}")
+        return None
+
+
+def register_curriculum_agent(registry: AgentRegistry, db: Database, courses: CourseRepository, passages,
+                              llm: LLMService | None, rfp_repository, warnings: list[str]):
+    """Agent 3: course catalog + approved documents + RFP signals -> curricula -> review -> PDF."""
+    try:
+        from src.agents.curriculum import CurriculumAgent
+        from src.curriculum.frameworks import FrameworkLibrary
+        from src.curriculum.service import CurriculumService
+        from src.curriculum.topics import TrackTopics
+        from src.db.curriculum_repository import CurriculumRepository
+
+        service = CurriculumService(CurriculumRepository(db), courses, FrameworkLibrary.load(), TrackTopics.load(),
+                                    passages=passages, llm=llm, rfp_repository=rfp_repository)
+        registry.register(CurriculumAgent(service, courses))
+        return service
+    except Exception as exc:
+        logger.exception("Curriculum agent unavailable")
+        warnings.append(f"Curriculum agent unavailable: {exc}")
         return None
