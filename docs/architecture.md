@@ -73,3 +73,10 @@ graph TD;
 | `LLMService` (LangChain adapter) | every agent that generates text |
 | `Database`, migrations, repositories | new tables (`curricula`, `generated_documents`, `rfp_opportunities`, `marketing_contents`) are added by migration and reference `courses.course_id` |
 | LangGraph pattern (analyze → route → finalize) | each agent's workflow, and later the multi-agent orchestrator |
+
+## Agent 5 — Marketing Agent
+A LangGraph workflow (parse → facts → strategy → generate ⇄ fact-check → evaluate → save → respond)
+that reuses the shared `Agent` contract, `LLMService`, `CourseRetriever` (direct or MCP), the shared
+database and Alembic. Facts enter only through `CourseFactsProvider`; offers come from the shared
+`course_offers` table; the Curriculum Agent plugs in through `CurriculumSource`. Details:
+[marketing_agent.md](marketing_agent.md).

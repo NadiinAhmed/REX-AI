@@ -1,0 +1,30 @@
+{"id": "c01", "course_id": "TRK-001", "text": "Only 2,000 EGP for the full program!", "expect": ["price"]}
+{"id": "c02", "course_id": "TRK-001", "text": "سعر البرنامج ٣٠٠٠ جنيه فقط", "expect": ["price"]}
+{"id": "c03", "course_id": "TRK-001", "text": "Get 25% off when you register this week", "expect": ["discount"]}
+{"id": "c04", "course_id": "TRK-001", "text": "Limited offer for early birds", "expect": ["offer"]}
+{"id": "c05", "course_id": "TRK-001", "text": "احصل على خصم خاص عند التسجيل", "expect": ["offer"]}
+{"id": "c06", "course_id": "TRK-001", "text": "Classes start on 3 December", "expect": ["schedule"]}
+{"id": "c07", "course_id": "TRK-001", "text": "A 40-hour bootcamp", "expect": ["duration"]}
+{"id": "c08", "course_id": "TRK-003", "text": "Finish Data Engineering in 8 weeks", "expect": ["duration"]}
+{"id": "c09", "course_id": "TRK-001", "text": "Learn online from anywhere", "expect": ["delivery_format"]}
+{"id": "c10", "course_id": "TRK-002", "text": "الدراسة حضوري في مقر الأكاديمية", "expect": ["delivery_format"]}
+{"id": "c11", "course_id": "TRK-001", "text": "An internationally accredited program", "expect": ["certification"]}
+{"id": "c12", "course_id": "TRK-004", "text": "Taught by senior Microsoft engineers", "expect": ["instructor"]}
+{"id": "c13", "course_id": "TRK-001", "text": "No prior experience needed, anyone can join", "expect": ["prerequisites"]}
+{"id": "c14", "course_id": "TRK-005", "text": "Guaranteed job after graduation", "expect": ["forbidden_claim"]}
+{"id": "c15", "course_id": "TRK-005", "text": "نضمن لك وظيفة بعد التخرج", "expect": ["forbidden_claim"]}
+{"id": "c16", "course_id": "TRK-002", "text": "The #1 Flutter course in Egypt", "expect": ["forbidden_claim"]}
+{"id": "c17", "course_id": "TRK-001", "text": "Become a Junior QA Engineer in our 100-hour Software Testing program.", "expect": []}
+{"id": "c18", "course_id": "TRK-001", "text": "Earn an ITI Completion Certificate and build a real capstone.", "expect": []}
+{"id": "c19", "course_id": "TRK-003", "text": "Includes capstone project and certification preparation.", "expect": []}
+{"id": "c20", "course_id": "TRK-002", "text": "Build and ship a Flutter app in 120 hours of training.", "expect": []}
+{"id": "c21", "course_id": "TRK-001", "text": "Join 12 lessons on Tuesday and request the details today.", "expect": []}
+{"id": "c22", "course_id": "TRK-005", "text": "بادر بالتسجيل واطلب تفاصيل البرنامج", "expect": []}
+{"id": "c23", "course_id": "TRK-004", "text": "May your next project be full stack: request the details.", "expect": []}
+{"id": "c24", "course_id": "TRK-002", "text": "Flutter Development: 15% early-bird discount this month", "expect": [], "setup_offer": {"course_id": "TRK-002", "discount_percent": 15}}
+{"id": "c25", "course_id": "TRK-002", "text": "Flutter Development: 20% early-bird discount this month", "expect": ["discount"], "setup_offer": {"course_id": "TRK-002", "discount_percent": 15}}
+{"id": "c26", "course_id": "TRK-001", "text": "Pay just two thousand pounds for everything", "expect": ["price"], "note": "paraphrase: amount written in words (expected rule miss)"}
+{"id": "c27", "course_id": "TRK-001", "text": "Save a third on the fees if you join now", "expect": ["offer"], "note": "paraphrase: discount without the word (expected rule miss)"}
+{"id": "c28", "course_id": "TRK-005", "text": "Your new data science job is waiting for you", "expect": ["forbidden_claim"], "note": "implied guarantee (expected rule miss)"}
+{"id": "c29", "course_id": "TRK-004", "text": "Study from your living room with live sessions", "expect": ["delivery_format"], "note": "paraphrase of online (expected rule miss)"}
+{"id": "c30", "course_id": "TRK-001", "text": "Recognized by employers across the region", "expect": ["certification"], "note": "vague recognition claim (expected rule miss)"}

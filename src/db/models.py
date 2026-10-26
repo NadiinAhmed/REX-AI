@@ -153,3 +153,66 @@ class EvaluationRunRecord(Base):
     dataset_size: Mapped[int] = mapped_column(Integer)
     mean_score: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class DraftStatus(str, Enum):
+    PENDING_REVIEW = "pending_review"   # generated or edited: waiting for a human
+    APPROVED = "approved"               # a named reviewer approved it: may be distributed BY A HUMAN
+    REJECTED = "rejected"
+
+
+class OfferRecord(Base):
+    """An approved, dated offer. SHARED by REX Assistant and the Marketing Agent.
+
+    `course_id` has no hard foreign key on purpose: `CourseRepository.replace_catalog()` deletes and
+    re-inserts all courses, which a FK would block (or cascade-delete the offers). Services validate
+    course ids instead, like `leads.interested_course_ids`.
+    """
+    __tablename__ = "course_offers"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    course_id: Mapped[str] = mapped_column(String(20), index=True)
+    title_en: Mapped[str] = mapped_column(String(200))
+    title_ar: Mapped[str | None] = mapped_column(String(200))
+    discount_percent: Mapped[float | None] = mapped_column(Float)
+    price_amount: Mapped[float | None] = mapped_column(Float)
+    currency: Mapped[str | None] = mapped_column(String(3))
+    valid_from: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    valid_until: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    approval_status: Mapped[str] = mapped_column(String(20), default=ApprovalStatus.PENDING.value, index=True)
+    proposed_by: Mapped[str | None] = mapped_column(String(100))
+    approved_by: Mapped[str | None] = mapped_column(String(100))
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class MarketingCampaignRecord(Base):
+    """One generation run. `facts_snapshot` is exactly what the generator was allowed to use."""
+    __tablename__ = "marketing_campaigns"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    course_id: Mapped[str] = mapped_column(String(20), index=True)       # no hard FK: see OfferRecord
+    brief: Mapped[dict] = mapped_column(JSON)
+    strategy: Mapped[dict] = mapped_column(JSON)
+    facts_snapshot: Mapped[dict] = mapped_column(JSON)
+    generator: Mapped[str] = mapped_column(String(100))                   # "llm:groq" | "deterministic"
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    drafts: Mapped[list["MarketingDraftRecord"]] = relationship(
+        back_populates="campaign", cascade="all, delete-orphan", passive_deletes=True)
+
+
+class MarketingDraftRecord(Base):
+    __tablename__ = "marketing_drafts"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    campaign_id: Mapped[str] = mapped_column(ForeignKey("marketing_campaigns.id", ondelete="CASCADE"), index=True)
+    variation_index: Mapped[int] = mapped_column(Integer)
+    platform: Mapped[str] = mapped_column(String(30), index=True)
+    language: Mapped[str] = mapped_column(String(5))
+    content: Mapped[dict] = mapped_column(JSON)            # DraftVariation.model_dump()
+    claim_issues: Mapped[list] = mapped_column(JSON, default=list)
+    evaluation: Mapped[dict] = mapped_column(JSON, default=dict)
+    approval_status: Mapped[str] = mapped_column(String(20), default=DraftStatus.PENDING_REVIEW.value, index=True)
+    edited: Mapped[bool] = mapped_column(Boolean, default=False)
+    reviewed_by: Mapped[str | None] = mapped_column(String(100))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    review_note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    campaign: Mapped[MarketingCampaignRecord] = relationship(back_populates="drafts")

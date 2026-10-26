@@ -98,6 +98,9 @@ class Settings:
     smtp_from: str | None = None
     smtp_starttls: bool = True
     log_level: str = "INFO"
+    # --- Marketing Agent ---------------------------------------------------------------
+    marketing_max_attempts: int = 2          # generate -> fact-check retries per platform
+    marketing_pass_threshold: float = 0.7    # evaluator mean needed to mark a draft "checks passed"
 
     @property
     def email_enabled(self) -> bool:
@@ -174,4 +177,13 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         smtp_from=env.get("SMTP_FROM", "").strip() or None,
         smtp_starttls=_choice(env, "SMTP_STARTTLS", "on", ("on", "off")) == "on",
         log_level=env.get("LOG_LEVEL", "INFO").upper(),
+        marketing_max_attempts=_number(env, "MARKETING_MAX_ATTEMPTS", "2", int, minimum=1),
+        marketing_pass_threshold=_pass_threshold(env),
     )
+
+
+def _pass_threshold(env: dict[str, str]) -> float:
+    value = _number(env, "MARKETING_PASS_THRESHOLD", "0.7", minimum=0)
+    if value > 1:
+        raise ConfigError("MARKETING_PASS_THRESHOLD must be between 0 and 1.")
+    return value

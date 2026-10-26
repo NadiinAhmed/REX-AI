@@ -16,6 +16,11 @@ python -m pytest tests/test_mcp.py -v
 | test_llm_providers.py | Grok (ChatXAI) and Groq (ChatGroq) built via LangChain, missing keys, error normalisation, secrets not in repr |
 | test_mcp.py | tool listing/annotations, schema validation, errors, a real stdio subprocess serving Agent 1, keys not forwarded, fallback |
 | test_integration.py, test_app_ui.py | composition root and headless Streamlit chat |
+| test_marketing_data.py | Agent 5 models, offer validation, migration 0003 up/down, offers survive reseed, atomic campaign save |
+| test_marketing_rules.py | fact-checker EN/AR blocks and allows, brief parser, strategy, facts provider, curriculum interface, evaluation regressions |
+| test_marketing_agent.py | structured output / JSON / malformed / LLM failure, every LangGraph route, retry then drop, approval gate, no publish code, evaluator, judge |
+| test_marketing_mcp.py | `get_active_offers` tool, Agent 5 over a real stdio MCP process, invalid MCP data, unreachable server |
+| test_marketing_ui.py, test_marketing_eval.py | headless Marketing/Offers pages (generate, approve, errors) and the evaluation pipeline |
 
 Test PDFs are generated with reportlab inside the tests.
 
@@ -26,5 +31,7 @@ Test PDFs are generated with reportlab inside the tests.
 4. `COURSE_BACKEND=mcp` in `.env` → sidebar shows "Courses: 5 (MCP …)" and recommendations still work.
 5. Set `LLM_PROVIDER=xai` + key → answers show "LLM-generated"; remove the key → labelled rule-based fallback.
 
+6. Marketing: follow the manual check in `docs/marketing_agent.md` §10.
+
 ## Not covered by automated tests
-Live Grok/Groq calls, the semantic embedding model, Windows/macOS, browser rendering of Arabic RTL.
+Live Grok/Groq calls (including Agent 5 structured output), the semantic embedding model, Windows/macOS, browser rendering of Arabic RTL.

@@ -17,3 +17,5 @@ data/vectorstore/
 data/uploads/
 evaluation/runs/*
 !evaluation/runs/.gitkeep
+evaluation/marketing/runs/*
+!evaluation/marketing/runs/.gitkeep

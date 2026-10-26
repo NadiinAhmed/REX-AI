@@ -20,6 +20,7 @@ from src.config import PROJECT_ROOT, Settings
 from src.knowledge_base.retriever import CourseFilters, RetrievalResult
 from src.knowledge_base.text_utils import normalize_arabic
 from src.models.course import Course
+from src.models.offer import Offer
 from src.utils.logging_config import get_logger
 
 logger = get_logger("mcp.client")
@@ -186,5 +187,32 @@ class McpCourseRetriever:
     def all_courses(self) -> list[Course]:
         return list(self._courses)
 
+    @property
+    def client(self) -> AcademyMcpClient:
+        """The open MCP connection, so other adapters (e.g. offers) reuse it instead of opening another."""
+        return self._client
+
     def close(self) -> None:
         self._client.close()
+
+
+class McpOfferReader:
+    """`OfferReader` over the rex-academy MCP server (tool: get_active_offers). Validates every offer.
+
+    The server decides what is active "today"; asking for another date is not supported over MCP.
+    """
+
+    def __init__(self, client: AcademyMcpClient) -> None:
+        self._client = client
+
+    def active_offers(self, course_id: str, on=None) -> list[Offer]:
+        if on is not None:
+            raise McpError("get_active_offers over MCP only supports today's date.")
+        data = self._client.call("get_active_offers", {"course_id": course_id.strip().upper()})
+        try:
+            return [Offer(id=o["offer_id"], course_id=o["course_id"], title_en=o["title_en"], title_ar=o.get("title_ar"),
+                          discount_percent=o.get("discount_percent"), price_amount=o.get("price_amount"),
+                          currency=o.get("currency"), valid_from=o["valid_from"], valid_until=o["valid_until"],
+                          approval_status="approved") for o in data.get("offers", [])]
+        except (ValidationError, KeyError, TypeError) as exc:
+            raise McpError(f"MCP server returned an invalid offer: {exc}") from exc
