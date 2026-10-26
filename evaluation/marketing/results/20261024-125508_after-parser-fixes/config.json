@@ -1,0 +1,14 @@
+{
+  "label": "after-parser-fixes",
+  "git_commit": "e8c17b0",
+  "dataset_size": 20,
+  "checker_cases": 30,
+  "generation": "deterministic templates (LLM not used for generation)",
+  "judge": null,
+  "llm_provider": "none",
+  "llm_model": "",
+  "max_attempts": 2,
+  "pass_threshold": 0.7,
+  "catalog": "data/courses_official.json",
+  "overrides": {}
+}

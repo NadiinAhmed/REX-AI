@@ -62,3 +62,48 @@ Planned (added by migration when each agent starts, referencing `courses.course_
 `generated_documents`, `rfp_opportunities`, `marketing_contents` (with `approval_status`).
 
 **Rule:** only `src/db/repositories.py` reads or writes these tables.
+
+## Agent 5 tables (migration `0003_marketing_and_offers`)
+
+```mermaid
+erDiagram
+    marketing_campaigns ||--o{ marketing_drafts : "cascade delete"
+    course_offers {
+        string id PK
+        string course_id "no hard FK (see below)"
+        float discount_percent "exactly one of percent / price"
+        float price_amount
+        string currency
+        datetime valid_from
+        datetime valid_until
+        string approval_status "pending|approved|rejected"
+        string approved_by
+    }
+    marketing_campaigns {
+        string id PK
+        string course_id "no hard FK"
+        json brief
+        json strategy
+        json facts_snapshot "exactly what the generator could use"
+        string generator
+    }
+    marketing_drafts {
+        string id PK
+        string campaign_id FK
+        string platform
+        string language
+        json content
+        json claim_issues
+        json evaluation
+        string approval_status "pending_review|approved|rejected"
+        string reviewed_by
+        datetime reviewed_at
+    }
+```
+
+- `course_offers` is **shared**: REX Assistant (follow-up PR), the Marketing Agent and the MCP tool
+  `get_active_offers` read it through `OfferService`, which returns only approved offers valid today.
+  `courses.promotions` (free text) is never used as an offer.
+- **No hard foreign key on `course_id`**: `CourseRepository.replace_catalog()` deletes and re-inserts all
+  courses, which a FK would block or cascade-delete. Services validate the ids (same as `leads`).
+- Downgrade to `0002` drops only these three tables; the RFP table stays (tested).
