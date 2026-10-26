@@ -24,8 +24,7 @@ def ask(ctx, text, agent="document_generation"):
 def test_agent_is_registered_and_marketing_is_still_planned(ctx):
     status = {a.name: a.status for a in ctx.registry.list_agents()}
     assert status["document_generation"] == AgentStatus.IMPLEMENTED and status["curriculum"] == AgentStatus.IMPLEMENTED
-    assert status["marketing"] == AgentStatus.PLANNED and ctx.document_service is not None and not ctx.warnings
-
+    assert status["marketing"] == AgentStatus.IMPLEMENTED and ctx.document_service is not None and not ctx.warnings
 
 def test_generate_show_and_list_through_chat(ctx):
     r = ask(ctx, "generate a participant guide for TRK-001")

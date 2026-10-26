@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 revision: str = '0004_documents'
-down_revision: Union[str, Sequence[str], None] = '0003_curriculum'
+down_revision: Union[str, Sequence[str], None] = ('0003_curriculum', '0003')
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
