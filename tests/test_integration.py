@@ -17,7 +17,7 @@ def test_app_builds_in_deterministic_mode(ctx):
     assert ctx.course_count >= 5 and ctx.dataset.is_synthetic
     assert "deterministic" in ctx.llm_status
     implemented = [a.name for a in ctx.registry.list_agents() if a.status == AgentStatus.IMPLEMENTED]
-    assert implemented == ["rex_assistant", "rfp_research", "curriculum"]   # Sprint 2: Agents 2 and 3 added
+    assert implemented == ["rex_assistant", "rfp_research", "curriculum", "document_generation"]   # Sprint 2: Agents 2-4 added
 
 
 def test_full_bilingual_conversation_through_registry(ctx):
