@@ -115,6 +115,14 @@ class CurriculumService:
         row = self._repo.latest_approved_for_course(course_id)
         return StoredCurriculum.from_record(row) if row else None
 
+    def draft_for_course(self, course_id: str) -> Curriculum:
+        """An UNSAVED draft built from the catalog (used by Document Generation when no approved curriculum exists)."""
+        course = self._courses.get(course_id)
+        if course is None:
+            raise CurriculumError(f"Course {course_id} is not in the approved catalog.")
+        return build_draft(DraftInputs(request=CurriculumRequest(course_id=course.course_id), course=course,
+                                       detail=self._topics.for_course(course.course_id)))
+
     # ------------------------------------------------------------------ alignment
     def align(self, curriculum_id: str, framework_ids: list[str] | None = None) -> StoredCurriculum:
         stored = self._require(curriculum_id)
