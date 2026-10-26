@@ -82,3 +82,16 @@ Logs record intent, language, mode and course IDs. They never record message tex
 - `RexAssistant(retriever, llm=None, dataset_notice="", top_k=3, passages=None, lead_service=None)`:
   the two new arguments are optional; old callers work unchanged.
 - `CourseRetriever` now has three implementations: `KeywordRetriever` (direct) and `McpCourseRetriever` (over MCP).
+
+## Sprint 2 changes — Agents 3 and 4 (shared-interface updates, need team agreement in the PR)
+- `SourceReference.source_type` accepts two more values: `"framework"` (a competency-framework checklist) and
+  `"curriculum"` (a stored curriculum, `reference` = its ID). `label()` returns `reference` for both. Existing values are unchanged.
+- `Database.migrate()` now runs `alembic upgrade heads` (was `head`) so migrations added on parallel agent branches never block start-up.
+- New table `curricula` (migration `0003_curriculum`); other agents read curricula only through
+  `CurriculumService.approved_for_course(course_id)` (approved versions only).
+- Shared PDF kit `src/pdf/` (`DocumentContent` -> PDF, English + Arabic RTL) is reusable by any agent.
+- New table `generated_documents` (migration `0004_documents`, parent `0003_curriculum`) via `GeneratedDocumentRepository`
+  (`DocumentRepository` already names the RAG document store). Settings gained optional `SMTP_*` values (e-mail is off by default).
+- Agent 4 reads Agent 3 only through `CurriculumService` (`approved_for_course`, `get`, `draft_for_course`).
+- For Marketing (Agent 5): read the approved curriculum with `CurriculumService.approved_for_course(course_id)` and approved
+  documents with `DocumentService.list(status="approved", course_id=...)`; do not read the tables directly.

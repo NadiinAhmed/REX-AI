@@ -1,0 +1,182 @@
+{
+  "framework_id": "swebok-3",
+  "name": "SWEBOK v3 knowledge areas (software-specific areas)",
+  "issuer": "IEEE Computer Society (SWEBOK)",
+  "kind": "body_of_knowledge",
+  "status": "reference_checklist",
+  "verified": false,
+  "source_url": "https://www.computer.org/education/bodies-of-knowledge/software-engineering",
+  "notice": "Reference checklist assembled by the REX AI team from the framework's publicly known area names. The wording and search keywords are the team's, NOT the issuer's text, and nothing here has been verified by the issuer. Use it to find possible gaps; check the official source before relying on it.",
+  "suggested_for_departments": [
+    "Software Development",
+    "Mobile Development"
+  ],
+  "areas": [
+    {
+      "id": "1",
+      "title": "Software Requirements",
+      "keywords": [
+        "requirements",
+        "user stories",
+        "specification",
+        "stakeholder",
+        "use case"
+      ],
+      "expected_outcome": "Elicit, analyse and specify requirements."
+    },
+    {
+      "id": "2",
+      "title": "Software Design",
+      "keywords": [
+        "software design",
+        "architecture",
+        "design patterns",
+        "api design",
+        "modularization",
+        "system architecture",
+        "micro-frontend",
+        "rest"
+      ],
+      "expected_outcome": "Design software structure and interfaces."
+    },
+    {
+      "id": "3",
+      "title": "Software Construction",
+      "keywords": [
+        "programming",
+        "implementation",
+        "web api",
+        "react",
+        "c#",
+        ".net",
+        "flutter",
+        "dart",
+        "typescript",
+        "coding"
+      ],
+      "expected_outcome": "Construct working, maintainable software."
+    },
+    {
+      "id": "4",
+      "title": "Software Testing",
+      "keywords": [
+        "testing",
+        "unit test",
+        "xunit",
+        "jest",
+        "test automation",
+        "golden testing",
+        "visual regression"
+      ],
+      "expected_outcome": "Verify software with planned tests."
+    },
+    {
+      "id": "5",
+      "title": "Software Maintenance",
+      "keywords": [
+        "maintenance",
+        "refactoring",
+        "ota updates",
+        "over-the-air",
+        "updates",
+        "versioning",
+        "migrations"
+      ],
+      "expected_outcome": "Evolve and support software after release."
+    },
+    {
+      "id": "6",
+      "title": "Software Configuration Management",
+      "keywords": [
+        "version control",
+        "git",
+        "ci/cd",
+        "build flavors",
+        "release",
+        "configuration",
+        "github actions"
+      ],
+      "expected_outcome": "Control versions, builds and releases."
+    },
+    {
+      "id": "7",
+      "title": "Software Engineering Management",
+      "keywords": [
+        "project management",
+        "estimation",
+        "planning",
+        "agile",
+        "scrum"
+      ],
+      "expected_outcome": "Plan and manage software work."
+    },
+    {
+      "id": "8",
+      "title": "Software Engineering Process",
+      "keywords": [
+        "devops",
+        "sdlc",
+        "agile",
+        "pipeline",
+        "process",
+        "ci/cd"
+      ],
+      "expected_outcome": "Apply and improve engineering processes."
+    },
+    {
+      "id": "9",
+      "title": "Software Engineering Models and Methods",
+      "keywords": [
+        "uml",
+        "data modeling",
+        "domain model",
+        "modeling",
+        "database design",
+        "oop"
+      ],
+      "expected_outcome": "Use models and methods to build software."
+    },
+    {
+      "id": "10",
+      "title": "Software Quality",
+      "keywords": [
+        "quality",
+        "code quality",
+        "observability",
+        "performance",
+        "profiling",
+        "reliability",
+        "testing"
+      ],
+      "expected_outcome": "Assure and measure software quality."
+    },
+    {
+      "id": "11",
+      "title": "Software Engineering Professional Practice",
+      "keywords": [
+        "security",
+        "authentication",
+        "authorization",
+        "privacy",
+        "documentation",
+        "teamwork",
+        "communication",
+        "ethics"
+      ],
+      "expected_outcome": "Practise professionally: security, documentation, teamwork."
+    },
+    {
+      "id": "12",
+      "title": "Software Engineering Economics",
+      "keywords": [
+        "cost",
+        "cost-aware",
+        "budget",
+        "roi",
+        "trade-offs",
+        "trade-off"
+      ],
+      "expected_outcome": "Reason about cost and value of engineering decisions."
+    }
+  ]
+}

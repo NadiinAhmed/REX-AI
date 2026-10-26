@@ -52,6 +52,8 @@ class AppContext:
     course_backend_status: str = "direct"
     warnings: list[str] = field(default_factory=list)
     rfp_repository: object | None = None       # RfpRepository (Agent 2 dashboard)
+    curriculum_service: object | None = None   # CurriculumService (Agent 3 page + Agent 4 input)
+    document_service: object | None = None     # DocumentService (Agent 4 page)
     offers: OfferService | None = None            # shared approved offers (Agent 1, Agent 5, MCP)
     marketing: MarketingRepository | None = None  # campaigns and drafts
     approvals: object | None = None               # ApprovalService (human review of drafts)
@@ -178,13 +180,18 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
         retriever=retriever, llm=llm, dataset_notice=dataset.notice,
         passages=knowledge.passages if knowledge else None, lead_service=LeadService(leads)))
     rfp_repository = register_rfp_agent(registry, settings, db, retriever, llm, warnings)
+    curriculum_service = register_curriculum_agent(registry, db, courses, knowledge.passages if knowledge else None,
+                                                   llm, rfp_repository, warnings)
+    document_service = register_document_agent(registry, settings, db, courses, curriculum_service, llm, warnings)
     offers = OfferService(OfferRepository(db), courses)
     marketing_agent, marketing_repo, approvals = build_marketing(courses, retriever, offers, db, llm, dataset, settings)
     registry.register(marketing_agent)
     return AppContext(registry=registry, dataset=dataset, course_count=len(retriever.all_courses()),
                       llm_status=status, settings=settings, database=db, courses=courses, knowledge=knowledge,
                       rag_status=rag_status, leads=leads, course_backend_status=backend_status, warnings=warnings,
-                      rfp_repository=rfp_repository, offers=offers, marketing=marketing_repo, approvals=approvals)
+                      rfp_repository=rfp_repository, curriculum_service=curriculum_service,
+                      document_service=document_service, offers=offers, marketing=marketing_repo,
+                      approvals=approvals)
 
 
 def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database,
@@ -206,3 +213,47 @@ def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database
         logger.exception("RFP research agent unavailable")
         warnings.append(f"RFP research agent unavailable: {exc}")
         return None
+
+
+
+def register_curriculum_agent(registry: AgentRegistry, db: Database, courses: CourseRepository, passages,
+                              llm: LLMService | None, rfp_repository, warnings: list[str]):
+    """Agent 3: course catalog + approved documents + RFP signals -> curricula -> review -> PDF."""
+    try:
+        from src.agents.curriculum import CurriculumAgent
+        from src.curriculum.frameworks import FrameworkLibrary
+        from src.curriculum.service import CurriculumService
+        from src.curriculum.topics import TrackTopics
+        from src.db.curriculum_repository import CurriculumRepository
+
+        service = CurriculumService(CurriculumRepository(db), courses, FrameworkLibrary.load(), TrackTopics.load(),
+                                    passages=passages, llm=llm, rfp_repository=rfp_repository)
+        registry.register(CurriculumAgent(service, courses))
+        return service
+    except Exception as exc:
+        logger.exception("Curriculum agent unavailable")
+        warnings.append(f"Curriculum agent unavailable: {exc}")
+        return None
+
+
+def register_document_agent(registry: AgentRegistry, settings: Settings, db: Database, courses: CourseRepository,
+                            curriculum_service, llm: LLMService | None, warnings: list[str]):
+    """Agent 4: approved curriculum (or course record) -> templates -> review -> PDF / e-mail."""
+    if curriculum_service is None:
+        warnings.append("Document Generation agent unavailable: it needs the Curriculum agent.")
+        return None
+    try:
+        from src.agents.document_generation import DocumentGenerationAgent
+        from src.db.document_repository import GeneratedDocumentRepository
+        from src.documents.service import DocumentService
+        from src.services.email_service import EmailService
+
+        service = DocumentService(GeneratedDocumentRepository(db), curriculum_service, courses, llm=llm,
+                                  email=EmailService(settings))
+        registry.register(DocumentGenerationAgent(service, courses))
+        return service
+    except Exception as exc:
+        logger.exception("Document Generation agent unavailable")
+        warnings.append(f"Document Generation agent unavailable: {exc}")
+        return None
+

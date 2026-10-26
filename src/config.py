@@ -90,10 +90,21 @@ class Settings:
     # --- Agent 2: RFP research -----------------------------------------------------------
     rfp_feed_path: Path = PROJECT_ROOT / "data" / "rfp" / "sample_tenders.json"
     rfp_llm_summaries: bool = False      # off by default: one LLM call per new tender
+    # --- Agent 4: optional e-mail distribution of APPROVED documents (off unless SMTP_HOST is set) -----
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = field(default=None, repr=False)
+    smtp_from: str | None = None
+    smtp_starttls: bool = True
     log_level: str = "INFO"
     # --- Marketing Agent ---------------------------------------------------------------
     marketing_max_attempts: int = 2          # generate -> fact-check retries per platform
     marketing_pass_threshold: float = 0.7    # evaluator mean needed to mark a draft "checks passed"
+
+    @property
+    def email_enabled(self) -> bool:
+        return bool(self.smtp_host and self.smtp_from)
 
     @property
     def llm_enabled(self) -> bool:
@@ -159,6 +170,12 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         admin_password=env.get("ADMIN_PASSWORD") or None,
         rfp_feed_path=_path(env, "RFP_FEED_PATH", "data/rfp/sample_tenders.json"),
         rfp_llm_summaries=_choice(env, "RFP_LLM_SUMMARIES", "off", ("on", "off")) == "on",
+        smtp_host=env.get("SMTP_HOST", "").strip() or None,
+        smtp_port=_number(env, "SMTP_PORT", "587", int, minimum=1),
+        smtp_user=env.get("SMTP_USER", "").strip() or None,
+        smtp_password=env.get("SMTP_PASSWORD") or None,
+        smtp_from=env.get("SMTP_FROM", "").strip() or None,
+        smtp_starttls=_choice(env, "SMTP_STARTTLS", "on", ("on", "off")) == "on",
         log_level=env.get("LOG_LEVEL", "INFO").upper(),
         marketing_max_attempts=_number(env, "MARKETING_MAX_ATTEMPTS", "2", int, minimum=1),
         marketing_pass_threshold=_pass_threshold(env),
