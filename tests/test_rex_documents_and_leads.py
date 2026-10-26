@@ -105,3 +105,57 @@ def test_missing_contact_details_are_requested_and_cancel_works(ctx):
     assert "phone number or email" in r.text and ctx.leads.count() == 0
     r = ctx.registry.dispatch("rex_assistant", AgentRequest.from_text("cancel", r.state))
     assert "cancelled" in r.text and ctx.leads.count() == 0
+
+
+# ---------------------------------------------------------------- new PDF reaches the assistant
+def _make_pdf(path, lines):
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    c, y = canvas.Canvas(str(path), pagesize=A4), 800
+    for line in lines:
+        c.drawString(40, y, line); y -= 20
+    c.save()
+    return path
+
+
+@pytest.fixture
+def ctx_with_new_track(ctx, tmp_path):
+    """A PDF uploaded after start-up describing a track that is NOT in the course catalog."""
+    pdf = _make_pdf(tmp_path / "cyber_track.pdf", [
+        "Andalusia Academy - Cybersecurity Track",
+        "Track code: TRK-006. Duration: 120 hours.",
+        "The Cybersecurity track prepares students for SOC analyst and penetration tester roles.",
+        "Tools: Wireshark, Kali Linux, Burp Suite, Splunk."])
+    ctx.knowledge.ingestion.ingest(pdf, doc_type="course_catalog", approve=True)
+    return ctx
+
+
+@pytest.mark.parametrize("message", [
+    "I want to learn cybersecurity, I'm a beginner",
+    "What tools does the cybersecurity track use?",
+    "عايز اتعلم الامن السيبراني",
+])
+def test_topic_only_in_a_new_pdf_is_answered_from_that_pdf(ctx_with_new_track, message):
+    r = ask(ctx_with_new_track, message)
+    assert r.data.get("fallback") == "documents_not_in_catalog"
+    assert [s.filename for s in r.sources] == ["cyber_track.pdf"]       # weak portfolio pages filtered out
+    assert all(s.source_type == "document" for s in r.sources)          # no unrelated catalog course
+    assert "catalog" in r.text or "كتالوج" in r.text                    # says it's not in the catalog
+
+
+def test_pending_pdf_is_not_used(ctx, tmp_path):
+    pdf = _make_pdf(tmp_path / "cyber.pdf", ["Cybersecurity Track. Tools: Wireshark, Kali Linux."])
+    ctx.knowledge.ingestion.ingest(pdf, approve=False)
+    r = ask(ctx, "I want to learn cybersecurity")
+    assert not any(s.filename == "cyber.pdf" for s in r.sources)
+
+
+def test_attribute_word_is_not_treated_as_the_topic(ctx):
+    # Before the fix, "tools" + the module "Security" matched Data Engineering (TRK-003).
+    r = ask(ctx, "What tools does the cybersecurity track use?")
+    assert not any(s.course_id == "TRK-003" for s in r.sources)
+
+
+def test_topic_missing_everywhere_still_says_no_course(ctx):
+    r = ask(ctx, "I want to learn cooking")
+    assert r.sources == [] and "couldn't find" in r.text
