@@ -79,7 +79,7 @@ def visual(text: str, rtl: bool = False) -> str:
 def markup(text: str, style: ParagraphStyle, width: float, rtl: bool) -> str:
     """Escaped Paragraph markup. Arabic/RTL text is wrapped here, line by line, then reordered."""
     text = text.replace("\r", "")
-    if not (rtl or has_arabic(text)):
+    if not has_arabic(text):          # pure Latin/digits stay left-to-right, even inside an Arabic document
         return escape(text).replace("\n", "<br/>")
     reshaper, get_display = _arabic_tools()
     lines: list[str] = []
@@ -235,14 +235,18 @@ def _table(head: list[str], rows: list[list[str]], styles: dict, width: float, r
            weights: list[float] | None = None, bold_first: bool = False):
     ncols = len(head) if head else (len(rows[0]) if rows else 1)
     rows = [(list(r) + [""] * ncols)[:ncols] for r in rows]
-    if weights is None:                                  # size columns by how much text they hold
-        raw = []
+    if weights is None:
+        # 1) every column gets the room its longest single word needs (so "M1-Q1" or "Marks" never splits)
+        font_size = styles["cell"].fontSize
+        need = []
         for c in range(ncols):
-            lengths = [len(head[c]) if head else 0] + [min(len(r[c]), 60) for r in rows]
-            longest_word = max((len(w) for r in rows for w in r[c].split()), default=0)
-            longest_word = max(longest_word, max((len(w) for w in head[c].split()), default=0) if head else 0)
-            raw.append(max(8.0, longest_word * 1.15 + 3, min(55.0, sum(lengths) / len(lengths) + 4)))
-        weights = [w / sum(raw) for w in raw]
+            words = [w for r in rows for w in str(r[c]).split()] + (head[c].split() if head else [])
+            need.append(max((pdfmetrics.stringWidth(w, BOLD, font_size) for w in words), default=20) + 14)
+        need = [min(n, width * 0.4) for n in need]
+        spare = max(0.0, width - sum(need))
+        # 2) the rest is shared by how much text each column holds
+        lengths = [max(1.0, sum(min(len(str(r[c])), 80) for r in rows) / max(1, len(rows)), len(head[c]) if head else 0) for c in range(ncols)]
+        weights = [(need[c] + spare * lengths[c] / sum(lengths)) / width for c in range(ncols)]
     total = sum(weights)
     col_w = [width * w / total for w in weights]
 
