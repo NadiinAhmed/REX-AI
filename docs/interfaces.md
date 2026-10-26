@@ -90,3 +90,8 @@ Logs record intent, language, mode and course IDs. They never record message tex
 - New table `curricula` (migration `0003_curriculum`); other agents read curricula only through
   `CurriculumService.approved_for_course(course_id)` (approved versions only).
 - Shared PDF kit `src/pdf/` (`DocumentContent` -> PDF, English + Arabic RTL) is reusable by any agent.
+- New table `generated_documents` (migration `0004_documents`, parent `0003_curriculum`) via `GeneratedDocumentRepository`
+  (`DocumentRepository` already names the RAG document store). Settings gained optional `SMTP_*` values (e-mail is off by default).
+- Agent 4 reads Agent 3 only through `CurriculumService` (`approved_for_course`, `get`, `draft_for_course`).
+- For Marketing (Agent 5): read the approved curriculum with `CurriculumService.approved_for_course(course_id)` and approved
+  documents with `DocumentService.list(status="approved", course_id=...)`; do not read the tables directly.

@@ -8,7 +8,7 @@ catalog and one knowledge base. **Agent 1 — REX Assistant — is implemented**
 | REX Assistant — bilingual course advisor with document RAG, MCP and lead capture | ✅ implemented |
 | Educational RFP Research Agent — Egypt & Saudi training tenders: strict market filter, expiry, duplicates, fit, dashboard | ✅ implemented ([docs](docs/rfp_agent.md)) |
 | Curriculum Research & Accreditation Agent — curricula from approved data, framework alignment, review workflow, PDF | ✅ implemented ([docs](docs/curriculum_agent.md)) |
-| Educational Content & Document Generation Agent | 🕓 planned |
+| Educational Content & Document Generation Agent — 10 document types, English/Arabic PDF, review & approval, optional e-mail | ✅ implemented ([docs](docs/document_agent.md)) |
 | AI Marketing Agent | 🕓 planned |
 
 ## What REX Assistant does
@@ -80,10 +80,16 @@ edit it, submit it, and let a named reviewer approve it or request changes. Down
 Alignment is a **proposal** against team-assembled reference checklists; the agent never claims a course is accredited.
 Details: [docs/curriculum_agent.md](docs/curriculum_agent.md).
 
+## Documents (Agent 4)
+Sidebar → **Documents** → generate one of 10 document types for a course (English or Arabic), review and edit the text, approve it
+and download the PDF. If the course has an **approved curriculum** (Curriculum page) the document is built from it; otherwise from the
+course record, and says so. Chat: `generate a participant guide for TRK-001`.
+Details: [docs/document_agent.md](docs/document_agent.md).
+
 ## Documentation
 [Architecture](docs/architecture.md) · [RAG workflow](docs/rag_workflow.md) ·
 [Database schema](docs/database_schema.md) · [MCP](docs/mcp.md) · [Evaluation](docs/evaluation.md) ·
-[Testing](docs/testing.md) · [Curriculum agent](docs/curriculum_agent.md) · [Agent contract](docs/interfaces.md) · [Agent 1 audit](docs/agent1_audit.md) ·
+[Testing](docs/testing.md) · [Curriculum agent](docs/curriculum_agent.md) · [Document agent](docs/document_agent.md) · [Agent contract](docs/interfaces.md) · [Agent 1 audit](docs/agent1_audit.md) ·
 [Git workflow](docs/git_workflow.md)
 
 ## Known limitations
