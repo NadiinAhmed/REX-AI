@@ -103,6 +103,10 @@ class Settings:
     marketing_pass_threshold: float = 0.7    # evaluator mean needed to mark a draft "checks passed"
 
     @property
+    def email_enabled(self) -> bool:
+        return bool(self.smtp_host and self.smtp_from)
+
+    @property
     def llm_enabled(self) -> bool:
         return self.llm_provider != "none"
 

@@ -8,7 +8,7 @@ catalog and one knowledge base. **Agent 1 (REX Assistant), Agent 2 (RFP Research
 | REX Assistant — bilingual course advisor with document RAG, MCP and lead capture | ✅ implemented |
 | Educational RFP Research Agent — Egypt & Saudi training tenders: strict market filter, expiry, duplicates, fit, dashboard | ✅ implemented ([docs](docs/rfp_agent.md)) |
 | Curriculum Research & Accreditation Agent — curricula from approved data, framework alignment, review workflow, PDF | ✅ implemented ([docs](docs/curriculum_agent.md)) |
-| Educational Content & Document Generation Agent | 🕓 planned |
+| Educational Content & Document Generation Agent — 10 document types, English/Arabic PDF, review & approval, optional e-mail | ✅ implemented ([docs](docs/document_agent.md)) |
 | AI Marketing Agent — campaigns from approved data, fact-checked, human approval, MCP | ✅ implemented |
 
 ## What REX Assistant does
@@ -101,7 +101,7 @@ Details: [docs/document_agent.md](docs/document_agent.md).
 ## Documentation
 [Architecture](docs/architecture.md) · [RAG workflow](docs/rag_workflow.md) ·
 [Database schema](docs/database_schema.md) · [MCP](docs/mcp.md) · [Evaluation](docs/evaluation.md) ·
-[Testing](docs/testing.md) · [Curriculum agent](docs/curriculum_agent.md) · [Marketing Agent](docs/marketing_agent.md) · [Agent contract](docs/interfaces.md) · [Agent 1 audit](docs/agent1_audit.md) ·
+[Testing](docs/testing.md) · [Curriculum agent](docs/curriculum_agent.md) · [Document agent](docs/document_agent.md) · [Marketing Agent](docs/marketing_agent.md) · [Agent contract](docs/interfaces.md) · [Agent 1 audit](docs/agent1_audit.md) ·
 [Git workflow](docs/git_workflow.md)
 
 ## Known limitations
