@@ -43,6 +43,10 @@ _ATTRIBUTE_PATTERNS: dict[str, str] = {
     "career_paths": r"\b(career|jobs?|opportunit\w*)\b|وظائف|فرص|شغل",
     "promotions": r"\b(discount|offer|promotion)\b|خصم|عرض",
 }
+# Document fallback for topics missing from the catalog: keep only passages scoring at least this
+# fraction of the best one, so a page that merely shares a word is not shown as evidence.
+DOC_FALLBACK_RELATIVE_SCORE = 0.6
+
 _ORDINALS = {
     0: r"\b(first|1st)\b|الاول|اول واحد", 1: r"\b(second|2nd)\b|الثاني|التاني", 2: r"\b(third|3rd)\b|الثالث|التالت",
 }
@@ -189,6 +193,12 @@ class RexAssistant(Agent):
 
         turn = extract_profile(message)
         attributes = self._asked_attributes(message)
+        if attributes:
+            # "What tools does the cybersecurity track use?": "tools" names the question, not the
+            # learner's interest. Left in, it matched any course whose description says "tools".
+            kept = [w for w in turn.interests if not self._asked_attributes(w)]
+            if kept != turn.interests:
+                turn = turn.model_copy(update={"interests": kept})
         # Bug B7: in "how many hours?" or "بكام الكورس ده؟" the leftover words ("many", "ده")
         # looked like a new topic and replaced the course being discussed. When the turn asks
         # about a course attribute, leftover words that match no course are noise, not a topic.
@@ -228,11 +238,26 @@ class RexAssistant(Agent):
     def _node_recommend(self, s: RexState) -> dict:
         profile = self._merge_profile(s["prior"], s["turn"])
         response = self._recommend(profile, s["lang"], s["message"])
-        # A question that matches no course ("Is it ITIDA accredited?") may still be answered
-        # by the approved documents. The profile is then left unchanged.
-        if not response.sources and s.get("is_question") and self._passages is not None:
-            doc = self._answer_from_documents(s["message"], s["lang"], course=None)
-            return {"profile": s["prior"], "route": "document_question", "response": doc}
+        # Nothing in the structured catalog matches. The topic may still be covered by an approved
+        # PDF uploaded after the catalog was built (e.g. a new track). Answer from those documents,
+        # saying clearly that the program is not in the catalog yet. If the documents have nothing
+        # either, the honest "no matching course" reply stands.
+        if not response.sources and self._passages is not None:
+            doc = self._answer_from_documents(s["message"], s["lang"], course=None,
+                                              min_relative_score=DOC_FALLBACK_RELATIVE_SCORE)
+            if doc.sources:
+                note = self._t(s["lang"],
+                    "This isn't in our structured course catalog yet, so I can't compare its level, format or "
+                    "fees with other courses.",
+                    "هذا البرنامج غير موجود في كتالوج الدورات المنظم حتى الآن، لذلك لا يمكنني مقارنة مستواه أو "
+                    "طريقة دراسته أو رسومه بالدورات الأخرى.")
+                doc.text = f"{note}\n\n{doc.text}"
+                doc.data["fallback"] = "documents_not_in_catalog"
+                # A stated interest ("I want cybersecurity") is kept; a one-off question is not.
+                kept = s["prior"] if s.get("is_question") else profile
+                return {"profile": kept, "route": "document_question", "response": doc}
+            if s.get("is_question"):
+                return {"profile": s["prior"], "route": "document_question", "response": doc}
         return {"profile": profile, "response": response}
 
     def _node_document_question(self, s: RexState) -> dict:
@@ -319,9 +344,13 @@ class RexAssistant(Agent):
         return {"response": response}
 
     # ------------------------------------------------------------------ document Q&A (RAG)
-    def _answer_from_documents(self, message: str, lang: str, course: Course | None) -> AgentResponse:
+    def _answer_from_documents(self, message: str, lang: str, course: Course | None,
+                               min_relative_score: float | None = None) -> AgentResponse:
         query = f"{course.title} {message}" if course else message
         result = self._passages.retrieve(query)
+        if min_relative_score is not None and result.passages:
+            cutoff = result.passages[0].score * min_relative_score
+            result.passages = [p for p in result.passages if p.score >= cutoff]
         data = {"retrieval": result.diagnostics.model_dump(),
                 "contexts": [{"chunk_id": p.chunk_id, "page": p.page, "filename": p.filename, "text": p.text}
                              for p in result.passages]}
