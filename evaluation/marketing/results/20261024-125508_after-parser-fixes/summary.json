@@ -1,0 +1,158 @@
+{
+  "campaigns": {
+    "cases": 20,
+    "outcome_accuracy": 1.0,
+    "language_accuracy": 1.0,
+    "campaigns_produced": 16,
+    "drafts": 64,
+    "draft_pass_rate": 1.0,
+    "gate_violations_shown": 0,
+    "trap_cases": 9,
+    "trap_cases_without_leak": 9,
+    "forbidden_leaks": {},
+    "variations_dropped": 0,
+    "llm_fallbacks": 0,
+    "mean_attempts": 1,
+    "mean_latency_s": 0.0076,
+    "dimensions": {
+      "factual_accuracy": 1.0,
+      "audience_relevance": 1.0,
+      "objective_alignment": 1.0,
+      "completeness": 1.0,
+      "cta_quality": 1.0,
+      "tone_language": 1.0,
+      "platform_formatting": 1.0,
+      "unsupported_claims": 1.0
+    },
+    "dimension_cases_measured": {
+      "factual_accuracy": 16,
+      "audience_relevance": 11,
+      "objective_alignment": 16,
+      "completeness": 16,
+      "cta_quality": 16,
+      "tone_language": 16,
+      "platform_formatting": 16,
+      "unsupported_claims": 16
+    }
+  },
+  "checker": {
+    "cases": 30,
+    "exact_match_rate": 0.8333,
+    "micro_precision": 1.0,
+    "micro_recall": 0.7727,
+    "per_kind": {
+      "certification": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.5
+      },
+      "delivery_format": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.6667
+      },
+      "discount": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "duration": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "forbidden_claim": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.75
+      },
+      "instructor": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "offer": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.6667
+      },
+      "prerequisites": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "price": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.6667
+      },
+      "schedule": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    "misses": [
+      {
+        "id": "c26",
+        "expected": [
+          "price"
+        ],
+        "predicted": [],
+        "note": "paraphrase: amount written in words (expected rule miss)"
+      },
+      {
+        "id": "c27",
+        "expected": [
+          "offer"
+        ],
+        "predicted": [],
+        "note": "paraphrase: discount without the word (expected rule miss)"
+      },
+      {
+        "id": "c28",
+        "expected": [
+          "forbidden_claim"
+        ],
+        "predicted": [],
+        "note": "implied guarantee (expected rule miss)"
+      },
+      {
+        "id": "c29",
+        "expected": [
+          "delivery_format"
+        ],
+        "predicted": [],
+        "note": "paraphrase of online (expected rule miss)"
+      },
+      {
+        "id": "c30",
+        "expected": [
+          "certification"
+        ],
+        "predicted": [],
+        "note": "vague recognition claim (expected rule miss)"
+      }
+    ]
+  }
+}

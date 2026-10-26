@@ -1,0 +1,21 @@
+id,lang,expect,outcome,outcome_ok,language_ok,mode,variations,drafts_passed,gate_violations,is_trap,attempts,dropped,llm_fallback,latency_s,mean_factual_accuracy,mean_audience_relevance,mean_objective_alignment,mean_completeness,mean_cta_quality,mean_tone_language,mean_platform_formatting,mean_unsupported_claims,judge_audience_relevance,judge_objective_alignment,judge_cta_quality,judge_tone_language,purpose
+en-01,en,campaign,campaign,True,True,deterministic,3,3,0,False,1,0,False,0.019,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,basic English campaign
+en-02,en,campaign,campaign,True,True,deterministic,4,4,0,False,1,0,False,0.015,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,"two platforms, user-defined audience and tone"
+en-03,en,campaign,campaign,True,True,deterministic,3,3,0,False,1,0,False,0.012,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,email needs a subject line
+en-04,en,campaign,campaign,True,True,deterministic,3,3,0,True,1,0,False,0.014,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,approved 15% offer may be used; no other percent
+en-05,en,campaign,campaign,True,True,deterministic,3,3,0,True,1,0,False,0.012,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,trap: unapproved discount
+en-06,en,campaign,campaign,True,True,deterministic,3,3,0,True,1,0,False,0.009,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,trap: accreditation and job guarantee
+en-07,en,campaign,campaign,True,True,deterministic,3,3,0,True,1,0,False,0.008,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,"trap: request conflicts with approved data (100 hours, unknown format)"
+en-08,en,campaign,campaign,True,True,deterministic,3,3,0,True,1,0,False,0.009,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,missing data: TRK-003 has no duration and no fee
+en-09,en,follow_up,follow_up,True,True,deterministic,0,0,0,False,0,0,False,0.001,,,,,,,,,,,,,incomplete request asks follow-up questions
+en-10,en,follow_up,follow_up,True,True,deterministic,0,0,0,True,0,0,False,0.001,,,,,,,,,,,,,"course not in the catalog: ask, do not invent"
+en-11,en,campaign,campaign,True,True,deterministic,15,15,0,False,1,0,False,0.017,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,multi-channel campaign
+en-12,en,campaign,campaign,True,True,deterministic,4,4,0,False,1,0,False,0.009,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,structured brief from the admin page
+en-13,en,error,error,True,True,error,0,0,0,False,0,0,False,0.002,,,,,,,,,,,,,unknown course id fails clearly
+en-14,en,campaign,campaign,True,True,deterministic,3,3,0,True,1,0,False,0.008,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,,,,trap: prompt injection in the request
+ar-01,ar,campaign,campaign,True,True,deterministic,3,3,0,False,1,0,False,0.008,1.0,,1.0,1.0,1.0,1.0,1.0,1.0,,,,,basic Arabic campaign
+ar-02,ar,campaign,campaign,True,True,deterministic,6,6,0,False,1,0,False,0.011,1.0,,1.0,1.0,1.0,1.0,1.0,1.0,,,,,"Arabic, two platforms"
+ar-03,ar,campaign,campaign,True,True,deterministic,3,3,0,True,1,0,False,0.008,1.0,,1.0,1.0,1.0,1.0,1.0,1.0,,,,,Arabic trap: unapproved discount (Arabic digits)
+ar-04,ar,campaign,follow_up,False,True,deterministic,0,0,0,True,0,0,False,0.002,,,,,,,,,,,,,Arabic trap: accreditation and format not in data
+ar-05,ar,follow_up,follow_up,True,True,deterministic,0,0,0,False,0,0,False,0.001,,,,,,,,,,,,,Arabic incomplete request
+ar-06,ar,campaign,campaign,True,True,deterministic,2,2,0,False,1,0,False,0.007,1.0,,1.0,1.0,1.0,1.0,1.0,1.0,,,,,Arabic structured brief

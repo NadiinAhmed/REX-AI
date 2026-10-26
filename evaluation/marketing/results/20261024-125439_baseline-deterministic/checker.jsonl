@@ -1,0 +1,30 @@
+{"id": "c01", "text": "Only 2,000 EGP for the full program!", "expected": ["price"], "predicted": ["price"], "exact_match": true, "note": ""}
+{"id": "c02", "text": "سعر البرنامج ٣٠٠٠ جنيه فقط", "expected": ["price"], "predicted": ["price"], "exact_match": true, "note": ""}
+{"id": "c03", "text": "Get 25% off when you register this week", "expected": ["discount"], "predicted": ["discount", "offer"], "exact_match": false, "note": ""}
+{"id": "c04", "text": "Limited offer for early birds", "expected": ["offer"], "predicted": ["offer"], "exact_match": true, "note": ""}
+{"id": "c05", "text": "احصل على خصم خاص عند التسجيل", "expected": ["offer"], "predicted": ["offer"], "exact_match": true, "note": ""}
+{"id": "c06", "text": "Classes start on 3 December", "expected": ["schedule"], "predicted": ["schedule"], "exact_match": true, "note": ""}
+{"id": "c07", "text": "A 40-hour bootcamp", "expected": ["duration"], "predicted": ["duration"], "exact_match": true, "note": ""}
+{"id": "c08", "text": "Finish Data Engineering in 8 weeks", "expected": ["duration"], "predicted": ["duration"], "exact_match": true, "note": ""}
+{"id": "c09", "text": "Learn online from anywhere", "expected": ["delivery_format"], "predicted": ["delivery_format"], "exact_match": true, "note": ""}
+{"id": "c10", "text": "الدراسة حضوري في مقر الأكاديمية", "expected": ["delivery_format"], "predicted": ["delivery_format"], "exact_match": true, "note": ""}
+{"id": "c11", "text": "An internationally accredited program", "expected": ["certification"], "predicted": ["certification"], "exact_match": true, "note": ""}
+{"id": "c12", "text": "Taught by senior Microsoft engineers", "expected": ["instructor"], "predicted": ["instructor"], "exact_match": true, "note": ""}
+{"id": "c13", "text": "No prior experience needed, anyone can join", "expected": ["prerequisites"], "predicted": ["prerequisites"], "exact_match": true, "note": ""}
+{"id": "c14", "text": "Guaranteed job after graduation", "expected": ["forbidden_claim"], "predicted": ["forbidden_claim"], "exact_match": true, "note": ""}
+{"id": "c15", "text": "نضمن لك وظيفة بعد التخرج", "expected": ["forbidden_claim"], "predicted": ["forbidden_claim"], "exact_match": true, "note": ""}
+{"id": "c16", "text": "The #1 Flutter course in Egypt", "expected": ["forbidden_claim"], "predicted": ["forbidden_claim"], "exact_match": true, "note": ""}
+{"id": "c17", "text": "Become a Junior QA Engineer in our 100-hour Software Testing program.", "expected": [], "predicted": [], "exact_match": true, "note": ""}
+{"id": "c18", "text": "Earn an ITI Completion Certificate and build a real capstone.", "expected": [], "predicted": [], "exact_match": true, "note": ""}
+{"id": "c19", "text": "Includes capstone project and certification preparation.", "expected": [], "predicted": [], "exact_match": true, "note": ""}
+{"id": "c20", "text": "Build and ship a Flutter app in 120 hours of training.", "expected": [], "predicted": [], "exact_match": true, "note": ""}
+{"id": "c21", "text": "Join 12 lessons on Tuesday and request the details today.", "expected": [], "predicted": [], "exact_match": true, "note": ""}
+{"id": "c22", "text": "بادر بالتسجيل واطلب تفاصيل البرنامج", "expected": [], "predicted": [], "exact_match": true, "note": ""}
+{"id": "c23", "text": "May your next project be full stack: request the details.", "expected": [], "predicted": [], "exact_match": true, "note": ""}
+{"id": "c24", "text": "Flutter Development: 15% early-bird discount this month", "expected": [], "predicted": [], "exact_match": true, "note": ""}
+{"id": "c25", "text": "Flutter Development: 20% early-bird discount this month", "expected": ["discount"], "predicted": ["discount"], "exact_match": true, "note": ""}
+{"id": "c26", "text": "Pay just two thousand pounds for everything", "expected": ["price"], "predicted": [], "exact_match": false, "note": "paraphrase: amount written in words (expected rule miss)"}
+{"id": "c27", "text": "Save a third on the fees if you join now", "expected": ["offer"], "predicted": [], "exact_match": false, "note": "paraphrase: discount without the word (expected rule miss)"}
+{"id": "c28", "text": "Your new data science job is waiting for you", "expected": ["forbidden_claim"], "predicted": [], "exact_match": false, "note": "implied guarantee (expected rule miss)"}
+{"id": "c29", "text": "Study from your living room with live sessions", "expected": ["delivery_format"], "predicted": [], "exact_match": false, "note": "paraphrase of online (expected rule miss)"}
+{"id": "c30", "text": "Recognized by employers across the region", "expected": ["certification"], "predicted": [], "exact_match": false, "note": "vague recognition claim (expected rule miss)"}

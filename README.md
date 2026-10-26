@@ -1,7 +1,7 @@
 # REX AI — Smart Academy Multi-Agent System
 
 Graduation project MVP for Andalusia Academy. Five planned agents share one database, one course
-catalog and one knowledge base. **Agent 1 — REX Assistant — is implemented** (Sprint 2).
+catalog and one knowledge base. **Agent 1 (REX Assistant), Agent 2 (RFP Research) and Agent 5 (AI Marketing) are implemented.**
 
 | Agent | Status |
 |---|---|
@@ -9,7 +9,7 @@ catalog and one knowledge base. **Agent 1 — REX Assistant — is implemented**
 | Educational RFP Research Agent — Egypt & Saudi training tenders: strict market filter, expiry, duplicates, fit, dashboard | ✅ implemented ([docs](docs/rfp_agent.md)) |
 | Curriculum Research & Accreditation Agent | 🕓 planned |
 | Educational Content & Document Generation Agent | 🕓 planned |
-| AI Marketing Agent | 🕓 planned |
+| AI Marketing Agent — campaigns from approved data, fact-checked, human approval, MCP | ✅ implemented |
 
 ## What REX Assistant does
 - Chats in **Arabic and English**, asks only missing follow-up questions, recommends tracks from the
@@ -22,6 +22,15 @@ catalog and one knowledge base. **Agent 1 — REX Assistant — is implemented**
 - Flow built with **LangGraph**; LLM via **LangChain** (xAI **Grok** or Groq); works with no API key.
 - Course data available to any agent or MCP client through the read-only **`rex-academy` MCP server**.
 - RAG quality measured with **RAGAS** (`docs/evaluation.md`).
+
+## What the Marketing Agent does
+- Builds campaigns for **social captions, Facebook/Instagram ads, LinkedIn, email and WhatsApp**:
+  headlines, CTAs, multiple variations and a simple strategy, in **Arabic or English**.
+- Uses **only approved course data and approved, dated offers**. A fact-checker blocks invented prices,
+  discounts, dates, formats, accreditation and guarantees; the LLM retries, then failing drafts are dropped.
+- Every draft waits for a **named reviewer** (Marketing page). Nothing is published or sent by the system.
+- LangGraph workflow, LangChain structured output, offers over the `rex-academy` MCP server, and a
+  reproducible evaluation (`docs/marketing_agent.md`).
 
 ## Quick start (Python 3.11+)
 ```bash
@@ -67,6 +76,9 @@ deterministic one and is labelled. **Live calls were not tested in the build env
 | 8 | `عايز اشتغل مطور فلاتر` | Arabic answer, Flutter (TRK-002) |
 | 9 | `What programs do you offer?` | all 5 tracks |
 | 10 | `register` → `yes` → `Sara Ahmed, sara@example.com` | consent, then saved (see Leads page) |
+| 11 | Marketing page → TRK-001, LinkedIn, enrollment → Generate | 3 drafts, strategy, "pending review" |
+| 12 | Review tab → change the body to "only 1500 EGP" → Save & re-check | price blocked, Approve disabled |
+| 13 | Offers page → 15% for TRK-002 → approve → WhatsApp campaign for TRK-002 | "Offer: … 15% (until …)" |
 
 ## RFP Research (Agent 2)
 Sidebar → **RFP Opportunities** → *Run scan*. Egypt tenders are flagged for immediate review, Saudi
@@ -77,7 +89,7 @@ tenders go to the monitored pipeline, everything else is excluded with a reason.
 ## Documentation
 [Architecture](docs/architecture.md) · [RAG workflow](docs/rag_workflow.md) ·
 [Database schema](docs/database_schema.md) · [MCP](docs/mcp.md) · [Evaluation](docs/evaluation.md) ·
-[Testing](docs/testing.md) · [Agent contract](docs/interfaces.md) · [Agent 1 audit](docs/agent1_audit.md) ·
+[Testing](docs/testing.md) · [Marketing Agent](docs/marketing_agent.md) · [Agent contract](docs/interfaces.md) · [Agent 1 audit](docs/agent1_audit.md) ·
 [Git workflow](docs/git_workflow.md)
 
 ## Known limitations
@@ -86,4 +98,6 @@ tenders go to the monitored pipeline, everything else is excluded with a reason.
 - Default embeddings match spelling, not meaning; the semantic model is supported but not yet evaluated.
 - LLM answers (Grok/Groq) and LLM-judged RAGAS metrics are implemented but not yet measured.
 - Scanned PDFs (no text layer) are rejected: no OCR.
+- Marketing: claim detection is rule-based and misses paraphrases (measured recall 0.77 on the checker set);
+  LLM-generated campaigns are implemented but not yet measured (needs `GROQ_API_KEY`).
 - Admin pages use a shared password, not user accounts. SQLite + local Chroma suit one app process.
