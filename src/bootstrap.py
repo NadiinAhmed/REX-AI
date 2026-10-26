@@ -182,6 +182,7 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
 
     curriculum_service = register_curriculum_agent(registry, db, courses, knowledge.passages if knowledge else None,
                                                    llm, rfp_repository, warnings)
+    document_service = register_document_agent(registry, settings, db, courses, curriculum_service, llm, warnings)
     offers = OfferService(OfferRepository(db), courses)
     marketing_agent, marketing_repo, approvals = build_marketing(courses, retriever, offers, db, llm, dataset, settings)
     registry.register(marketing_agent)

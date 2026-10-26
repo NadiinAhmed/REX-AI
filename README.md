@@ -92,6 +92,12 @@ edit it, submit it, and let a named reviewer approve it or request changes. Down
 Alignment is a **proposal** against team-assembled reference checklists; the agent never claims a course is accredited.
 Details: [docs/curriculum_agent.md](docs/curriculum_agent.md).
 
+## Documents (Agent 4)
+Sidebar → **Documents** → generate one of 10 document types for a course (English or Arabic), review and edit the text, approve it
+and download the PDF. If the course has an **approved curriculum** (Curriculum page) the document is built from it; otherwise from the
+course record, and says so. Chat: `generate a participant guide for TRK-001`.
+Details: [docs/document_agent.md](docs/document_agent.md).
+
 ## Documentation
 [Architecture](docs/architecture.md) · [RAG workflow](docs/rag_workflow.md) ·
 [Database schema](docs/database_schema.md) · [MCP](docs/mcp.md) · [Evaluation](docs/evaluation.md) ·
