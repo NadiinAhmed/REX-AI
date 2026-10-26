@@ -65,3 +65,7 @@ Faithfulness, answer relevancy and LLM-judged context metrics. Run with `--judge
 - Reference answers and pages were written by the team, in this sandbox, from the PDF.
 - Deterministic generation returns excerpts, so generation metrics are only meaningful with an LLM.
 - The semantic embedding (`sentence_transformers`) was not evaluated: it requires a model download that was not possible in the build environment. Re-run the baseline with `--set EMBEDDING_PROVIDER=sentence_transformers` and re-calibrate `RETRIEVAL_MIN_SCORE`.
+
+## Marketing Agent evaluation
+Agent 5 has its own reproducible evaluation (campaign quality and fact-checker precision/recall), with
+measured results: see [`docs/marketing_agent.md` §9](marketing_agent.md#9-evaluation).

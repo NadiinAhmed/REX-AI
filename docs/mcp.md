@@ -22,14 +22,15 @@ SDK: official `mcp` Python SDK **2.3.0**. Version 2 renamed `FastMCP` to `MCPSer
 | tool | `get_course` | `course_id` matching `^[A-Za-z]{2,5}-\d{3}$` | full `Course` record |
 | tool | `search_knowledge_base` | `query` 1–300 chars, `top_k` 1–8 | passages with filename, page, score |
 | tool | `list_documents` | — | approved documents |
+| tool | `get_active_offers` | `course_id` (same pattern) | approved offers valid today (Agent 1 and Agent 5) |
 | resource | `course://{course_id}` | — | course JSON |
 
 All tools are annotated `readOnlyHint=true, destructiveHint=false` and return **approved** data only.
 Expected errors (unknown course) raise `ToolError` and their message reaches the client; unexpected
 exceptions are hidden by the SDK so internal details never leak.
 
-**Deliberately not exposed:** saving leads, uploading/deleting documents, publishing, sending
-messages. Those are consequential and stay in the app behind consent or explicit confirmation.
+**Deliberately not exposed:** saving leads, uploading/deleting documents, proposing/approving offers,
+saving/approving marketing drafts, publishing, sending messages. Those are consequential and stay in the app behind consent or explicit confirmation.
 
 ## MCP vs ordinary calls
 | Use MCP | Use a direct call |
@@ -61,6 +62,6 @@ Claude Desktop / other MCP clients (`claude_desktop_config.json`):
 | RFP Research | — | existing web search/fetch MCP servers; `save_opportunity` (write, app-side) | alerts |
 | Curriculum | `get_course`, `search_courses`, `search_knowledge_base` | web research | curriculum approval |
 | Document Generation | `get_course`, `search_knowledge_base` (templates) | file storage in a restricted folder | emailing documents |
-| Marketing | `list_courses`, `get_course` (approved only) | content generation | any publish/send |
+| Marketing ✅ | courses via `McpCourseRetriever`, `get_active_offers` via `McpOfferReader` (same connection) | content generation (LLM, in-app) | draft approval; no publish/send exists |
 
 Each agent should connect with `AcademyMcpClient.for_settings(settings)` and call only the tools in its row.

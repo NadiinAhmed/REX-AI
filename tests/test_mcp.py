@@ -13,7 +13,8 @@ from src.mcp_client.academy_client import AcademyMcpClient, McpCourseRetriever, 
 from src.mcp_server.academy_server import create_server
 from tests.conftest import OFFICIAL_DATASET
 
-EXPECTED_TOOLS = {"list_courses", "search_courses", "get_course", "search_knowledge_base", "list_documents"}
+EXPECTED_TOOLS = {"list_courses", "search_courses", "get_course", "search_knowledge_base", "list_documents",
+                  "get_active_offers"}
 
 
 @pytest.fixture
