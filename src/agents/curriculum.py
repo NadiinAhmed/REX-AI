@@ -179,6 +179,9 @@ class CurriculumAgent(Agent):
             gaps = [a.title for a in rep.areas if a.status != AreaStatus.COVERED]
             rows.append(f"- {self._t(lang, 'Alignment with', 'المواءمة مع')} {rep.framework_id}: {rep.coverage_percent:g}%"
                         + (self._t(lang, f" · gaps: {', '.join(gaps)}", f" · الفجوات: {', '.join(gaps)}") if gaps else ""))
+        if c.market_suggestions:
+            rows.append(f"- {self._t(lang, 'Skills named in matching tenders (suggestions)', 'مهارات مطلوبة في مناقصات مطابقة (اقتراحات)')}: "
+                        + ", ".join(t.text for t in c.market_suggestions))
         if c.notices:
             rows.append(self._t(lang, "\n**Review before approval:**", "\n**للمراجعة قبل الاعتماد:**"))
             rows += [f"- {n}" for n in c.notices[:4]]

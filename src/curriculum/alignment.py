@@ -38,8 +38,8 @@ def _keyword_pattern(keyword: str) -> re.Pattern[str]:
     return re.compile(rf"(?<![a-z0-9]){escaped}(?:s|es)?(?![a-z0-9])")
 
 
-def _area_hits(keywords: list[str], corpus: list[tuple[str, str]]) -> dict[str, set[str]]:
-    """Which keywords occur where. Longest keyword first; a span of text used by one keyword cannot be
+def find_terms(keywords: list[str], corpus: list[tuple[str, str]]) -> dict[str, set[str]]:
+    """Which keywords occur where (texts must be lower case). Longest keyword first; a span of text used by one keyword cannot be
     reused by a shorter one (in the same area), so one phrase never counts as two pieces of evidence."""
     ordered = sorted(dict.fromkeys(k.strip().lower() for k in keywords if k.strip()), key=len, reverse=True)
     hits: dict[str, set[str]] = {}
@@ -59,7 +59,7 @@ def check_framework(curriculum: Curriculum, framework: Framework,
     corpus = [(where, text.lower()) for where, text in curriculum.text_corpus()]
     results: list[AreaResult] = []
     for area in framework.areas:
-        hits = _area_hits(area.keywords, corpus)        # keyword -> locations
+        hits = find_terms(area.keywords, corpus)        # keyword -> locations
         distinct = len(hits)
         status = (AreaStatus.COVERED if distinct >= COVERED_MIN_HITS
                   else AreaStatus.PARTIAL if distinct == 1 else AreaStatus.MISSING)

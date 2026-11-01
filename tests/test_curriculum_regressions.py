@@ -105,3 +105,61 @@ def test_summary_keeps_outcome_count_without_a_capstone(service, courses):
 def test_error_replies_carry_an_intent(service, courses):
     reply = CurriculumAgent(service, courses[1]).handle(AgentRequest(message="submit CUR-000000"))
     assert reply.data["intent"] == "error" and "CUR-000000" in reply.text
+
+
+# ------------------------------------------------------------------ market-demand suggestions (Agent 2 -> Agent 3)
+from types import SimpleNamespace
+
+from src.curriculum.export import curriculum_pdf
+
+
+class FakeRfp:
+    def __init__(self, rows=None, fail=False):
+        self.rows, self.fail = rows or [], fail
+
+    def list(self, *, country=None, statuses=None):
+        if self.fail:
+            raise RuntimeError("database down")
+        return [r for r in self.rows if not statuses or r.status in statuses]
+
+
+def tender(id, text, courses=("TRK-001",), status="flagged_for_review", synthetic=True):
+    return SimpleNamespace(id=id, title=text, description="", matched_course_ids=list(courses), country="EG",
+                           status=status, synthetic=synthetic)
+
+
+def _service_with(courses, rfp):
+    db, repo = courses
+    return CurriculumService(CurriculumRepository(db), repo, FrameworkLibrary.load(), TrackTopics.load(), rfp_repository=rfp)
+
+
+def test_tender_skills_missing_from_the_curriculum_are_suggested_not_added(courses):
+    plain = _service_with(courses, None).create(CurriculumRequest(course_id="TRK-001")).curriculum
+    rfp = FakeRfp([tender("RFP-AAA111", "Training on test automation with Selenium and Playwright"),
+                   tender("RFP-BBB222", "Selenium bootcamp", status="dismissed")])           # dismissed: ignored
+    cur = _service_with(courses, rfp).create(CurriculumRequest(course_id="TRK-001")).curriculum
+
+    by_text = {t.text.lower(): t for t in cur.market_suggestions}
+    assert "selenium" in by_text and "playwright" not in by_text          # Playwright is already taught
+    assert by_text["selenium"].origin == Origin.MARKET
+    assert "RFP-AAA111" in by_text["selenium"].source and "SYNTHETIC" in by_text["selenium"].source
+    assert "RFP-BBB222" not in by_text["selenium"].source
+    # suggestions never change the curriculum itself
+    assert [(m.title, [t.text for t in m.topics], m.hours) for m in cur.modules] == \
+           [(m.title, [t.text for t in m.topics], m.hours) for m in plain.modules]
+    assert any("named in matching tenders" in n for n in cur.notices)
+    assert b"%PDF" in curriculum_pdf(cur, [])[:8]
+
+
+def test_an_adopted_suggestion_disappears(courses):
+    svc = _service_with(courses, FakeRfp([tender("RFP-AAA111", "Selenium training")]))
+    stored = svc.create(CurriculumRequest(course_id="TRK-001"))
+    assert [t.text.lower() for t in stored.curriculum.market_suggestions] == ["selenium"]
+    after = svc.apply_edits(stored.id, "instructor", [{"op": "add_topic", "module": 1, "text": "Legacy suites in Selenium"}])
+    assert after.curriculum.market_suggestions == []
+
+
+def test_rfp_failure_or_no_match_means_no_suggestions(courses):
+    for rfp in (FakeRfp(fail=True), FakeRfp([tender("RFP-AAA111", "Selenium training", courses=("TRK-005",))])):
+        cur = _service_with(courses, rfp).create(CurriculumRequest(course_id="TRK-001")).curriculum
+        assert cur.market_suggestions == [] and cur.validation_problems() == []

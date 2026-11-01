@@ -8,6 +8,7 @@ from src.pdf.renderer import render_pdf
 ORIGIN_LABEL = {
     Origin.CATALOG: "academy record", Origin.DOCUMENT: "academy document", Origin.FRAMEWORK: "framework gap",
     Origin.USER: "added by staff", Origin.TEMPLATE: "proposal (template)", Origin.LLM: "proposal (AI-written)",
+    Origin.MARKET: "market suggestion (tenders)",
 }
 STATUS_MARK = {AreaStatus.COVERED: "Covered", AreaStatus.PARTIAL: "Partial", AreaStatus.MISSING: "Missing"}
 
@@ -80,6 +81,10 @@ def curriculum_document(cur: Curriculum, alignment: list, *, curriculum_id: str 
     research = [bullets([f"{s.kind.replace('_', ' ')}: {s.reference}" + (f" — {s.detail}" if s.detail else "") for s in cur.sources])]
     if cur.market_signals:
         research.append(para("Market signals: " + "; ".join(cur.market_signals) + "."))
+    if cur.market_suggestions:
+        research += [para("Skills named in matching tenders but not in this curriculum (suggestions for the instructor, "
+                          "not part of the curriculum):"),
+                     bullets([f"{t.text}  [{t.source}]" for t in cur.market_suggestions])]
     sections.append(Section(heading="Research sources and traceability", blocks=research))
     if cur.notices:
         sections.append(Section(heading="Gaps and assumptions to review", blocks=[bullets(cur.notices)]))
