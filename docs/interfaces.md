@@ -106,3 +106,10 @@ Logs record intent, language, mode and course IDs. They never record message tex
 - REX Assistant uses offers for discount/offer questions (EN + AR), next to the fee, in
   recommendations, and as `active_offers` in the LLM's `<course_data>`. If the offer source fails it
   says the offer "could not be checked" instead of guessing. Tests: `tests/test_rex_offers.py`.
+
+## Sprint 3 — Orchestrator (shared-interface update, needs team agreement in the PR)
+- `Agent.expects_reply(state) -> bool` added with a default of `False`, so no existing agent has to change.
+  An agent returns `True` while the next message must come back to it (REX: consent / contact details).
+- `AgentRegistry.is_available(name)` added.
+- `OrchestratorAgent.handle(request, allowed_agents=...)` is the chat entry point; it returns the routed
+  agent's `AgentResponse` with `data["routing"]` added and `state` wrapped per agent. See orchestrator.md.

@@ -57,6 +57,7 @@ class AppContext:
     offers: OfferService | None = None            # shared approved offers (Agent 1, Agent 5, MCP)
     marketing: MarketingRepository | None = None  # campaigns and drafts
     approvals: object | None = None               # ApprovalService (human review of drafts)
+    orchestrator: object | None = None            # OrchestratorAgent: routes the unified chat
 
 
 def load_course_catalog(settings: Settings, courses: CourseRepository) -> tuple[DatasetInfo, list[str]]:
@@ -199,12 +200,14 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
     marketing_agent, marketing_repo, approvals = build_marketing(courses, retriever, offers, db, llm, dataset, settings,
                                                                  curriculum_service)
     registry.register(marketing_agent)
+    from src.agents.orchestrator import OrchestratorAgent
+    orchestrator = OrchestratorAgent(registry)
     return AppContext(registry=registry, dataset=dataset, course_count=len(retriever.all_courses()),
                       llm_status=status, settings=settings, database=db, courses=courses, knowledge=knowledge,
                       rag_status=rag_status, leads=leads, course_backend_status=backend_status, warnings=warnings,
                       rfp_repository=rfp_repository, curriculum_service=curriculum_service,
                       document_service=document_service, offers=offers, marketing=marketing_repo,
-                      approvals=approvals)
+                      approvals=approvals, orchestrator=orchestrator)
 
 
 def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database,

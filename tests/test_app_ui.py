@@ -30,3 +30,27 @@ def test_chat_round_trip(app):
     assert "Python for Data Analysis" in texts
     captions = " ".join(c.value for c in app.caption)
     assert "Deterministic" in captions and "DS-101" in captions
+
+
+def test_student_chat_never_reaches_staff_agents(app):
+    """Without the staff sign-in, a tender question is answered by REX, not by the RFP agent."""
+    app.chat_input[0].set_value("Any education tenders in Egypt?").run()
+    assert not app.exception
+    captions = " ".join(c.value for c in app.caption)
+    assert "RFP" not in captions and "→" not in captions
+
+
+def test_staff_mode_routes_to_the_right_agent(monkeypatch, test_env):
+    from src.ui_context import get_context
+    get_context.clear()
+    for key, value in test_env(ADMIN_PASSWORD="s3cret").items():
+        monkeypatch.setenv(key, value)
+    at = AppTest.from_file(str(PROJECT_ROOT / "app.py"), default_timeout=30)
+    at.run()
+    at.sidebar.text_input(key="staff_pw").set_value("wrong").run()
+    assert any("Wrong password" in e.value for e in at.sidebar.error)
+    at.sidebar.text_input(key="staff_pw").set_value("s3cret").run()
+    assert any("Staff mode" in s.value for s in at.sidebar.success)
+    at.chat_input[0].set_value("Any education tenders in Egypt?").run()
+    assert not at.exception
+    assert "→ RFP & Tender Research (keywords)" in " ".join(c.value for c in at.caption)

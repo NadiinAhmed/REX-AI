@@ -1,7 +1,9 @@
-"""Agent registry and router. Sprint 1 dispatches to REX Assistant only.
+"""Agent registry: the directory of agents, looked up by name.
 
-The four other agents are listed as PLANNED so the UI and docs reflect the
-roadmap honestly; dispatching to them raises AgentNotImplementedError.
+The registry does not decide WHICH agent should answer a message; that is the job of
+`OrchestratorAgent` (src/agents/orchestrator.py). Agents that are not registered (e.g. because
+their dependencies failed at start-up) stay listed as PLANNED, and dispatching to them raises
+AgentNotImplementedError.
 """
 from __future__ import annotations
 
@@ -60,6 +62,9 @@ class AgentRegistry:
         if name in self._planned:
             raise AgentNotImplementedError(f"Agent '{name}' is planned but not implemented yet.")
         raise UnknownAgentError(f"No agent named '{name}'.")
+
+    def is_available(self, name: str) -> bool:
+        return name in self._agents
 
     def dispatch(self, name: str, request: AgentRequest) -> AgentResponse:
         agent = self.get(name)

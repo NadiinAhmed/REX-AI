@@ -81,3 +81,8 @@ class Agent(ABC):
     @abstractmethod
     def handle(self, request: AgentRequest) -> AgentResponse:
         """Process one user turn."""
+
+    def expects_reply(self, state: dict[str, Any]) -> bool:
+        """True while the agent is waiting for this user's answer (e.g. a phone number), so the
+        orchestrator must not route the next message elsewhere. Default: never locks the turn."""
+        return False
