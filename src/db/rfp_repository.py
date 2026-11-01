@@ -81,6 +81,14 @@ class RfpRepository:
                 s.add(RfpOpportunityRecord(id=opp.opportunity_id, dedup_key=opp.dedup_key,
                                            status=status.value, **fields))
                 return True
+            # Keep earlier AI work when this refresh has none (e.g. LLM off now, or call limit reached).
+            if opp.summary_mode != "llm" and row.summary_mode == "llm":
+                fields["summary"], fields["summary_mode"] = row.summary, row.summary_mode
+            if not opp.eligibility and row.eligibility:
+                fields["eligibility"] = row.eligibility
+            if not any(r.startswith("AI") for r in opp.fit_reasons):
+                fields["fit_reasons"] = opp.fit_reasons + [r for r in (row.fit_reasons or []) if r.startswith("AI")]
+                fields["matched_course_ids"] = list(dict.fromkeys(opp.matched_course_ids + (row.matched_course_ids or [])))
             for key, value in fields.items():
                 setattr(row, key, value)
             if row.status == OpportunityStatus.EXPIRED.value:

@@ -89,7 +89,9 @@ class Settings:
     admin_password: str | None = field(default=None, repr=False)
     # --- Agent 2: RFP research -----------------------------------------------------------
     rfp_feed_path: Path = PROJECT_ROOT / "data" / "rfp" / "sample_tenders.json"
-    rfp_llm_summaries: bool = False      # off by default: one LLM call per new tender
+    rfp_llm_summaries: str = "auto"      # auto = on whenever an LLM is configured; on | off
+    rfp_ai: str = "auto"                 # LLM review + notice analysis: auto | on | off
+    rfp_ai_max_calls: int = 20           # LLM calls per scan for review + analysis (cost / rate limits)
     rfp_sources: tuple[str, ...] = ("worldbank", "file")   # worldbank = live API, file = RFP_FEED_PATH
     rfp_worldbank_rows: int = 100        # newest notices read per country per scan
     rfp_http_timeout_seconds: float = 20.0
@@ -185,7 +187,9 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         mcp_timeout_seconds=_number(env, "MCP_TIMEOUT_SECONDS", "20", minimum=1),
         admin_password=env.get("ADMIN_PASSWORD") or None,
         rfp_feed_path=_path(env, "RFP_FEED_PATH", "data/rfp/sample_tenders.json"),
-        rfp_llm_summaries=_choice(env, "RFP_LLM_SUMMARIES", "off", ("on", "off")) == "on",
+        rfp_llm_summaries=_choice(env, "RFP_LLM_SUMMARIES", "auto", ("auto", "on", "off")),
+        rfp_ai=_choice(env, "RFP_AI", "auto", ("auto", "on", "off")),
+        rfp_ai_max_calls=_number(env, "RFP_AI_MAX_CALLS", "20", int, minimum=0),
         rfp_sources=_rfp_sources(env),
         rfp_worldbank_rows=_number(env, "RFP_WORLDBANK_ROWS", "100", int, minimum=1),
         rfp_http_timeout_seconds=_number(env, "RFP_HTTP_TIMEOUT_SECONDS", "20", minimum=1),
