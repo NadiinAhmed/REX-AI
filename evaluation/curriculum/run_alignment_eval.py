@@ -51,7 +51,7 @@ def curriculum_for(case: dict) -> Curriculum:
     modules = [CurriculumModule(number=i, title=m["title"], hours=1,
                                 topics=[TracedText(text=t) for t in m["topics"]])
                for i, m in enumerate(case["modules"], 1)]
-    return Curriculum(title=f"Evaluation case {case['id']}", modules=modules)
+    return Curriculum(title=f"Case {case['id']}", modules=modules)   # neutral title: it is part of the checked text
 
 
 def evaluate(cases: list[dict], library: FrameworkLibrary) -> list[dict]:
