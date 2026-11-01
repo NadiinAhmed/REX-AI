@@ -124,12 +124,14 @@ def build_course_retriever(settings: Settings, courses: CourseRepository) -> tup
 
 
 def build_marketing(courses: CourseRepository, retriever: CourseRetriever, offers: OfferService,
-                    db: Database, llm: LLMService | None, dataset: DatasetInfo, settings: Settings):
-    """Agent 5 and its approval service. Offers travel over MCP when the course backend does."""
+                    db: Database, llm: LLMService | None, dataset: DatasetInfo, settings: Settings,
+                    curriculum_service=None):
+    """Agent 5 and its approval service. Offers travel over MCP when the course backend does.
+    Approved curricula come from Agent 3 when it is available."""
     from src.agents.marketing_agent import MarketingAgent
     from src.marketing.claim_validator import ClaimValidator
     from src.marketing.evaluator import MarketingEvaluator
-    from src.marketing.facts import CourseFactsProvider, NullCurriculumSource
+    from src.marketing.facts import CourseFactsProvider, CurriculumServiceSource, NullCurriculumSource
     from src.services.approval_service import ApprovalService
 
     offer_reader = offers
@@ -137,7 +139,9 @@ def build_marketing(courses: CourseRepository, retriever: CourseRetriever, offer
     if client is not None:
         from src.mcp_client.academy_client import McpOfferReader
         offer_reader = McpOfferReader(client)
-    facts = CourseFactsProvider(retriever, offer_reader, NullCurriculumSource(), is_synthetic=dataset.is_synthetic)
+    curriculum = (CurriculumServiceSource(curriculum_service) if curriculum_service is not None
+                  else NullCurriculumSource())
+    facts = CourseFactsProvider(retriever, offer_reader, curriculum, is_synthetic=dataset.is_synthetic)
     validator = ClaimValidator()
     evaluator = MarketingEvaluator(validator, settings.marketing_pass_threshold)
     repo = MarketingRepository(db)
@@ -184,7 +188,8 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
                                                    llm, rfp_repository, warnings)
     document_service = register_document_agent(registry, settings, db, courses, curriculum_service, llm, warnings)
     offers = OfferService(OfferRepository(db), courses)
-    marketing_agent, marketing_repo, approvals = build_marketing(courses, retriever, offers, db, llm, dataset, settings)
+    marketing_agent, marketing_repo, approvals = build_marketing(courses, retriever, offers, db, llm, dataset, settings,
+                                                                 curriculum_service)
     registry.register(marketing_agent)
     return AppContext(registry=registry, dataset=dataset, course_count=len(retriever.all_courses()),
                       llm_status=status, settings=settings, database=db, courses=courses, knowledge=knowledge,

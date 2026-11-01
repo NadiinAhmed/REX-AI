@@ -95,3 +95,5 @@ Logs record intent, language, mode and course IDs. They never record message tex
 - Agent 4 reads Agent 3 only through `CurriculumService` (`approved_for_course`, `get`, `draft_for_course`).
 - For Marketing (Agent 5): read the approved curriculum with `CurriculumService.approved_for_course(course_id)` and approved
   documents with `DocumentService.list(status="approved", course_id=...)`; do not read the tables directly.
+- Agent 5 now reads Agent 3 through `CurriculumServiceSource` (`src/marketing/facts.py`), which wraps
+  `approved_for_course`; it is passed to `build_marketing()` in `bootstrap.py`.

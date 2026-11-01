@@ -2,14 +2,14 @@
 
 CourseFactsProvider combines three approved sources into one `CourseFacts`:
   1. the course record    (CourseRetriever: direct database or the rex-academy MCP server)
-  2. the approved curriculum (CurriculumSource: Agent 3; a null source until it exists)
+  2. the approved curriculum (CurriculumSource: Agent 3 via CurriculumServiceSource)
   3. active offers        (OfferReader: approved and currently valid only)
 Every Fact keeps its source label, so each sentence in an ad can be traced back.
 """
 from __future__ import annotations
 
 from datetime import date
-from typing import Protocol
+from typing import Any, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -24,7 +24,7 @@ class CourseNotFoundError(LookupError):
 
 
 class CurriculumFacts(BaseModel):
-    """What an APPROVED curriculum adds. Produced by the Curriculum Agent (Agent 3) later."""
+    """What an APPROVED curriculum adds. Produced by the Curriculum Agent (Agent 3)."""
     course_id: str
     learning_outcomes: list[str] = Field(default_factory=list)
     modules: list[str] = Field(default_factory=list)
@@ -36,9 +36,37 @@ class CurriculumSource(Protocol):
 
 
 class NullCurriculumSource:
-    """Used until the Curriculum Agent exists: there is never an approved curriculum."""
+    """Used when the Curriculum Agent is unavailable: there is never an approved curriculum."""
     def approved_curriculum(self, course_id: str) -> CurriculumFacts | None:
         return None
+
+
+class ApprovedCurriculumLookup(Protocol):
+    """The one method Agent 5 needs from Agent 3 (`CurriculumService.approved_for_course`).
+    Declared here so the marketing package does not import the curriculum package."""
+    def approved_for_course(self, course_id: str) -> Any: ...
+
+
+class CurriculumServiceSource:
+    """Connects Agent 5 to Agent 3. Only an APPROVED curriculum is ever returned
+    (drafts, in-review and changes-requested curricula are invisible to marketing)."""
+
+    def __init__(self, service: ApprovedCurriculumLookup) -> None:
+        self._service = service
+
+    def approved_curriculum(self, course_id: str) -> CurriculumFacts | None:
+        stored = self._service.approved_for_course(course_id)
+        if stored is None:
+            return None
+        cur = stored.curriculum
+        reference = f"{stored.id} rev {stored.revision}"
+        if stored.approved_by:
+            reference += f", approved by {stored.approved_by}"
+        return CurriculumFacts(
+            course_id=course_id,
+            learning_outcomes=[o.text for o in cur.learning_outcomes if o.text.strip()],
+            modules=[m.title for m in cur.modules if m.title.strip()],
+            reference=reference)
 
 
 def _join(values: list[str]) -> str:
@@ -97,7 +125,12 @@ class CourseFactsProvider:
 
         outcomes, modules = list(course.learning_outcomes), list(course.modules)
         notes: list[str] = []
-        curriculum = self._curriculum.approved_curriculum(course.course_id)
+        try:
+            curriculum = self._curriculum.approved_curriculum(course.course_id)
+        except Exception as exc:    # e.g. curriculum table unavailable: fall back to the course record
+            curriculum = None
+            notes.append(f"Approved curriculum could not be loaded ({type(exc).__name__}); "
+                         "the copy uses the course record only.")
         if curriculum is not None:
             cur_src = f"approved curriculum ({curriculum.reference})"
             if curriculum.learning_outcomes:
