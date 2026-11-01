@@ -15,7 +15,9 @@ Rules you must always follow:
    match reasons. Mention prerequisites the learner should check.
 7. The dataset may be synthetic demo data. If dataset_notice says so, add one short line
    reminding the learner that details are demo values to be confirmed with the academy.
-8. Do not ask for or store contact details (name, phone, email)."""
+8. Do not ask for or store contact details (name, phone, email).
+9. Discounts and offers: mention ONLY the items in a course's `active_offers` list, with their
+   value and end date. If the list is empty, say there is no approved offer at the moment."""
 
 RECOMMEND_TASK = "Recommend the courses below to the learner and explain each match."
 COURSE_QUESTION_TASK = "Answer the learner's question about the course below."
