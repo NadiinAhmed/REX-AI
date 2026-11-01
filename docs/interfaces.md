@@ -97,3 +97,12 @@ Logs record intent, language, mode and course IDs. They never record message tex
   documents with `DocumentService.list(status="approved", course_id=...)`; do not read the tables directly.
 - Agent 5 now reads Agent 3 through `CurriculumServiceSource` (`src/marketing/facts.py`), which wraps
   `approved_for_course`; it is passed to `build_marketing()` in `bootstrap.py`.
+
+### Offers shared by Agent 1 and Agent 5
+- `build_offer_reader()` in `bootstrap.py` builds ONE `OfferReader` (direct `OfferService`, or
+  `McpOfferReader` when `COURSE_BACKEND=mcp`) and gives it to both REX Assistant and the Marketing Agent.
+- Both agents see only approved offers whose validity window includes today. Pending, rejected and
+  expired offers are invisible. The free-text `Course.promotions` field is never presented as an offer.
+- REX Assistant uses offers for discount/offer questions (EN + AR), next to the fee, in
+  recommendations, and as `active_offers` in the LLM's `<course_data>`. If the offer source fails it
+  says the offer "could not be checked" instead of guessing. Tests: `tests/test_rex_offers.py`.

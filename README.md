@@ -79,6 +79,7 @@ deterministic one and is labelled. **Live calls were not tested in the build env
 | 11 | Marketing page → TRK-001, LinkedIn, enrollment → Generate | 3 drafts, strategy, "pending review" |
 | 12 | Review tab → change the body to "only 1500 EGP" → Save & re-check | price blocked, Approve disabled |
 | 13 | Offers page → 15% for TRK-002 → approve → WhatsApp campaign for TRK-002 | "Offer: … 15% (until …)" |
+| 14 | After #13, ask the chat `Is there any discount on TRK-002?` (or `هل يوجد خصم على TRK-002؟`) | REX Assistant shows the same approved 15% offer and its end date |
 
 ## RFP Research (Agent 2)
 Sidebar → **RFP Opportunities** → *Run scan*. Egypt tenders are flagged for immediate review, Saudi

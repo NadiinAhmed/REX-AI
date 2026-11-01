@@ -23,6 +23,7 @@ from src.knowledge_base.text_utils import contains_arabic, normalize_arabic
 from src.models.course import Course
 from src.rag.retriever import PassageRetriever
 from src.services.lead_service import CONSENT_TEXT, LeadService, parse_contact_details
+from src.services.offer_service import OfferReader
 from src.services.llm_service import ChatMessage, LLMError, LLMService
 from src.utils.logging_config import get_logger
 from src.workflows.learner_profile import LearnerProfile, contains_contact_details, extract_profile
@@ -55,16 +56,18 @@ _LABELS = {
     "en": {
         "fee": "Fee", "duration": "Duration", "prerequisites": "Prerequisites", "instructor": "Instructor",
         "schedule": "Schedule", "modules": "Content", "learning_outcomes": "Learning outcomes",
-        "delivery_format": "Format", "career_paths": "Career paths", "promotions": "Promotions",
+        "delivery_format": "Format", "career_paths": "Career paths", "promotions": "Current offers",
         "skill_level": "Level", "unavailable": "not available in our current data",
-        "none_required": "none listed",
+        "none_required": "none listed", "no_offer": "no approved offer at the moment",
+        "offer_unknown": "could not be checked right now, please ask the academy", "offer_line": "Current offer",
     },
     "ar": {
         "fee": "الرسوم", "duration": "المدة", "prerequisites": "المتطلبات المسبقة", "instructor": "المدرب",
         "schedule": "المواعيد", "modules": "المحتوى", "learning_outcomes": "مخرجات التعلم",
-        "delivery_format": "طريقة الدراسة", "career_paths": "المسارات المهنية", "promotions": "العروض",
+        "delivery_format": "طريقة الدراسة", "career_paths": "المسارات المهنية", "promotions": "العروض الحالية",
         "skill_level": "المستوى", "unavailable": "غير متوفرة في بياناتنا الحالية",
-        "none_required": "لا يوجد",
+        "none_required": "لا يوجد", "no_offer": "لا يوجد عرض معتمد حالياً",
+        "offer_unknown": "تعذر التحقق حالياً، يرجى سؤال الأكاديمية", "offer_line": "العرض الحالي",
     },
 }
 _VALUE_AR = {
@@ -135,6 +138,7 @@ class RexAssistant(Agent):
         self, retriever: CourseRetriever, llm: LLMService | None = None,
         dataset_notice: str = "", top_k: int = 3,
         passages: PassageRetriever | None = None, lead_service: LeadService | None = None,
+        offers: OfferReader | None = None,
     ) -> None:
         self._retriever = retriever
         self._llm = llm
@@ -142,6 +146,7 @@ class RexAssistant(Agent):
         self._top_k = top_k
         self._passages = passages
         self._leads = lead_service
+        self._offers = offers      # approved + currently valid offers only (shared with Agent 5)
         self._graph = self._build_graph()
 
     # ------------------------------------------------------------------ graph
@@ -465,6 +470,8 @@ class RexAssistant(Agent):
                     lines.append(course.description)
                 continue
             lines.append(f"- {_LABELS[lang][f]}: {self._field_value(course, f, lang)}")
+            if f == "fee" and "promotions" not in fields:
+                lines.append(self._offer_line(course, lang))
         lines.append(self._demo_notice(course, lang))
         context = {"course": self._course_payload(course), "asked_about": fields}
         return self._finalize(prompts.COURSE_QUESTION_TASK, context, message, lang,
@@ -510,6 +517,7 @@ class RexAssistant(Agent):
                        f"{_LABELS[lang]['delivery_format']}: {self._field_value(c, 'delivery_format', lang)} · "
                        f"{_LABELS[lang]['duration']}: {self._field_value(c, 'duration', lang)} · "
                        f"{_LABELS[lang]['fee']}: {self._field_value(c, 'fee', lang)}")
+            out.append(self._offer_line(c, lang))
             for reason in r.reasons:
                 out.append(f"- {'✓' if reason.positive else '⚠'} {self._reason_text(reason, lang)}")
         if not profile.skill_level or not profile.preferred_format:
@@ -561,6 +569,11 @@ class RexAssistant(Agent):
         if field == "duration":
             parts = [p for p in (f"{c.duration_hours:g} h" if c.duration_hours else None, c.duration_text) if p]
             return " / ".join(parts) or unavailable
+        if field == "promotions":
+            offers = self._active_offers(c)
+            if offers is None:
+                return _LABELS[lang]["offer_unknown"]
+            return "; ".join(o.describe(lang) for o in offers) if offers else _LABELS[lang]["no_offer"]
         if field in ("skill_level", "delivery_format"):
             value = getattr(c, field).value
             if value == "unknown":
@@ -620,9 +633,32 @@ class RexAssistant(Agent):
             synthetic=c.source.is_synthetic,
         )
 
-    @staticmethod
-    def _course_payload(c: Course) -> dict:
-        return c.model_dump(mode="json", exclude={"keywords"})
+    def _course_payload(self, c: Course) -> dict:
+        """Course data for the LLM. The free-text `promotions` field is NOT sent: only approved,
+        currently valid offers may be mentioned (the same rule the Marketing Agent follows)."""
+        payload = c.model_dump(mode="json", exclude={"keywords", "promotions"})
+        offers = self._active_offers(c)
+        payload["active_offers"] = ("unknown (could not be checked)" if offers is None
+                                    else [o.model_dump(mode="json", include={"title_en", "title_ar", "discount_percent",
+                                          "price_amount", "currency", "valid_until"}) for o in offers])
+        return payload
+
+    def _active_offers(self, c: Course):
+        """Approved, currently valid offers; [] if none; None if the offer source failed."""
+        if self._offers is None:
+            return []
+        try:
+            return self._offers.active_offers(c.course_id)
+        except Exception as exc:      # e.g. MCP server down: never invent, never crash
+            logger.warning("Offers unavailable for %s: %s", c.course_id, exc)
+            return None
+
+    def _offer_line(self, c: Course, lang: str) -> str:
+        """A short line for fee answers and recommendations; empty when there is no active offer."""
+        offers = self._active_offers(c)
+        if not offers:
+            return ""
+        return f"- 🏷 {_LABELS[lang]['offer_line']}: " + "; ".join(o.describe(lang) for o in offers)
 
     def _demo_notice(self, c: Course, lang: str) -> str:
         if not c.source.is_synthetic:

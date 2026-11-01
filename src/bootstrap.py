@@ -21,7 +21,7 @@ from src.knowledge_base.retriever import CourseRetriever, KeywordRetriever
 from src.models.course import DatasetInfo
 from src.services.lead_service import LeadService
 from src.services.llm_service import LLMService, create_llm_service
-from src.services.offer_service import OfferService
+from src.services.offer_service import OfferReader, OfferService
 from src.utils.logging_config import get_logger
 
 logger = get_logger("bootstrap")
@@ -123,6 +123,17 @@ def build_course_retriever(settings: Settings, courses: CourseRepository) -> tup
     return KeywordRetriever(courses.list_approved()), "direct"
 
 
+def build_offer_reader(offers: OfferService, retriever: CourseRetriever) -> OfferReader:
+    """The ONE offer reader shared by REX Assistant (Agent 1) and Marketing (Agent 5).
+    Offers travel over MCP when the course backend does, otherwise straight from OfferService.
+    Either way only approved, currently valid offers are returned."""
+    client = getattr(retriever, "client", None)        # McpCourseRetriever exposes its MCP connection
+    if client is not None:
+        from src.mcp_client.academy_client import McpOfferReader
+        return McpOfferReader(client)
+    return offers
+
+
 def build_marketing(courses: CourseRepository, retriever: CourseRetriever, offers: OfferService,
                     db: Database, llm: LLMService | None, dataset: DatasetInfo, settings: Settings,
                     curriculum_service=None):
@@ -134,11 +145,7 @@ def build_marketing(courses: CourseRepository, retriever: CourseRetriever, offer
     from src.marketing.facts import CourseFactsProvider, CurriculumServiceSource, NullCurriculumSource
     from src.services.approval_service import ApprovalService
 
-    offer_reader = offers
-    client = getattr(retriever, "client", None)        # McpCourseRetriever exposes its MCP connection
-    if client is not None:
-        from src.mcp_client.academy_client import McpOfferReader
-        offer_reader = McpOfferReader(client)
+    offer_reader = build_offer_reader(offers, retriever)
     curriculum = (CurriculumServiceSource(curriculum_service) if curriculum_service is not None
                   else NullCurriculumSource())
     facts = CourseFactsProvider(retriever, offer_reader, curriculum, is_synthetic=dataset.is_synthetic)
@@ -179,15 +186,16 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
 
     retriever, backend_status = build_course_retriever(settings, courses)
     leads = LeadRepository(db)
+    offers = OfferService(OfferRepository(db), courses)
     registry = AgentRegistry()
     registry.register(RexAssistant(
         retriever=retriever, llm=llm, dataset_notice=dataset.notice,
-        passages=knowledge.passages if knowledge else None, lead_service=LeadService(leads)))
+        passages=knowledge.passages if knowledge else None, lead_service=LeadService(leads),
+        offers=build_offer_reader(offers, retriever)))
     rfp_repository = register_rfp_agent(registry, settings, db, retriever, llm, warnings)
     curriculum_service = register_curriculum_agent(registry, db, courses, knowledge.passages if knowledge else None,
                                                    llm, rfp_repository, warnings)
     document_service = register_document_agent(registry, settings, db, courses, curriculum_service, llm, warnings)
-    offers = OfferService(OfferRepository(db), courses)
     marketing_agent, marketing_repo, approvals = build_marketing(courses, retriever, offers, db, llm, dataset, settings,
                                                                  curriculum_service)
     registry.register(marketing_agent)
