@@ -14,7 +14,7 @@ from src.mcp_server.academy_server import create_server
 from tests.conftest import OFFICIAL_DATASET
 
 EXPECTED_TOOLS = {"list_courses", "search_courses", "get_course", "search_knowledge_base", "list_documents",
-                  "get_active_offers"}
+                  "get_active_offers", "get_approved_curriculum", "list_approved_curricula"}
 
 
 @pytest.fixture

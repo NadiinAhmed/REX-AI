@@ -216,3 +216,33 @@ class McpOfferReader:
                           approval_status="approved") for o in data.get("offers", [])]
         except (ValidationError, KeyError, TypeError) as exc:
             raise McpError(f"MCP server returned an invalid offer: {exc}") from exc
+
+
+class McpCurriculumSource:
+    """Marketing's `CurriculumSource` over MCP (tool: get_approved_curriculum). Same contract as
+    `CurriculumServiceSource`: only an APPROVED curriculum is ever returned.
+
+    If the MCP call fails, the optional `fallback` (the direct CurriculumServiceSource) answers instead,
+    so an MCP problem never makes marketing silently lose the curriculum."""
+
+    def __init__(self, client: AcademyMcpClient, fallback=None) -> None:
+        self._client, self._fallback = client, fallback
+
+    def approved_curriculum(self, course_id: str):
+        from src.marketing.facts import CurriculumFacts
+        try:
+            data = self._client.call("get_approved_curriculum", {"course_id": course_id.strip().upper()})
+            if not data.get("found"):
+                return None
+            reference = f"{data['curriculum_id']} rev {data['revision']}"
+            if data.get("approved_by"):
+                reference += f", approved by {data['approved_by']}"
+            return CurriculumFacts(course_id=data["course_id"],
+                                   learning_outcomes=[o["text"] for o in data.get("learning_outcomes", []) if o.get("text", "").strip()],
+                                   modules=[m["title"] for m in data.get("modules", []) if m.get("title", "").strip()],
+                                   reference=reference + " (via MCP)")
+        except (McpError, KeyError, TypeError, ValidationError) as exc:
+            if self._fallback is None:
+                raise McpError(f"Approved curriculum unavailable over MCP: {exc}") from exc
+            logger.warning("MCP curriculum lookup failed (%s); using the direct Curriculum service", type(exc).__name__)
+            return self._fallback.approved_curriculum(course_id)

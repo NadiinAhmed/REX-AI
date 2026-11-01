@@ -160,6 +160,18 @@ def build_offer_reader(offers: OfferService, retriever: CourseRetriever) -> Offe
     return offers
 
 
+def build_curriculum_source(retriever: CourseRetriever, curriculum_service=None):
+    """How Marketing (Agent 5) reads APPROVED curricula from Agent 3. Over MCP when the course backend is MCP
+    (falling back to the direct service if a call fails), otherwise straight from CurriculumService."""
+    from src.marketing.facts import CurriculumServiceSource, NullCurriculumSource
+    direct = CurriculumServiceSource(curriculum_service) if curriculum_service is not None else None
+    client = getattr(retriever, "client", None)
+    if client is not None and "get_approved_curriculum" in getattr(client, "tool_names", []):
+        from src.mcp_client.academy_client import McpCurriculumSource
+        return McpCurriculumSource(client, fallback=direct)
+    return direct or NullCurriculumSource()
+
+
 def build_marketing(courses: CourseRepository, retriever: CourseRetriever, offers: OfferService,
                     db: Database, llm: LLMService | None, dataset: DatasetInfo, settings: Settings,
                     curriculum_service=None):
@@ -168,12 +180,11 @@ def build_marketing(courses: CourseRepository, retriever: CourseRetriever, offer
     from src.agents.marketing_agent import MarketingAgent
     from src.marketing.claim_validator import ClaimValidator
     from src.marketing.evaluator import MarketingEvaluator
-    from src.marketing.facts import CourseFactsProvider, CurriculumServiceSource, NullCurriculumSource
+    from src.marketing.facts import CourseFactsProvider
     from src.services.approval_service import ApprovalService
 
     offer_reader = build_offer_reader(offers, retriever)
-    curriculum = (CurriculumServiceSource(curriculum_service) if curriculum_service is not None
-                  else NullCurriculumSource())
+    curriculum = build_curriculum_source(retriever, curriculum_service)
     facts = CourseFactsProvider(retriever, offer_reader, curriculum, is_synthetic=dataset.is_synthetic)
     validator = ClaimValidator()
     evaluator = MarketingEvaluator(validator, settings.marketing_pass_threshold)
