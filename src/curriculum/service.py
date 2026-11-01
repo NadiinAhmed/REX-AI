@@ -177,8 +177,7 @@ class CurriculumService:
         cur = stored.curriculum.model_copy(deep=True)
         for edit in edits:
             self._apply_one(cur, edit)
-        for i, m in enumerate(cur.modules, 1):
-            m.number = i
+        self._renumber(cur)          # no-op unless an edit left gaps; keeps outcome links consistent either way
         reports = []
         for fid in cur.framework_ids:
             try:
@@ -222,8 +221,10 @@ class CurriculumService:
             if len(cur.modules) == 1:
                 raise CurriculumError("A curriculum needs at least one module.")
             cur.modules.remove(m)
-            for o in cur.learning_outcomes:
-                o.module_numbers = [n for n in o.module_numbers if n != m.number]
+            # a template outcome written only for the removed module describes a module that no longer exists
+            cur.learning_outcomes = [o for o in cur.learning_outcomes
+                                     if not (o.origin == Origin.TEMPLATE and o.module_numbers == [m.number])]
+            self._renumber(cur)
             self._rebalance(cur)
         elif op == "set_module_hours":
             self._module(cur, e["module"]).hours = float(e["hours"])
@@ -235,8 +236,12 @@ class CurriculumService:
             cur.total_hours, cur.hours_origin = hours, Origin.USER
             self._rebalance(cur)
         elif op == "add_outcome":
+            numbers = [int(n) for n in e.get("modules", [])]
+            unknown = sorted(set(numbers) - {m.number for m in cur.modules})
+            if unknown:
+                raise CurriculumError(f"There is no module {', '.join(map(str, unknown))}.")
             cur.learning_outcomes.append(Outcome(id="", text=e["text"].strip(), origin=Origin.USER, source="Reviewer edit",
-                                                 module_numbers=[int(n) for n in e.get("modules", [])]))
+                                                 module_numbers=numbers))
             for i, o in enumerate(cur.learning_outcomes, 1):
                 o.id = f"LO{i}"
         elif op == "remove_outcome":
@@ -255,6 +260,18 @@ class CurriculumService:
             cur.framework_ids = list(dict.fromkeys(e["ids"]))
         else:
             raise CurriculumError(f"Unknown edit '{op}'.")
+
+    @staticmethod
+    def _renumber(cur: Curriculum) -> None:
+        """Give modules the numbers 1..n and move every outcome link with its module (old number -> new number).
+        Links to modules that no longer exist are dropped; outcome ids are renumbered LO1..LOn."""
+        mapping = {m.number: i for i, m in enumerate(cur.modules, 1)}
+        for m in cur.modules:
+            m.number = mapping[m.number]
+        for o in cur.learning_outcomes:
+            o.module_numbers = [mapping[n] for n in o.module_numbers if n in mapping]
+        for i, o in enumerate(cur.learning_outcomes, 1):
+            o.id = f"LO{i}"
 
     @staticmethod
     def _rebalance(cur: Curriculum) -> None:
