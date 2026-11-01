@@ -6,7 +6,7 @@
   "status": "reference_checklist",
   "verified": false,
   "source_url": null,
-  "notice": "Reference checklist assembled by the REX AI team from the framework's publicly known area names. The wording and search keywords are the team's, NOT the issuer's text, and nothing here has been verified by the issuer. Use it to find possible gaps; check the official source before relying on it.",
+  "notice": "Reference checklist assembled by the REX AI team from the framework's publicly known area names. The wording and search keywords are the team's, NOT the issuer's text, and nothing here has been verified by the issuer. Use it to find possible gaps; check the official source before relying on it. Arabic keywords (keywords_ar) were added by the REX AI team so Arabic curriculum text can be compared; they are reference terms, not an official translation.",
   "suggested_for_departments": [
     "Artificial Intelligence",
     "Data"
@@ -23,7 +23,15 @@
         "stakeholder",
         "use case"
       ],
-      "expected_outcome": "Translate a business problem into a data-science task with measurable success criteria."
+      "expected_outcome": "Translate a business problem into a data-science task with measurable success criteria.",
+      "keywords_ar": [
+        "فهم الأعمال",
+        "متطلبات العمل",
+        "صياغة المشكلة",
+        "معايير النجاح",
+        "أصحاب المصلحة",
+        "حالات الاستخدام"
+      ]
     },
     {
       "id": "2",
@@ -37,7 +45,14 @@
         "data collection",
         "data sources"
       ],
-      "expected_outcome": "Collect and explore data and assess its quality."
+      "expected_outcome": "Collect and explore data and assess its quality.",
+      "keywords_ar": [
+        "فهم البيانات",
+        "التحليل الاستكشافي",
+        "جودة البيانات",
+        "جمع البيانات",
+        "مصادر البيانات"
+      ]
     },
     {
       "id": "3",
@@ -52,7 +67,15 @@
         "data pipeline",
         "data extraction"
       ],
-      "expected_outcome": "Prepare analysis-ready datasets and features reproducibly."
+      "expected_outcome": "Prepare analysis-ready datasets and features reproducibly.",
+      "keywords_ar": [
+        "تجهيز البيانات",
+        "إعداد البيانات",
+        "تنظيف البيانات",
+        "هندسة الخصائص",
+        "هندسة الميزات",
+        "المعالجة المسبقة"
+      ]
     },
     {
       "id": "4",
@@ -66,7 +89,15 @@
         "neural",
         "rag"
       ],
-      "expected_outcome": "Select, train and tune models."
+      "expected_outcome": "Select, train and tune models.",
+      "keywords_ar": [
+        "النمذجة",
+        "تدريب النموذج",
+        "تعلم الآلة",
+        "التعلم الآلي",
+        "الشبكات العصبية",
+        "الخوارزميات"
+      ]
     },
     {
       "id": "5",
@@ -80,7 +111,13 @@
         "g-eval",
         "benchmark"
       ],
-      "expected_outcome": "Evaluate models against the business criteria before release."
+      "expected_outcome": "Evaluate models against the business criteria before release.",
+      "keywords_ar": [
+        "تقييم النموذج",
+        "مقاييس الأداء",
+        "التحقق من صحة النموذج",
+        "المقاييس"
+      ]
     },
     {
       "id": "6",
@@ -96,7 +133,14 @@
         "fastapi",
         "bentoml"
       ],
-      "expected_outcome": "Deploy, monitor and maintain a model in production."
+      "expected_outcome": "Deploy, monitor and maintain a model in production.",
+      "keywords_ar": [
+        "نشر النموذج",
+        "نشر النماذج",
+        "مراقبة النموذج",
+        "انحراف البيانات",
+        "الاستدلال"
+      ]
     }
   ]
 }

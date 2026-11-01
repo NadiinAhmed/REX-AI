@@ -1,0 +1,16 @@
+{
+  "label": "v3-arabic-keywords",
+  "created_at": "20261101-183826",
+  "git_commit": "3fd1815",
+  "git_dirty": true,
+  "dataset": "evaluation/curriculum/dataset.jsonl",
+  "dataset_sha256": "24cd822aad14",
+  "covered_min_hits": 2,
+  "framework_files": {
+    "crisp-dm.json": "89a19274a7ed",
+    "data-eng-lifecycle.json": "5f20f17326a7",
+    "istqb-ctfl-4.0.json": "abe16e7108c4",
+    "swebok-3.json": "60951753332e"
+  },
+  "llm": "none (the checker is deterministic)"
+}

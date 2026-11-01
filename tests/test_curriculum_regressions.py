@@ -192,3 +192,26 @@ def test_llm_check_script_detects_rule_breaking_and_good_answers(courses):
 
     result = check_course(course, Fake("not json"), TrackTopics.load())
     assert result["checks"]["used_llm"] is False and "deterministic" in result["fallback_notice"]
+
+
+# ------------------------------------------------------------------ Arabic alignment
+from src.curriculum.alignment import find_terms
+
+
+@pytest.mark.parametrize("text", ["الاختبار الساكن", "والاختبار الساكن", "بالتحليل الثابت", "اختبارات التكامل", "التَّحليل الثابت"])
+def test_arabic_keywords_match_with_common_prefixes_suffixes_and_diacritics(text):
+    assert find_terms(["الاختبار الساكن", "التحليل الثابت", "اختبار التكامل"], [("m", text)])
+
+
+def test_arabic_keywords_do_not_match_inside_other_words():
+    assert find_terms(["الأمن"], [("m", "تحقيق الأمنيات")]) == {}      # "wishes", not "security"
+    assert find_terms(["نشر النموذج"], [("m", "نشر المحتوى")]) == {}
+
+
+def test_arabic_overlap_counts_once_and_every_framework_has_arabic_terms():
+    assert len(find_terms(["التحليل", "التحليل الثابت"], [("m", "التحليل الثابت")])) == 1
+    assert all(a.keywords_ar for f in FrameworkLibrary.load().all() for a in f.areas)
+
+
+def test_arabic_curriculum_is_aligned():
+    assert _status("مراجعة الكود والتحليل الثابت", "istqb-ctfl-4.0", "3") == AreaStatus.COVERED

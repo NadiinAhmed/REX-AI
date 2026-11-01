@@ -26,7 +26,12 @@ class FrameworkArea(BaseModel):
     id: str
     title: str
     keywords: list[str] = Field(min_length=1)
+    keywords_ar: list[str] = Field(default_factory=list)     # Arabic reference terms (optional)
     expected_outcome: str = ""
+
+    @property
+    def all_keywords(self) -> list[str]:
+        return [*self.keywords, *self.keywords_ar]
 
 
 class Framework(BaseModel):

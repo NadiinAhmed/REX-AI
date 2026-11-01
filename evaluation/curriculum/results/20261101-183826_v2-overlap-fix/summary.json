@@ -1,41 +1,41 @@
 {
   "overall": {
-    "n": 61,
-    "exact_accuracy": 0.8852,
-    "over_claim_rate": 0.0328,
-    "under_claim_rate": 0.082
+    "n": 88,
+    "exact_accuracy": 0.7841,
+    "over_claim_rate": 0.0227,
+    "under_claim_rate": 0.1932
   },
-  "cases": 24,
+  "cases": 36,
   "per_status": {
     "missing": {
-      "precision": 0.9,
-      "recall": 0.973,
-      "support": 37
+      "precision": 0.7612,
+      "recall": 0.9808,
+      "support": 52
     },
     "partial": {
       "precision": 0.7778,
-      "recall": 0.875,
-      "support": 8
+      "recall": 0.5,
+      "support": 14
     },
     "covered": {
       "precision": 0.9167,
-      "recall": 0.6875,
-      "support": 16
+      "recall": 0.5,
+      "support": 22
     }
   },
   "confusion_expected_x_predicted": {
     "missing": {
-      "missing": 36,
+      "missing": 51,
       "partial": 1,
       "covered": 0
     },
     "partial": {
-      "missing": 0,
+      "missing": 6,
       "partial": 7,
       "covered": 1
     },
     "covered": {
-      "missing": 4,
+      "missing": 10,
       "partial": 1,
       "covered": 11
     }
@@ -43,7 +43,7 @@
   "by": {
     "lang": {
       "ar": {
-        "n": 9,
+        "n": 36,
         "exact_accuracy": 0.5556,
         "over_claim_rate": 0.0,
         "under_claim_rate": 0.4444
@@ -61,6 +61,12 @@
         "exact_accuracy": 0.4,
         "over_claim_rate": 0.0,
         "under_claim_rate": 0.6
+      },
+      "arabic-heldout": {
+        "n": 27,
+        "exact_accuracy": 0.5556,
+        "over_claim_rate": 0.0,
+        "under_claim_rate": 0.4444
       },
       "arabic-mixed": {
         "n": 4,
@@ -113,6 +119,18 @@
     "c10 area 3 (Static Testing): expected covered, got missing [no terms]",
     "c10 area 5 (Managing the Test Activities): expected covered, got missing [no terms]",
     "c15 area 3 (Data Preparation): expected covered, got missing [no terms]",
-    "c23 area 10 (Orchestration): expected covered, got partial [airflow]"
+    "c23 area 10 (Orchestration): expected covered, got partial [airflow]",
+    "h01 area 4 (Test Analysis and Design): expected covered, got missing [no terms]",
+    "h02 area 3 (Static Testing): expected partial, got missing [no terms]",
+    "h03 area 2 (Testing Throughout the Software Development Lifecycle): expected covered, got missing [no terms]",
+    "h03 area 6 (Test Tools): expected partial, got missing [no terms]",
+    "h05 area 4 (Modeling): expected covered, got missing [no terms]",
+    "h06 area 5 (Evaluation): expected covered, got missing [no terms]",
+    "h08 area 3 (Data Preparation): expected partial, got missing [no terms]",
+    "h08 area 2 (Data Understanding): expected partial, got missing [no terms]",
+    "h09 area 4 (Storage): expected covered, got missing [no terms]",
+    "h10 area 6 (Security): expected covered, got missing [no terms]",
+    "h12 area 4 (Software Testing): expected partial, got missing [no terms]",
+    "h12 area 5 (Software Maintenance): expected partial, got missing [no terms]"
   ]
 }

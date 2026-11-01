@@ -58,34 +58,42 @@ issuers' official text. An area is *covered* with ≥ 2 distinct keyword hits, *
 piece of text counts once:** longer keywords are matched first and the words they used cannot be reused by a shorter
 keyword of the same area, so "code review" is not also "review" and "trade-offs" is not also "trade-off". The report
 lists evidence (which module), what to add, and a disclaimer. To use a real standard, add a JSON file with
-`status: official_text`; no code change is needed.
+`status: official_text`; no code change is needed. Each area may also list Arabic terms in `keywords_ar`.
 
 > No ITIDA/ITI requirement text is in the repository, so the agent makes **no** claim about ITIDA accreditation.
 > The portfolio's own statements are the academy's claims, not something this agent verified.
 
 ## Evaluation of the alignment checker
-`evaluation/curriculum/dataset.jsonl`: 24 cases, 61 hand-labelled (case, area) pairs, English and Arabic, across all four
-frameworks. Labels describe what the text teaches (covered = 2+ distinct concepts, partial = 1, missing = 0) and were
-written without looking at the keyword lists; they were drafted with an AI assistant and **should be reviewed by the team**.
-Case kinds include traps the checker is expected to fail (synonyms, Arabic-only text). Free, offline, deterministic:
+`evaluation/curriculum/dataset.jsonl`: 36 cases, 88 hand-labelled (case, area) pairs across all four frameworks —
+52 English, 9 Arabic used while developing, and **27 Arabic held-out labels** (cases `h01`–`h12`) committed before
+the checker was run on them. Labels describe what the text teaches (covered = 2+ distinct concepts, partial = 1,
+missing = 0) and were written without looking at the keyword lists; they were drafted with an AI assistant and
+**should be reviewed by the team**. Kinds include traps the checker is expected to fail (synonyms, false friends).
+Free, offline, deterministic:
 
 ```bash
 python -m evaluation.curriculum.run_alignment_eval --label my-change
 python -m evaluation.curriculum.run_alignment_eval --compare evaluation/curriculum/results/<A> evaluation/curriculum/runs/<B>
 ```
 
-| Metric (61 labelled areas) | Before overlap fix | **After** | Change |
-|---|---|---|---|
-| Exact accuracy | 0.770 | **0.885** | +0.115 |
-| Over-claim rate (shows coverage a human would not: hides gaps) | 0.148 | **0.033** | −0.115 |
-| Under-claim rate (flags a gap a human would not) | 0.082 | 0.082 | 0 |
-| English (n=52) accuracy | 0.808 | 0.942 | +0.135 |
-| Arabic (n=9) accuracy | 0.556 | 0.556 | 0 |
+Three versions of the code on the same 88 labels (2026-11-01, `evaluation/curriculum/results/`):
 
-Measured 2026-11-01, results in `evaluation/curriculum/results/`. Remaining errors (7): Arabic-only topics and English
-synonyms are missed (walkthrough/inspection, تنظيف البيانات); "test planning … test plan" in one sentence still counts
-twice (two separate words, one concept); a generic keyword ("business review meeting" → *review*) gives a false
-*partial*. These are limits of keyword matching, listed below.
+| Metric | v1 original `main` | v2 overlap fix | **v3 + Arabic keywords** |
+|---|---|---|---|
+| Exact accuracy | 0.705 | 0.784 | **0.864** |
+| Over-claim rate (shows coverage a human would not: hides gaps) | 0.102 | **0.023** | 0.045 |
+| Under-claim rate (flags a gap a human would not) | 0.193 | 0.193 | **0.091** |
+| English (n=52) | 0.808 | 0.942 | 0.942 |
+| Arabic, cases seen while writing keywords (n=9) | 0.556 | 0.556 | 1.000 ⚠️ overfit |
+| **Arabic held-out (n=27)** | 0.556 | 0.556 | **0.667** |
+
+How to read it: the overlap fix removed most over-claims; Arabic keywords removed most under-claims. Quote the
+**held-out** Arabic score (0.667), not the 1.000 on cases the keywords were written next to. The over-claim rate rose
+from 0.023 to 0.045 because generic Arabic terms match false friends ("ضمان جودة الطعام", "جودة خدمة العملاء").
+Remaining errors are limits of keyword matching: synonyms and word forms not in the lists (مراجعات الأقران,
+الخوارزمية vs الخوارزميات, walkthrough/inspection), generic words, and one concept written as two keywords.
+The held-out errors were deliberately **not** used to add keywords (that would make the held-out score meaningless);
+new held-out cases are needed before tuning further.
 
 **Live LLM check** (cannot run in the build sandbox: no network to the providers):
 `python -m evaluation.curriculum.check_llm_enrichment` builds the deterministic and the LLM-enriched draft per course
@@ -124,9 +132,10 @@ hours → `duration_hours` · framework → `framework_ids` · projects → `pra
 
 ## Limitations
 - Alignment is keyword based: it finds *mentions*, not depth of teaching. Treat it as a first pass for the instructor.
-  Measured accuracy 0.885 on the labelled set; synonyms and generic words still cause errors (see Evaluation).
-- Framework checklists are unverified reference lists (see above); frameworks and keywords are English only, so a
-  curriculum written in Arabic is under-counted (Arabic accuracy 0.556; English tool names inside Arabic text do match).
+  Measured accuracy 0.864 on 88 labels; synonyms and generic words still cause errors (see Evaluation).
+- Framework checklists are unverified reference lists (see above). Arabic reference terms (`keywords_ar`) were added by
+  the team; Arabic matching handles attached prefixes (و، ب، ل، ال), simple endings and spelling variants, but not
+  broken plurals or synonyms (held-out Arabic accuracy 0.667).
 - Market suggestions use the same keyword matching: synonyms produce noise (e.g. "quality assurance" suggested for a
   course that says "QA"). They are suggestions only.
 - Agent 3 itself reads the catalog and documents directly (in-process database), not over MCP: MCP is used where another

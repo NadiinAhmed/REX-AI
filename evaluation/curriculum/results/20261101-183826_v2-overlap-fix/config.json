@@ -1,10 +1,10 @@
 {
-  "label": "baseline-before-fix",
-  "created_at": "20261101-181436",
-  "git_commit": "88bfdc2",
+  "label": "v2-overlap-fix",
+  "created_at": "20261101-183826",
+  "git_commit": "690fc28",
   "git_dirty": true,
   "dataset": "evaluation/curriculum/dataset.jsonl",
-  "dataset_sha256": "3ceebadc2931",
+  "dataset_sha256": "24cd822aad14",
   "covered_min_hits": 2,
   "framework_files": {
     "crisp-dm.json": "e00642e824d3",
