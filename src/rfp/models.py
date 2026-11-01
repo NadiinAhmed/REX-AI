@@ -77,6 +77,9 @@ class RawTender(BaseModel):
     link: str | None = None
     documents: list[str] = Field(default_factory=list)
     source: str = "unknown"
+    # The full notice document as plain text (real sources). Read for requirements and deadlines
+    # when they are not given as fields; not stored in the database.
+    full_text: str = ""
 
 
 class Opportunity(BaseModel):
