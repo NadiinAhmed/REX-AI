@@ -12,7 +12,7 @@ verified against `main` @ `e8c17b0` (119 tests passing). Nothing here is a measu
 | 38 | Captions, FB/IG ads, LinkedIn, email, WhatsApp, headlines, CTA | `Platform` enum + `PlatformSpec`; every variation has headline, body, CTA |
 | 39 | Simple campaign strategy | `recommend_strategy` node → `StrategyPlan` |
 | 40 | Multiple variations | `CampaignBrief.variations` (default 3), one angle per variation |
-| 41 | Connect with Curriculum Agent | `CurriculumSource` interface; `NullCurriculumSource` until Agent 3 exists |
+| 41 | Connect with Curriculum Agent | `CurriculumSource` interface; `NullCurriculumSource` until Agent 3 exists (now connected: see `marketing_agent.md`) |
 | 42 | Manual approval before sending/publishing | `ApprovalService`; drafts start `pending_review`; no send/publish code exists |
 | Agent 1 + 5 | "Pricing and promotions", "What offer should be included?" | Shared `course_offers` table + `OfferService` (used by both agents) |
 

@@ -18,13 +18,18 @@ claim, scores quality, and waits for a **named human reviewer**. It never publis
 | 38 | Captions, FB/IG ads, LinkedIn, email, WhatsApp, headlines, CTA | `src/marketing/platforms.py`; every draft has headline, body, CTA (+ subject for email) | `test_marketing_agent.py` |
 | 39 | Simple campaign strategy | `src/marketing/strategy.py` | `test_marketing_rules.py` |
 | 40 | Multiple variations | `CampaignBrief.variations` (1–5, default 3) | `test_marketing_agent.py` |
-| 41 | Connect with the Curriculum Agent | `CurriculumSource` interface; `NullCurriculumSource` until Agent 3 exists | fake curriculum test |
+| 41 | Connect with the Curriculum Agent | `CurriculumServiceSource` (`src/marketing/facts.py`) reads `CurriculumService.approved_for_course()`; wired in `bootstrap.py` | `test_marketing_curriculum_link.py` |
 | 42 | Manual approval before sending/publishing | `src/services/approval_service.py`; no send/publish code exists | `test_no_publishing_or_sending_code_exists` |
 
-**About requirement 41.** The Curriculum Agent is not built yet, so Agent 5 is *designed to
-integrate* with it, not connected to it. When Agent 3 exists, a teammate implements one method,
-`approved_curriculum(course_id)`, and plugs it in in `bootstrap.py`. Agent 5's code does not change.
-Approved learning outcomes and modules then appear in the ads, each with its own source label.
+**About requirement 41.** Agent 5 reads Agent 3 through one small adapter, `CurriculumServiceSource`.
+It calls `CurriculumService.approved_for_course(course_id)`, so **only a curriculum a reviewer approved**
+is used; drafts, in-review and changes-requested curricula are invisible to marketing. The approved
+learning outcomes and module titles become facts with their own source label, for example
+`approved curriculum (CUR-… rev 2, approved by Dr. Reviewer)`, so every sentence in an ad that uses them
+can be traced back to the signed-off curriculum. If the Curriculum Agent is unavailable, `bootstrap.py`
+falls back to `NullCurriculumSource`; if loading fails at run time, the campaign continues with the
+course record and a note says so. This implements the brief's workflow
+*Curriculum Approved → Marketing Agent Generates Campaign → Admin Reviews*.
 
 ## 2. Workflow (LangGraph) — generated from the code with `graph_diagram()`
 
