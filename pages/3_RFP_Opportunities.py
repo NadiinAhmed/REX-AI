@@ -30,6 +30,7 @@ agent = ctx.registry.get(AGENT)
 st.caption("Sources: " + " · ".join(
     {"worldbank": "World Bank Procurement API (live, real notices)",
      "file": "tender feed file"}.get(s, s) for s in (ctx.settings.rfp_sources if ctx.settings else ())))
+st.caption(f"LLM: {ctx.llm_status}")
 
 # ------------------------------------------------------------------ scan
 left, right = st.columns([1, 3])
@@ -42,6 +43,9 @@ if report:
                   f"{len(report.excluded)} excluded · {report.expired_marked} newly expired")
     for notice in report.source_notices:
         st.warning(notice)
+    st.info("🤖 " + report.ai_summary())
+    if report.ai_rescued:
+        st.caption("Kept by AI review (verified evidence quote): " + " · ".join(report.ai_rescued))
     if report.excluded:
         with st.expander(f"Why {len(report.excluded)} listing(s) were excluded"):
             st.dataframe([{"title": e.title, "reason": e.reason.value.replace("_", " "), "detail": e.detail}

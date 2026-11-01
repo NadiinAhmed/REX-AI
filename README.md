@@ -85,7 +85,9 @@ deterministic one and is labelled. **Live calls were not tested in the build env
 Sidebar → **RFP Opportunities** → *Run scan*. Egypt tenders are flagged for immediate review, Saudi
 tenders go to the monitored pipeline, everything else is excluded with a reason. Sources: the **live World Bank
 Procurement Notices API** (real Egypt notices; the full notice document is read for requirements and deadlines)
-and the **synthetic** demo feed (`data/rfp/sample_tenders.json`). Chat commands: `scan`, `egypt`, `saudi`,
+and the **synthetic** demo feed (`data/rfp/sample_tenders.json`). With an LLM configured, the agent also
+re-reads near-misses, extracts requirements from each notice and writes the summaries, and every LLM claim is
+checked against the notice text. Chat commands: `scan`, `egypt`, `saudi`,
 `RFP-XXXXXX` (Arabic: `ابحث`, `مصر`, `السعودية`). Details: [docs/rfp_agent.md](docs/rfp_agent.md).
 
 ## Curriculum (Agent 3)

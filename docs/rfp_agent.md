@@ -15,8 +15,9 @@ qualify?" assessment, and stores the result in the shared database for the dashb
 | **Strict Egypt / Saudi filter** | `extraction.detect_country()` + `screening.screen()` |
 | Filter unrelated and expired | `screening.screen()` |
 | Detect duplicates | `screening.DuplicateDetector` (same link, or same organization + ≥ 88 % similar title) |
-| Short AI summary | `summary.py` — deterministic; optional LLM rewrite of the same facts (`RFP_LLM_SUMMARIES=on`) |
-| Assess whether the academy may qualify | `qualification.assess()` — catalog topic match + requirements to verify |
+| Short AI summary | `summary.py` — LLM summary of each **new** tender whenever an LLM is configured; deterministic fallback |
+| Identify relevant opportunities (AI) | `ai.py` + pipeline `ai_review` — the LLM re-reads near-misses and may keep them with a verified evidence quote |
+| Assess whether the academy may qualify | `qualification.assess()` — catalog topic match + requirements to verify; pipeline `ai_analyze` adds LLM-read requirements, deadline and fit explanation, each verified against the notice |
 | Store in a searchable dashboard | `rfp_opportunities` table (migration 0002) + `pages/3_RFP_Opportunities.py` (filters, search, CSV export for Excel / Google Sheets) |
 | Alerts for new relevant RFPs | new **Egypt** opportunities are flagged and listed as alerts on scan, in chat and on the dashboard |
 | **Business rule:** Egypt → immediate review; Saudi → monitored | `screening.initial_status()` |
@@ -25,18 +26,43 @@ qualify?" assessment, and stores the result in the shared database for the dashb
 
 ```mermaid
 graph TD;
-    fetch --> screen --> deduplicate --> assess --> summarize --> store --> alert
+    fetch --> screen --> ai_review --> deduplicate --> assess --> ai_analyze --> summarize --> store --> alert
 ```
 
 | Step | Does |
 |---|---|
 | fetch | reads every source; a missing or broken feed is reported, never crashes the scan |
 | screen | extracts fields, then applies the rules **in order**: market → training-related → not expired. Each excluded listing gets exactly one reason |
+| ai_review | **LLM** (only if configured): re-reads tenders rejected *only* as "not training" (right country, still open). Kept only if the LLM quotes a sentence that is really in the notice **and** talks about learning |
 | deduplicate | against the database and inside the batch; the same tender seen again is *refreshed*, a re-post is *excluded* |
 | assess | fit = strong / possible / weak with reasons (never "qualifies") |
-| summarize | deterministic summary; LLM only rewrites, and is rejected if it drops the deadline |
+| ai_analyze | **LLM** (only if configured) reads the notice of each new tender: requirements, deadline, fit explanation, matching tracks. Only verified parts are used (see below); the rules are re-run with the new facts |
+| summarize | LLM summary for new tenders (deterministic fallback; rejected if it drops the deadline) |
 | store | upsert by `dedup_key`; human decisions (reviewed / dismissed) are never overwritten; past deadlines become `expired` |
 | alert | new Egypt opportunities → alerts, `alerted_at` set so they are not re-alerted |
+
+## The AI steps (`src/rfp/ai.py`)
+One LLM call per tender reads the notice and answers in JSON: is it a training request, an exact evidence
+sentence, the requirements, the deadline, a short fit explanation and matching track IDs. The notice is sent
+as data inside `<notice>` tags with an instruction to ignore any instructions in it.
+
+**Every part of the answer is checked before it is used:**
+| LLM says | Used only if |
+|---|---|
+| "this is training" (rescue) | the evidence sentence is really in the notice (≥ 25 characters, compared after normalisation) **and** mentions training, skills, learning or education |
+| a requirement | most of its content words appear in the notice (no invented ISO certificates or guarantees) |
+| a deadline | the rules found none, and its day and year appear in the notice; a past deadline then excludes the tender |
+| a track ID | it exists in the academy catalog |
+| a fit explanation | it does not claim the academy qualifies |
+
+**What the LLM can never do:** see or change out-of-market tenders (the country rule runs first), set the
+fit level (rules decide; the LLM can only lift WEAK to POSSIBLE when it finds a matching track), or hide a
+failure: if the call fails or the JSON is invalid, the rule-based result is kept and the scan says so.
+Everything rejected is counted ("N unverified item(s) ignored"). Calls are capped per scan
+(`RFP_AI_MAX_CALLS`, default 20); stored AI results are kept when a later scan runs without the LLM.
+
+Turn it on: `LLM_PROVIDER=groq` + `GROQ_API_KEY` (free tier) in `.env`. `RFP_AI` and `RFP_LLM_SUMMARIES`
+default to `auto` (on whenever an LLM is configured).
 
 ## Rules in detail
 
@@ -59,7 +85,7 @@ WEAK = no track match and requirements to verify. The text always says it is a f
 - Dashboard: sidebar → **RFP Opportunities** → *Run scan*. Review an opportunity, mark it reviewed or dismissed, export CSV.
 - Chat: `scan` · `egypt` · `saudi` · `RFP-1A2B3C`, or in Arabic `ابحث` · `مصر` · `السعودية`.
 - Settings: `RFP_SOURCES=worldbank,file` (default: both), `RFP_FEED_PATH` (the feed file; default: the synthetic demo feed),
-  `RFP_WORLDBANK_ROWS` (newest notices per country, default 100), `RFP_HTTP_TIMEOUT_SECONDS` (20), `RFP_LLM_SUMMARIES=on|off` (off).
+  `RFP_WORLDBANK_ROWS` (newest notices per country, default 100), `RFP_HTTP_TIMEOUT_SECONDS` (20), `RFP_AI=auto|on|off`, `RFP_LLM_SUMMARIES=auto|on|off` (auto = on when an LLM is configured), `RFP_AI_MAX_CALLS` (20).
 
 ## Data
 
@@ -94,10 +120,11 @@ the chat and the dashboard. To use real listings: export them into the same JSON
 | test_rfp_rules.py | each exclusion reason, Egypt-flagged / Saudi-monitored rule, duplicates, fit levels, LLM summary fallbacks |
 | test_rfp_agent.py | migration, full demo-feed scan, idempotent re-scan, no re-alert, human decision kept, later expiry, broken feeds, chat EN + AR |
 | test_rfp_dashboard.py | headless dashboard: scan, Egypt alert banner, table, dismiss button |
+| test_rfp_ai.py | LLM steps with a fake LLM: rescue only with a real learning quote, invented requirements / deadlines / track IDs dropped, past AI deadline excludes, LLM failure keeps rules result, call limit, AI work kept on re-scan, never "qualifies", notice sent as data, settings |
 | test_rfp_worldbank.py | World Bank source with a faked API (offline): field mapping, award notices skipped, notice-document parsing (requirements, deadline), goods vs training, API unreachable, real + demo sources together, `RFP_SOURCES` setting |
 
 ## Known limitations (next sprint)
 - Live data comes from the World Bank API only: Egypt, few open training notices; no Saudi coverage. Etimad (Saudi) needs a commercial registration.
 - Hijri deadlines are not converted.
 - Alerts are in-app only (no email/WhatsApp yet).
-- Fit and requirement extraction are keyword-based; an LLM step would understand unusual wording better.
+- Without an LLM, relevance and requirements are keyword-based. With an LLM, unusual wording is caught, but only verified parts are used, so some correct LLM findings may also be dropped.
