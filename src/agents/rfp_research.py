@@ -119,6 +119,7 @@ class RfpResearchAgent(Agent):
             f"- {self._t(lang, 'Documents', 'المستندات')}: {', '.join(r.documents) or na}",
             f"- {self._t(lang, 'Submission link', 'رابط التقديم')}: {r.submission_link or na}",
             f"- {self._t(lang, 'Status', 'الحالة')}: {r.status.replace('_', ' ')}",
+            f"- {self._t(lang, 'Source', 'المصدر')}: {r.source_name}",
             "",
             f"**{self._t(lang, 'Summary', 'ملخص')}:** {r.summary}",
             "",

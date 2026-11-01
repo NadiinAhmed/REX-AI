@@ -27,6 +27,9 @@ if repo is None or AGENT not in {a.name for a in ctx.registry.list_agents() if a
     st.error("The RFP research agent is not available. See the warnings on the main page.")
     st.stop()
 agent = ctx.registry.get(AGENT)
+st.caption("Sources: " + " · ".join(
+    {"worldbank": "World Bank Procurement API (live, real notices)",
+     "file": "tender feed file"}.get(s, s) for s in (ctx.settings.rfp_sources if ctx.settings else ())))
 
 # ------------------------------------------------------------------ scan
 left, right = st.columns([1, 3])
@@ -75,7 +78,7 @@ rows = [{
     "id": r.id, "title": r.title, "organization": r.issuing_organization, "country": Country(r.country).label,
     "deadline": r.deadline.isoformat() if r.deadline else "", "published": r.publication_date.isoformat() if r.publication_date else "",
     "category": ", ".join(Category(c).label for c in r.categories), "fit": r.fit, "status": r.status,
-    "link": r.submission_link or "", "synthetic": r.synthetic,
+    "link": r.submission_link or "", "source": r.source_name, "synthetic": r.synthetic,
 } for r in records]
 st.caption(f"{len(rows)} opportunity(ies). Fit is a first assessment from the listing, not a guarantee.")
 if any(r["synthetic"] for r in rows):

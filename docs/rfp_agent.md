@@ -8,7 +8,8 @@ qualify?" assessment, and stores the result in the shared database for the dashb
 
 | Requirement | Where |
 |---|---|
-| Search approved sources | `src/rfp/sources.py` — `TenderSource` protocol, `JsonFileSource` feed (MVP) |
+| Search approved sources | `src/rfp/worldbank.py` — **live World Bank Procurement Notices API** (real notices); `src/rfp/sources.py` — `TenderSource` protocol + `JsonFileSource` feed file |
+| Read the real notice documents | `src/rfp/documents.py` — notice HTML → text; requirement sentences and the deadline read from the document when not given as fields |
 | Identify training categories (6 from the brief) | `extraction.classify()` — bilingual keyword rules |
 | Extract title, organization, country, deadline, eligibility, category, link, publication date, documents | `extraction.extract()` → `Opportunity` |
 | **Strict Egypt / Saudi filter** | `extraction.detect_country()` + `screening.screen()` |
@@ -57,9 +58,30 @@ WEAK = no track match and requirements to verify. The text always says it is a f
 ## Use it
 - Dashboard: sidebar → **RFP Opportunities** → *Run scan*. Review an opportunity, mark it reviewed or dismissed, export CSV.
 - Chat: `scan` · `egypt` · `saudi` · `RFP-1A2B3C`, or in Arabic `ابحث` · `مصر` · `السعودية`.
-- Settings: `RFP_FEED_PATH` (default: the synthetic demo feed), `RFP_LLM_SUMMARIES=on|off` (default off).
+- Settings: `RFP_SOURCES=worldbank,file` (default: both), `RFP_FEED_PATH` (the feed file; default: the synthetic demo feed),
+  `RFP_WORLDBANK_ROWS` (newest notices per country, default 100), `RFP_HTTP_TIMEOUT_SECONDS` (20), `RFP_LLM_SUMMARIES=on|off` (off).
 
 ## Data
+
+### Real tenders: World Bank Procurement Notices API
+`GET https://search.worldbank.org/api/v2/procnotices?format=json&fl=*&project_ctry_name_exact=<country>`, free,
+no API key, data under CC BY 4.0. Each notice is an official procurement notice for a World Bank-financed project,
+published by the borrowing government (e.g. an Egyptian ministry), and includes the **full notice document** (HTML).
+
+- Queried for `Egypt, Arab Republic of` and `Saudi Arabia`, newest first.
+- **Contract-award notices are skipped**: they announce who already won, so they are not opportunities.
+- Classification uses the title and the short description; the **full document** is read separately for
+  requirements and the deadline, so a goods tender that only mentions "training of operators" is not kept.
+- Each kept notice links to `https://projects.worldbank.org/en/projects-operations/procurement-detail/<id>`.
+- **Coverage, honestly:** Egypt has World Bank notices, but only a few are open training calls at any time, so a
+  scan may keep 0–3. The World Bank does not lend to Saudi Arabia, so the Saudi query normally returns 0.
+- If the API cannot be reached (no internet), the scan reports it and continues with the other sources.
+
+### Why not Etimad or Egypt's e-tenders portal?
+Saudi Etimad's API requires a Saudi commercial registration and a paid subscription; Egypt's portal has no public
+API. Both can be added later as new `TenderSource` classes once access exists.
+
+### Demo feed (kept as a second source)
 `data/rfp/sample_tenders.json` is a **synthetic** feed: invented organizations (marked "fictional") and
 `example.com` links, built so every rule is exercised. It is labelled synthetic in the feed, the database,
 the chat and the dashboard. To use real listings: export them into the same JSON shape and set
@@ -72,9 +94,10 @@ the chat and the dashboard. To use real listings: export them into the same JSON
 | test_rfp_rules.py | each exclusion reason, Egypt-flagged / Saudi-monitored rule, duplicates, fit levels, LLM summary fallbacks |
 | test_rfp_agent.py | migration, full demo-feed scan, idempotent re-scan, no re-alert, human decision kept, later expiry, broken feeds, chat EN + AR |
 | test_rfp_dashboard.py | headless dashboard: scan, Egypt alert banner, table, dismiss button |
+| test_rfp_worldbank.py | World Bank source with a faked API (offline): field mapping, award notices skipped, notice-document parsing (requirements, deadline), goods vs training, API unreachable, real + demo sources together, `RFP_SOURCES` setting |
 
 ## Known limitations (next sprint)
-- No live portal connector yet: the MVP processes a feed. Live sources (Egypt e-tenders, Saudi Etimad) are the next `TenderSource`s.
+- Live data comes from the World Bank API only: Egypt, few open training notices; no Saudi coverage. Etimad (Saudi) needs a commercial registration.
 - Hijri deadlines are not converted.
 - Alerts are in-app only (no email/WhatsApp yet).
-- Fit is keyword-based; it does not read the tender documents.
+- Fit and requirement extraction are keyword-based; an LLM step would understand unusual wording better.
