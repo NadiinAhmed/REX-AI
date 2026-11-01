@@ -214,11 +214,9 @@ def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database
         from src.agents.rfp_research import RfpResearchAgent
         from src.db.rfp_repository import RfpRepository
         from src.rfp.pipeline import RfpScanPipeline
-        from src.rfp.sources import JsonFileSource
-
         repository = RfpRepository(db)
         pipeline = RfpScanPipeline(
-            sources=[JsonFileSource(settings.rfp_feed_path)], repository=repository,
+            sources=build_rfp_sources(settings), repository=repository,
             courses=courses.all_courses, llm=llm if settings.rfp_llm_summaries else None)
         registry.register(RfpResearchAgent(pipeline, repository))
         return repository
@@ -226,6 +224,19 @@ def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database
         logger.exception("RFP research agent unavailable")
         warnings.append(f"RFP research agent unavailable: {exc}")
         return None
+
+
+def build_rfp_sources(settings: Settings) -> list:
+    """Tender sources in the order of RFP_SOURCES: the live World Bank API and/or the JSON feed file."""
+    from src.rfp.sources import JsonFileSource
+    from src.rfp.worldbank import WorldBankSource
+
+    available = {
+        "worldbank": lambda: WorldBankSource(rows=settings.rfp_worldbank_rows,
+                                             timeout=settings.rfp_http_timeout_seconds),
+        "file": lambda: JsonFileSource(settings.rfp_feed_path),
+    }
+    return [available[name]() for name in settings.rfp_sources]
 
 
 

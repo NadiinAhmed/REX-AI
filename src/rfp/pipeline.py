@@ -80,7 +80,7 @@ class RfpScanPipeline:
                 continue
             info = getattr(source, "info", None)
             synthetic = bool(info and info.synthetic)
-            if synthetic and info.notice:
+            if info and info.notice:          # e.g. "SYNTHETIC demo feed" or "World Bank API: 3 read"
                 report.source_notices.append(info.notice)
             if getattr(source, "skipped", 0):
                 report.source_notices.append(f"{source.skipped} listing(s) in {source.name} were not readable and were skipped.")
