@@ -163,3 +163,32 @@ def test_rfp_failure_or_no_match_means_no_suggestions(courses):
     for rfp in (FakeRfp(fail=True), FakeRfp([tender("RFP-AAA111", "Selenium training", courses=("TRK-005",))])):
         cur = _service_with(courses, rfp).create(CurriculumRequest(course_id="TRK-001")).curriculum
         assert cur.market_suggestions == [] and cur.validation_problems() == []
+
+
+# ------------------------------------------------------------------ live-LLM check script (run offline with a fake)
+def test_llm_check_script_detects_rule_breaking_and_good_answers(courses):
+    import json as _json
+    from evaluation.curriculum.check_llm_enrichment import check_course
+    course = courses[1].get("TRK-001")
+
+    class Fake:
+        name = "fake"
+
+        def __init__(self, reply):
+            self.reply = reply
+
+        def generate(self, system_prompt, messages):
+            return self.reply
+
+    good = _json.dumps({"objectives": ["Build reliable automated test suites."],
+                        "learning_outcomes": [{"text": "Design risk-based test plans.", "modules": [1]}],
+                        "module_exercises": {"1": ["Write a Playwright test for a login form."]}})
+    result = check_course(course, Fake(good), TrackTopics.load())
+    assert result["passed"] and result["llm_items"] >= 3 and result["fallback_notice"] is None
+
+    claim = _json.dumps({"objectives": ["This course is accredited by ISTQB."]})          # filtered -> nothing usable
+    result = check_course(course, Fake(claim), TrackTopics.load())
+    assert result["checks"]["used_llm"] is False and result["checks"]["no_accreditation_claims"]
+
+    result = check_course(course, Fake("not json"), TrackTopics.load())
+    assert result["checks"]["used_llm"] is False and "deterministic" in result["fallback_notice"]
