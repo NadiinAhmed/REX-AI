@@ -18,7 +18,8 @@ from langgraph.graph import END, START, StateGraph
 
 from src.agents import prompts
 from src.agents.base import Agent, AgentRequest, AgentResponse, ResponseMode, SourceReference
-from src.knowledge_base.course_resolver import CourseResolver
+from src.knowledge_base.course_resolver import COURSE_NOUNS, CourseResolver
+from src.knowledge_base.course_resolver import tokens as course_tokens
 from src.knowledge_base.retriever import CourseRetriever
 from src.knowledge_base.text_utils import contains_arabic, normalize_arabic
 from src.models.course import Course
@@ -33,9 +34,13 @@ from src.workflows.recommendation import Reason, Recommendation, recommend_cours
 logger = get_logger("rex_assistant")
 
 # Course question topics: field name -> regex over normalized lower text
+# Start of an Arabic word, allowing the prefixes "ال", "و", "ب", "ل" (Arabic has no spaces before them).
+_AR_WORD_START = r"(?<![\u0621-\u064A])(?:و|ب|ل|ف)?(?:ال)?"
 _ATTRIBUTE_PATTERNS: dict[str, str] = {
     "fee": r"\b(price|prices|cost|fees?|how much)\b|سعر|اسعار|تكلفه|بكام|رسوم|كم سعر|بكم",
-    "duration": r"\b(duration|how long|hours|weeks|length)\b|مده|كام ساعه|كم ساعه|كم اسبوع",
+    # Arabic words must start a word (optionally after "ال"/"و"/"ب"): "مده" (duration) is also inside
+    # "معتمده" (accredited), which used to turn "هل الأكاديمية معتمدة؟" into a duration question.
+    "duration": rf"\b(duration|how long|hours|weeks|length)\b|{_AR_WORD_START}مده\b|كام ساعه|كم ساعه|كم اسبوع",
     "prerequisites": r"\b(prerequisites?|requirements?|need to know)\b|متطلبات|شروط",
     "instructor": r"\b(instructors?|trainers?|teachers?|lecturers?)\b|مدرب|مدربين|محاضر|مدرس|مدرسين",
     "schedule": r"\b(schedule|when does|when is|start date|starts?\s+on|dates?|timing)\b|موعد|مواعيد|ميعاد|امتي|متي|يبدا",
@@ -43,7 +48,10 @@ _ATTRIBUTE_PATTERNS: dict[str, str] = {
     "learning_outcomes": r"\b(outcomes?|will i learn|skills)\b|مخرجات|ماذا سأتعلم|هتعلم ايه",
     "delivery_format": r"\b(format|delivered|delivery)\b|طريقه الدراسه|طريقه التدريس",
     "career_paths": r"\b(career|jobs?|opportunit\w*)\b|وظائف|فرص|شغل",
-    "promotions": r"\b(discount|offer|promotion)\b|خصم|عرض",
+    # "offer" only as a noun ("any offer?", "offers on X"). As a verb ("Does the academy offer
+    # scholarships?") it is a general question, not a question about a course discount.
+    "promotions": (rf"\b(discounts?|promotions?|promo)\b|\b(any|an|special|current|latest|new)\s+offers?\b"
+                   rf"|\boffers?\s+(on|for)\s+(the|this|that|it|[a-z]{{2,4}}-\d{{3}})\b|{_AR_WORD_START}(خصم|خصومات|عرض|عروض)\b"),
 }
 # Document fallback for topics missing from the catalog: keep only passages scoring at least this
 # fraction of the best one, so a page that merely shares a word is not shown as evidence.
@@ -265,7 +273,7 @@ class RexAssistant(Agent):
         if not response.sources and self._passages is not None:
             doc = self._answer_from_documents(s["message"], s["lang"], course=None,
                                               min_relative_score=DOC_FALLBACK_RELATIVE_SCORE)
-            if doc.sources:
+            if doc.sources and self._sounds_like_a_program(s["message"], s.get("is_question", False)):
                 note = self._t(s["lang"],
                     "This isn't in our structured course catalog yet, so I can't compare its level, format or "
                     "fees with other courses.",
@@ -276,9 +284,19 @@ class RexAssistant(Agent):
                 # A stated interest ("I want cybersecurity") is kept; a one-off question is not.
                 kept = s["prior"] if s.get("is_question") else profile
                 return {"profile": kept, "route": "document_question", "response": doc}
+            if doc.sources:
+                # A general question about the academy ("Is the academy accredited?"): answer from the
+                # documents without the "not in our catalog" note, which only makes sense for a program.
+                return {"profile": s["prior"], "route": "document_question", "response": doc}
             if s.get("is_question"):
                 return {"profile": s["prior"], "route": "document_question", "response": doc}
         return {"profile": profile, "response": response}
+
+    @staticmethod
+    def _sounds_like_a_program(message: str, is_question: bool) -> bool:
+        """'I want cybersecurity' or 'Do you have a cybersecurity course?' -> True (a program the
+        catalog lacks). 'Is the academy accredited?' -> False (a general question)."""
+        return not is_question or any(w in COURSE_NOUNS for w in course_tokens(message))
 
     def _node_document_question(self, s: RexState) -> dict:
         return {"profile": s["prior"],
@@ -443,8 +461,12 @@ class RexAssistant(Agent):
             text = self._t(lang, f"Which course do you mean? Recently mentioned:\n{names}",
                            f"أي دورة تقصد؟ الدورات التي ذكرناها:\n{names}")
         else:
-            text = self._t(lang, "Which course are you asking about? You can use its name or code (e.g. DS-101).",
-                           "عن أي دورة تسأل؟ يمكنك كتابة اسمها أو رمزها (مثل DS-101).")
+            # The example code comes from the loaded catalog (it used to be a hard-coded demo code).
+            all_courses = self._retriever.all_courses()
+            example = f" (e.g. {all_courses[0].course_id})" if all_courses else ""
+            example_ar = f" (مثل {all_courses[0].course_id})" if all_courses else ""
+            text = self._t(lang, f"Which course are you asking about? You can use its name or code{example}.",
+                           f"عن أي دورة تسأل؟ يمكنك كتابة اسمها أو رمزها{example_ar}.")
         return AgentResponse(agent_name=self.name, text=text, mode=ResponseMode.DETERMINISTIC)
 
     def _recommend(self, profile: LearnerProfile, lang: str, message: str) -> AgentResponse:
@@ -474,7 +496,8 @@ class RexAssistant(Agent):
             "matches": [{"course": self._course_payload(r.course),
                          "match_reasons": [x.model_dump() for x in r.reasons]} for r in recs],
         }
-        return self._finalize(prompts.RECOMMEND_TASK, context, message, lang, fallback_text, sources, data)
+        return self._finalize(prompts.RECOMMEND_TASK, context, message, lang, fallback_text, sources, data,
+                              demo_notice=self._demo_notice(recs[0].course, lang))
 
     def _answer_course_question(self, course: Course, attributes: list[str], lang: str, message: str) -> AgentResponse:
         fields = attributes or ["description", "skill_level", "duration", "delivery_format", "fee", "prerequisites"]
@@ -491,21 +514,29 @@ class RexAssistant(Agent):
         context = {"course": self._course_payload(course), "asked_about": fields}
         return self._finalize(prompts.COURSE_QUESTION_TASK, context, message, lang,
                               "\n".join(l for l in lines if l), [self._source(course)],
-                              {"course_id": course.course_id, "asked_about": fields})
+                              {"course_id": course.course_id, "asked_about": fields},
+                              demo_notice=self._demo_notice(course, lang))
 
     # ------------------------------------------------------------------ LLM / fallback
     def _finalize(self, task: str, context: dict, message: str, lang: str,
-                  fallback_text: str, sources: list[SourceReference], data: dict) -> AgentResponse:
+                  fallback_text: str, sources: list[SourceReference], data: dict,
+                  demo_notice: str = "") -> AgentResponse:
+        """Ask the LLM to phrase the answer; fall back to the rule-based text if it fails.
+
+        `demo_notice` is added by code, not by the LLM: whether data is demo data is a fact from the
+        catalog (`is_synthetic`). A live test showed gpt-oss-20b calling the real catalog "demo values".
+        """
         if self._llm is None:
             data["llm_status"] = "disabled"
             return AgentResponse(agent_name=self.name, text=fallback_text, mode=ResponseMode.DETERMINISTIC,
                                  sources=sources, data=data)
         system = prompts.SYSTEM_PROMPT.format(language_name="Arabic" if lang == "ar" else "English")
-        user = (f"{task}\n\n<dataset_notice>{self._dataset_notice}</dataset_notice>\n"
-                f"<course_data>\n{json.dumps(context, ensure_ascii=False, indent=1)}\n</course_data>\n\n"
+        user = (f"{task}\n\n<course_data>\n{json.dumps(context, ensure_ascii=False, indent=1)}\n</course_data>\n\n"
                 f"Learner message: {message}")
         try:
             text = self._llm.generate(system, [ChatMessage(role="user", content=user)])
+            if demo_notice:
+                text = f"{text}\n\n{demo_notice}"
             data["llm_status"] = "used"
             return AgentResponse(agent_name=self.name, text=text, mode=ResponseMode.LLM, sources=sources, data=data)
         except LLMError as exc:

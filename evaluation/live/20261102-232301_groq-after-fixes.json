@@ -1,0 +1,86 @@
+{
+ "llm_status": "LLM enabled: groq / openai/gpt-oss-20b",
+ "provider": "groq",
+ "model": "openai/gpt-oss-20b",
+ "results": [
+  {
+   "case": "recommend_en",
+   "messages": [
+    "I'm a fresh graduate, I want to work in software testing, I'm a beginner"
+   ],
+   "mode": "llm",
+   "seconds": 1.16,
+   "sources": [
+    "TRK-001"
+   ],
+   "answer": "**Software Testing – Course Overview**\n\n| Topic | Details |\n|-------|---------|\n| **Description** | The course goes beyond traditional QA, equipping students with AI‑driven, cloud‑native and enterprise‑grade testing skills for modern software delivery. |\n| **Skill Level** | Not specified. |\n| **Duration** | 100 hours. |\n| **Delivery Format** | Not specified. |\n| **Fee** | Not available. |\n| **Prerequisites** | None listed. |\n\n**Why it could be a good fit for you**\n\n- **Beginner‑friendly**: No prerequisites are required, so you can start right away after graduation.  \n- **Industry relevance**: Covers modern tools (Playwright, Cypress, Docker, GitHub Actions, etc.) that employers look for in entry‑level QA roles.  \n- **Career paths**: The course targets Junior QA Engineer, Automation Engineer, and DevSecOps QA roles—exact positions you’re aiming for.  \n- **Hands‑on capstone**: You’ll build an AI‑augmented test suite and CI/CD pipeline, giving you a portfolio piece to show to recruiters.\n\n**Next steps**\n\n- Check the academy’s website or contact their admissions team for the latest fee, schedule, and delivery format details.  \n- Since there are no active offers listed, you’ll need to confirm the current pricing directly.\n\nFeel free to let me know if you’d like help exploring other beginner‑level testing courses!"
+  },
+  {
+   "case": "recommend_ar",
+   "messages": [
+    "أنا خريج جديد وعايز أشتغل مطور تطبيقات موبايل"
+   ],
+   "mode": "llm",
+   "seconds": 1.58,
+   "sources": [
+    "TRK-002"
+   ],
+   "answer": "**التوصية**\n\n| الدورة | لماذا تناسبك؟ | المتطلبات |\n|--------|----------------|-----------|\n| **تطوير تطبيقات فلاتر (Flutter Development)** | 1. **موضوع الدورة**: تركز على تطوير تطبيقات موبايل، وهو ما يتوافق مع هدفك الوظيفي.<br>2. **مسار المهنة**: يفتح لك مسارًا كـ“مهندس تطبيقات موبايل مع ذكاء اصطناعي” (Mobile AI Engineer) وهو مسار مهني شائع في سوق العمل.<br>3. **المستوى**: لا توجد متطلبات أساسية مذكورة، لذا يمكنك الانضمام حتى مع كونك جديدًا. | لا توجد متطلبات أساسية محددة. |\n\n**ملاحظات إضافية**\n\n- **الرسوم**: غير متوفرة في البيانات.  \n- **الجدول الزمني**: غير متوفر.  \n- **المعلم**: غير متوفر.  \n- **البلد**: غير متوفر.  \n- **العروض الترويجية**: لا توجد عروض نشطة حالياً.  \n\nإذا احتجت إلى تفاصيل إضافية حول الرسوم أو الجدول الزمني، يُرجى مراجعة الموقع الرسمي للبرنامج."
+  },
+  {
+   "case": "course_question",
+   "messages": [
+    "Who is the instructor for Flutter?"
+   ],
+   "mode": "llm",
+   "seconds": 0.37,
+   "sources": [
+    "TRK-002"
+   ],
+   "answer": "I’m sorry, but the instructor information for the Flutter Development course isn’t available in the current records. If you need more details, let me know and I’ll check for any updates."
+  },
+  {
+   "case": "follow_up",
+   "messages": [
+    "I want to learn Flutter",
+    "how many hours?"
+   ],
+   "mode": "llm",
+   "seconds": 1.18,
+   "sources": [
+    "TRK-002"
+   ],
+   "answer": "The Flutter Development track runs for **120 hours** of instruction."
+  },
+  {
+   "case": "document_question",
+   "messages": [
+    "Is the academy accredited?"
+   ],
+   "mode": "llm",
+   "seconds": 0.69,
+   "sources": [
+    "andalusia_academy_portfolio_2026_2027.pdf, p.1",
+    "andalusia_academy_portfolio_2026_2027.pdf, p.2",
+    "andalusia_academy_portfolio_2026_2027.pdf, p.2",
+    "andalusia_academy_portfolio_2026_2027.pdf, p.9"
+   ],
+   "answer": "Yes – Andalusia Academy’s programs are ITIDA‑accredited, giving students nationally recognized, employer‑trusted certificates. [1] [2]"
+  },
+  {
+   "case": "unanswerable",
+   "messages": [
+    "Does the academy offer scholarships for international students?"
+   ],
+   "mode": "llm",
+   "seconds": 1.2,
+   "sources": [
+    "andalusia_academy_portfolio_2026_2027.pdf, p.1",
+    "andalusia_academy_portfolio_2026_2027.pdf, p.2",
+    "andalusia_academy_portfolio_2026_2027.pdf, p.2",
+    "andalusia_academy_portfolio_2026_2027.pdf, p.9"
+   ],
+   "answer": "The academy documents do not include any information about scholarships for international students."
+  }
+ ]
+}
