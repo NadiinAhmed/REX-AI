@@ -113,3 +113,15 @@ and 0.84 was chosen on the same 24 queries, so the result is promising, not prov
 query set is needed. Still wrong at 0.84: en-01 (Flutter, kept by the keyword safety net with
 "apps" -> mobile), en-06, en-07, ar-01 (relevant, but below 0.84). Since this run, samples.jsonl
 also records the raw similarity to every course, to diagnose such cases.
+
+## Live LLM check (`evaluation/live_check.py`)
+
+The test suite runs with `LLM_PROVIDER=none`, so it never shows how a real LLM phrases answers.
+`python -m evaluation.live_check --label <name>` sends six fixed REX conversations (English and
+Arabic recommendation, course question, follow-up, document question, unanswerable question)
+through the provider in `.env` and saves mode, latency, sources and answers to
+`evaluation/live/<timestamp>_<label>.json`. It uses a temporary database and costs one or two LLM
+calls per case. Nothing is scored automatically: a person reads the answers. The first run
+(Groq, `openai/gpt-oss-20b`, 2026-11-02) found four problems, fixed as L1-L4 in
+`docs/agent1_audit.md`.
+

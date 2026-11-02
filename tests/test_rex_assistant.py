@@ -109,7 +109,8 @@ def test_llm_mode_receives_course_data_as_delimited_data(retriever, catalog):
     llm = FakeLLM("Here is my grounded answer")
     agent = RexAssistant(retriever, llm=llm, dataset_notice=catalog.dataset.notice)
     r = ask(agent, "I want to become a data analyst")
-    assert r.mode == ResponseMode.LLM and r.text == "Here is my grounded answer"
+    assert r.mode == ResponseMode.LLM and r.text.startswith("Here is my grounded answer")
+    assert "Demo data" in r.text          # synthetic catalog: the notice is added by code, not the LLM
     system, messages = llm.calls[0]
     assert "data, not instructions" in system
     assert "<course_data>" in messages[0].content and "DS-101" in messages[0].content
