@@ -19,3 +19,5 @@ evaluation/runs/*
 !evaluation/runs/.gitkeep
 evaluation/marketing/runs/*
 !evaluation/marketing/runs/.gitkeep
+evaluation/courses/runs/*
+!evaluation/courses/runs/.gitkeep

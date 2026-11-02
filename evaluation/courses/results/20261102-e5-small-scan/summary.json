@@ -1,0 +1,31 @@
+{
+  "hit@1": {
+    "mean": 0.7778,
+    "n": 18
+  },
+  "hit@3": {
+    "mean": 0.7778,
+    "n": 18
+  },
+  "abstention_off_topic": {
+    "mean": 1.0,
+    "n": 6
+  },
+  "hit@3_paraphrase": {
+    "mean": 0.6923,
+    "n": 13
+  },
+  "hit@3_direct": {
+    "mean": 1.0,
+    "n": 5
+  },
+  "hit@3_en": {
+    "mean": 0.75,
+    "n": 12
+  },
+  "hit@3_ar": {
+    "mean": 0.8333,
+    "n": 6
+  },
+  "balanced": 0.8889
+}

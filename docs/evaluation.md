@@ -69,3 +69,42 @@ Faithfulness, answer relevancy and LLM-judged context metrics. Run with `--judge
 ## Marketing Agent evaluation
 Agent 5 has its own reproducible evaluation (campaign quality and fact-checker precision/recall), with
 measured results: see [`docs/marketing_agent.md` §9](marketing_agent.md#9-evaluation).
+
+## Course-recommendation evaluation (`evaluation/courses/`)
+
+RAGAS measures the PDF answers. Recommendations are a different task (pick the right course,
+or none), so they have their own small, reproducible evaluation with no LLM and no API key.
+
+- **Dataset** `evaluation/courses/queries.jsonl`: 24 team-written requests against the 5 official
+  tracks: 13 paraphrases (no course words), 5 direct requests, 6 off-topic requests (cooking,
+  nursing, law, carpentry), in English and Egyptian Arabic. Small: treat differences of one or two
+  queries as noise.
+- **Metrics:** hit@1, hit@3 (expected course in the first three), abstention on off-topic requests,
+  and balanced = (hit@3 + abstention) / 2.
+- **Runs** go to `evaluation/courses/runs/` (ignored by git); results worth keeping are copied
+  to `evaluation/courses/results/`.
+
+| Run | Retriever | hit@1 | hit@3 | hit@3 paraphrase | hit@3 direct | abstention |
+|---|---|---|---|---|---|---|
+| `20261102-012850_keyword-baseline` | keyword | 0.667 | 0.667 | 0.538 | 1.000 | 1.000 |
+| `20261102-e5-small-scan` (min 0.84) | semantic, multilingual-e5-small | 0.778 | 0.778 | 0.692 | 1.000 | 1.000 |
+
+Keyword search finds every direct request and never recommends a course for an off-topic one, but
+misses half the paraphrases. Example: "I like breaking apps to find bugs" -> Flutter (the word
+"apps" maps to mobile) instead of Software Testing.
+
+**Semantic run (measured by the team on Windows, commit f26a842).** The threshold scan
+(`scan.csv`) shows two separate jobs:
+
+- *Ranking* is strong: at 0.70-0.80 every expected course is in the top 3 (hit@3 = 1.0, hit@1 0.944).
+- *Deciding whether anything fits* is hard: E5 similarities are compressed into a narrow band.
+  The best match of an off-topic request (cooking, nursing...) also reaches 0.80-0.84: 5 of 6 are
+  rejected at 0.82, all 6 only at 0.84. Some genuine paraphrases score in that same band, so no
+  threshold keeps every relevant request and rejects every off-topic one.
+
+0.84 is the only value with full abstention and the best recall, so it is the default. The gain over
+keyword is two queries out of 18 (en-08 chatbots/LLMs, ar-05 "teach the computer to predict"),
+and 0.84 was chosen on the same 24 queries, so the result is promising, not proven: a held-out
+query set is needed. Still wrong at 0.84: en-01 (Flutter, kept by the keyword safety net with
+"apps" -> mobile), en-06, en-07, ar-01 (relevant, but below 0.84). Since this run, samples.jsonl
+also records the raw similarity to every course, to diagnose such cases.
