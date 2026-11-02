@@ -6,7 +6,7 @@
   "status": "reference_checklist",
   "verified": false,
   "source_url": "https://www.computer.org/education/bodies-of-knowledge/software-engineering",
-  "notice": "Reference checklist assembled by the REX AI team from the framework's publicly known area names. The wording and search keywords are the team's, NOT the issuer's text, and nothing here has been verified by the issuer. Use it to find possible gaps; check the official source before relying on it.",
+  "notice": "Reference checklist assembled by the REX AI team from the framework's publicly known area names. The wording and search keywords are the team's, NOT the issuer's text, and nothing here has been verified by the issuer. Use it to find possible gaps; check the official source before relying on it. Arabic keywords (keywords_ar) were added by the REX AI team so Arabic curriculum text can be compared; they are reference terms, not an official translation.",
   "suggested_for_departments": [
     "Software Development",
     "Mobile Development"
@@ -22,7 +22,14 @@
         "stakeholder",
         "use case"
       ],
-      "expected_outcome": "Elicit, analyse and specify requirements."
+      "expected_outcome": "Elicit, analyse and specify requirements.",
+      "keywords_ar": [
+        "المتطلبات",
+        "هندسة المتطلبات",
+        "قصص المستخدم",
+        "المواصفات",
+        "حالات الاستخدام"
+      ]
     },
     {
       "id": "2",
@@ -37,7 +44,14 @@
         "micro-frontend",
         "rest"
       ],
-      "expected_outcome": "Design software structure and interfaces."
+      "expected_outcome": "Design software structure and interfaces.",
+      "keywords_ar": [
+        "تصميم البرمجيات",
+        "المعمارية",
+        "معمارية النظام",
+        "أنماط التصميم",
+        "تصميم الواجهات البرمجية"
+      ]
     },
     {
       "id": "3",
@@ -54,7 +68,12 @@
         "typescript",
         "coding"
       ],
-      "expected_outcome": "Construct working, maintainable software."
+      "expected_outcome": "Construct working, maintainable software.",
+      "keywords_ar": [
+        "البرمجة",
+        "كتابة الكود",
+        "بناء البرمجيات"
+      ]
     },
     {
       "id": "4",
@@ -68,7 +87,12 @@
         "golden testing",
         "visual regression"
       ],
-      "expected_outcome": "Verify software with planned tests."
+      "expected_outcome": "Verify software with planned tests.",
+      "keywords_ar": [
+        "اختبار البرمجيات",
+        "اختبار الوحدات",
+        "الاختبار الآلي"
+      ]
     },
     {
       "id": "5",
@@ -82,7 +106,13 @@
         "versioning",
         "migrations"
       ],
-      "expected_outcome": "Evolve and support software after release."
+      "expected_outcome": "Evolve and support software after release.",
+      "keywords_ar": [
+        "صيانة البرمجيات",
+        "إعادة الهيكلة",
+        "التحديثات",
+        "ترحيل البيانات"
+      ]
     },
     {
       "id": "6",
@@ -96,7 +126,13 @@
         "configuration",
         "github actions"
       ],
-      "expected_outcome": "Control versions, builds and releases."
+      "expected_outcome": "Control versions, builds and releases.",
+      "keywords_ar": [
+        "التحكم في الإصدارات",
+        "إدارة الإعدادات",
+        "إدارة التكوين",
+        "الإصدارات"
+      ]
     },
     {
       "id": "7",
@@ -108,7 +144,13 @@
         "agile",
         "scrum"
       ],
-      "expected_outcome": "Plan and manage software work."
+      "expected_outcome": "Plan and manage software work.",
+      "keywords_ar": [
+        "إدارة المشاريع",
+        "تخطيط المشروع",
+        "تقدير الجهد",
+        "سكرم"
+      ]
     },
     {
       "id": "8",
@@ -121,7 +163,11 @@
         "process",
         "ci/cd"
       ],
-      "expected_outcome": "Apply and improve engineering processes."
+      "expected_outcome": "Apply and improve engineering processes.",
+      "keywords_ar": [
+        "دورة حياة تطوير البرمجيات",
+        "عمليات التطوير"
+      ]
     },
     {
       "id": "9",
@@ -134,7 +180,13 @@
         "database design",
         "oop"
       ],
-      "expected_outcome": "Use models and methods to build software."
+      "expected_outcome": "Use models and methods to build software.",
+      "keywords_ar": [
+        "النمذجة",
+        "نمذجة البيانات",
+        "البرمجة كائنية التوجه",
+        "مخططات"
+      ]
     },
     {
       "id": "10",
@@ -148,7 +200,13 @@
         "reliability",
         "testing"
       ],
-      "expected_outcome": "Assure and measure software quality."
+      "expected_outcome": "Assure and measure software quality.",
+      "keywords_ar": [
+        "جودة البرمجيات",
+        "الجودة",
+        "الأداء",
+        "الموثوقية"
+      ]
     },
     {
       "id": "11",
@@ -163,7 +221,16 @@
         "communication",
         "ethics"
       ],
-      "expected_outcome": "Practise professionally: security, documentation, teamwork."
+      "expected_outcome": "Practise professionally: security, documentation, teamwork.",
+      "keywords_ar": [
+        "الأمن",
+        "المصادقة",
+        "التفويض",
+        "الخصوصية",
+        "التوثيق",
+        "العمل الجماعي",
+        "الأخلاقيات"
+      ]
     },
     {
       "id": "12",
@@ -176,7 +243,13 @@
         "trade-offs",
         "trade-off"
       ],
-      "expected_outcome": "Reason about cost and value of engineering decisions."
+      "expected_outcome": "Reason about cost and value of engineering decisions.",
+      "keywords_ar": [
+        "التكلفة",
+        "الميزانية",
+        "العائد على الاستثمار",
+        "المفاضلات"
+      ]
     }
   ]
 }

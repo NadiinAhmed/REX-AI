@@ -19,5 +19,10 @@ evaluation/runs/*
 !evaluation/runs/.gitkeep
 evaluation/marketing/runs/*
 !evaluation/marketing/runs/.gitkeep
+ HEAD
 evaluation/courses/runs/*
 !evaluation/courses/runs/.gitkeep
+
+evaluation/curriculum/runs/*
+!evaluation/curriculum/runs/.gitkeep
+ Agent 3: hand-labelled alignment evaluation set and reproducible script; baseline run

@@ -14,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from src.curriculum.alignment import check_framework
+from src.curriculum.alignment import check_framework, find_terms
 from src.curriculum.frameworks import FrameworkError, FrameworkLibrary
 from src.curriculum.generator import (
     CurriculumError, DraftInputs, allocate_hours, build_draft, enrich_with_llm,
@@ -84,7 +84,7 @@ class CurriculumService:
         request = request.model_copy(update={"framework_ids": framework_ids})
 
         evidence = self._document_evidence(course) if course else []
-        signals, signal_sources = self._market_signals(course.course_id) if course else ([], [])
+        signals, signal_sources, tenders = self._market_signals(course.course_id) if course else ([], [], [])
         draft = build_draft(DraftInputs(request=request, course=course, evidence=[*evidence, *signal_sources],
                                         detail=self._topics.for_course(course.course_id) if course else None,
                                         market_signals=signals),
@@ -97,6 +97,14 @@ class CurriculumService:
             draft.notices.append("No competency framework was selected, so no alignment report was produced.")
         if use_llm and self._llm is not None:
             draft = enrich_with_llm(draft, self._llm)
+        if tenders:
+            draft.market_suggestions = self._market_suggestions(draft, tenders)
+            if draft.market_suggestions:
+                draft.notices.append(
+                    f"{len(draft.market_suggestions)} skill(s) named in matching tenders are not in this curriculum: "
+                    + ", ".join(t.text for t in draft.market_suggestions)
+                    + ". These are suggestions from market demand, not requirements; add them as topics only if the "
+                      "instructor agrees.")
         reports = [check_framework(draft, fw) for fw in selected]
         record = self._repo.create(draft, reports, actor)
         logger.info("Curriculum %s created (course=%s, mode=%s)", record.id, draft.course_id, draft.generation_mode)
@@ -177,8 +185,8 @@ class CurriculumService:
         cur = stored.curriculum.model_copy(deep=True)
         for edit in edits:
             self._apply_one(cur, edit)
-        for i, m in enumerate(cur.modules, 1):
-            m.number = i
+        self._renumber(cur)          # no-op unless an edit left gaps; keeps outcome links consistent either way
+        self._drop_adopted_suggestions(cur)
         reports = []
         for fid in cur.framework_ids:
             try:
@@ -222,8 +230,10 @@ class CurriculumService:
             if len(cur.modules) == 1:
                 raise CurriculumError("A curriculum needs at least one module.")
             cur.modules.remove(m)
-            for o in cur.learning_outcomes:
-                o.module_numbers = [n for n in o.module_numbers if n != m.number]
+            # a template outcome written only for the removed module describes a module that no longer exists
+            cur.learning_outcomes = [o for o in cur.learning_outcomes
+                                     if not (o.origin == Origin.TEMPLATE and o.module_numbers == [m.number])]
+            self._renumber(cur)
             self._rebalance(cur)
         elif op == "set_module_hours":
             self._module(cur, e["module"]).hours = float(e["hours"])
@@ -235,8 +245,12 @@ class CurriculumService:
             cur.total_hours, cur.hours_origin = hours, Origin.USER
             self._rebalance(cur)
         elif op == "add_outcome":
+            numbers = [int(n) for n in e.get("modules", [])]
+            unknown = sorted(set(numbers) - {m.number for m in cur.modules})
+            if unknown:
+                raise CurriculumError(f"There is no module {', '.join(map(str, unknown))}.")
             cur.learning_outcomes.append(Outcome(id="", text=e["text"].strip(), origin=Origin.USER, source="Reviewer edit",
-                                                 module_numbers=[int(n) for n in e.get("modules", [])]))
+                                                 module_numbers=numbers))
             for i, o in enumerate(cur.learning_outcomes, 1):
                 o.id = f"LO{i}"
         elif op == "remove_outcome":
@@ -255,6 +269,18 @@ class CurriculumService:
             cur.framework_ids = list(dict.fromkeys(e["ids"]))
         else:
             raise CurriculumError(f"Unknown edit '{op}'.")
+
+    @staticmethod
+    def _renumber(cur: Curriculum) -> None:
+        """Give modules the numbers 1..n and move every outcome link with its module (old number -> new number).
+        Links to modules that no longer exist are dropped; outcome ids are renumbered LO1..LOn."""
+        mapping = {m.number: i for i, m in enumerate(cur.modules, 1)}
+        for m in cur.modules:
+            m.number = mapping[m.number]
+        for o in cur.learning_outcomes:
+            o.module_numbers = [mapping[n] for n in o.module_numbers if n in mapping]
+        for i, o in enumerate(cur.learning_outcomes, 1):
+            o.id = f"LO{i}"
 
     @staticmethod
     def _rebalance(cur: Curriculum) -> None:
@@ -288,17 +314,18 @@ class CurriculumService:
         return [SourceNote(kind="document", reference=p.citation, detail=" ".join(p.text.split())[:200])
                 for p in result.passages]
 
-    def _market_signals(self, course_id: str) -> tuple[list[str], list[SourceNote]]:
-        """Cross-agent link: open tenders found by the RFP agent that match this course."""
+    def _market_signals(self, course_id: str) -> tuple[list[str], list[SourceNote], list]:
+        """Cross-agent link: open tenders found by the RFP agent that match this course.
+        Returns (signal sentences, source notes, the matching tender rows)."""
         if self._rfp is None:
-            return [], []
+            return [], [], []
         try:
             rows = [r for r in self._rfp.list(statuses=ACTIVE_RFP_STATUSES) if course_id in (r.matched_course_ids or [])]
         except Exception as exc:
             logger.warning("RFP signals unavailable: %s", type(exc).__name__)
-            return [], []
+            return [], [], []
         if not rows:
-            return [], []
+            return [], [], []
         by_country: dict[str, int] = {}
         for r in rows:
             by_country[r.country] = by_country.get(r.country, 0) + 1
@@ -307,4 +334,45 @@ class CurriculumService:
                 + ", ".join(f"{label.get(c, c)}: {n}" for c, n in sorted(by_country.items())) + ")")
         if any(r.synthetic for r in rows):
             text += " — based on SYNTHETIC demo listings, not real demand"
-        return [text], [SourceNote(kind="rfp_signal", reference="RFP opportunities table", detail=text)]
+        return [text], [SourceNote(kind="rfp_signal", reference="RFP opportunities table", detail=text)], rows
+
+    # ------------------------------------------------------------------ market-demand suggestions (Agent 2 -> 3)
+    MAX_MARKET_SUGGESTIONS = 10
+
+    def _skill_vocabulary(self) -> dict[str, str]:
+        """Skills we can recognise: every framework keyword and every tool in the approved catalog.
+        lower-case term -> display form (catalog spelling wins, e.g. 'Selenium'). No invented skill list."""
+        vocab = {k.strip().lower(): k.strip() for f in self.frameworks.all() for a in f.areas for k in a.keywords if k.strip()}
+        try:
+            for course in self._courses.list_approved():
+                vocab.update({t.strip().lower(): t.strip() for t in course.tools if t.strip()})
+        except Exception as exc:          # the vocabulary still has the framework keywords
+            logger.warning("Catalog tools unavailable for market suggestions: %s", type(exc).__name__)
+        return vocab
+
+    def _market_suggestions(self, cur: Curriculum, tenders: list) -> list[TracedText]:
+        """Skills that matching tenders name but the curriculum does not mention, most-requested first."""
+        try:     # research is best effort, like the passage and RFP-signal steps: never stop curriculum creation
+            texts = [(str(r.id), f"{r.title} {getattr(r, 'description', '') or ''}".lower()) for r in tenders]
+            synthetic = {str(r.id) for r in tenders if getattr(r, "synthetic", False)}
+        except AttributeError as exc:
+            logger.warning("Tender rows unusable for market suggestions: %s", exc)
+            return []
+        vocab = self._skill_vocabulary()
+        in_tenders = find_terms(list(vocab), texts)
+        in_curriculum = find_terms(list(vocab), [(w, t.lower()) for w, t in cur.text_corpus()])
+        missing = sorted((term for term in in_tenders if term not in in_curriculum),
+                         key=lambda term: (-len(in_tenders[term]), term))[:self.MAX_MARKET_SUGGESTIONS]
+        out = []
+        for term in missing:
+            ids = sorted(in_tenders[term])
+            label = ", ".join(ids) + (" (SYNTHETIC demo listing)" if set(ids) <= synthetic else "")
+            out.append(TracedText(text=vocab[term], origin=Origin.MARKET, source=f"Named in tender(s) {label}"))
+        return out
+
+    @staticmethod
+    def _drop_adopted_suggestions(cur: Curriculum) -> None:
+        """A suggestion the reviewer has added as a topic is no longer a gap."""
+        if cur.market_suggestions:
+            present = find_terms([s.text.lower() for s in cur.market_suggestions], [(w, t.lower()) for w, t in cur.text_corpus()])
+            cur.market_suggestions = [s for s in cur.market_suggestions if s.text.lower() not in present]

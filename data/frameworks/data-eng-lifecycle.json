@@ -6,7 +6,7 @@
   "status": "reference_checklist",
   "verified": false,
   "source_url": null,
-  "notice": "Reference checklist assembled by the REX AI team from the framework's publicly known area names. The wording and search keywords are the team's, NOT the issuer's text, and nothing here has been verified by the issuer. Use it to find possible gaps; check the official source before relying on it.",
+  "notice": "Reference checklist assembled by the REX AI team from the framework's publicly known area names. The wording and search keywords are the team's, NOT the issuer's text, and nothing here has been verified by the issuer. Use it to find possible gaps; check the official source before relying on it. Arabic keywords (keywords_ar) were added by the REX AI team so Arabic curriculum text can be compared; they are reference terms, not an official translation.",
   "suggested_for_departments": [
     "Data"
   ],
@@ -22,7 +22,13 @@
         "connectors",
         "file formats"
       ],
-      "expected_outcome": "Understand the systems data comes from."
+      "expected_outcome": "Understand the systems data comes from.",
+      "keywords_ar": [
+        "أنظمة المصدر",
+        "مصادر البيانات",
+        "واجهات برمجة التطبيقات",
+        "صيغ الملفات"
+      ]
     },
     {
       "id": "2",
@@ -37,7 +43,14 @@
         "cdc",
         "incremental"
       ],
-      "expected_outcome": "Move data reliably into the platform."
+      "expected_outcome": "Move data reliably into the platform.",
+      "keywords_ar": [
+        "استيعاب البيانات",
+        "استقبال البيانات",
+        "البث المباشر",
+        "المعالجة الدفعية",
+        "تدفق البيانات"
+      ]
     },
     {
       "id": "3",
@@ -51,7 +64,11 @@
         "pyspark",
         "analytics engineering"
       ],
-      "expected_outcome": "Transform raw data into usable models."
+      "expected_outcome": "Transform raw data into usable models.",
+      "keywords_ar": [
+        "تحويل البيانات",
+        "نمذجة البيانات"
+      ]
     },
     {
       "id": "4",
@@ -66,7 +83,13 @@
         "nosql",
         "database design"
       ],
-      "expected_outcome": "Choose and design storage layers."
+      "expected_outcome": "Choose and design storage layers.",
+      "keywords_ar": [
+        "تخزين البيانات",
+        "بحيرة البيانات",
+        "مستودع البيانات",
+        "قواعد البيانات"
+      ]
     },
     {
       "id": "5",
@@ -79,7 +102,13 @@
         "data products",
         "machine learning"
       ],
-      "expected_outcome": "Serve data to analytics, BI and ML."
+      "expected_outcome": "Serve data to analytics, BI and ML.",
+      "keywords_ar": [
+        "تقديم البيانات",
+        "التحليلات",
+        "ذكاء الأعمال",
+        "منتجات البيانات"
+      ]
     },
     {
       "id": "6",
@@ -91,7 +120,13 @@
         "privacy",
         "governance"
       ],
-      "expected_outcome": "Protect data across the lifecycle."
+      "expected_outcome": "Protect data across the lifecycle.",
+      "keywords_ar": [
+        "أمن البيانات",
+        "التحكم في الوصول",
+        "التشفير",
+        "الخصوصية"
+      ]
     },
     {
       "id": "7",
@@ -104,7 +139,13 @@
         "metadata",
         "interoperability"
       ],
-      "expected_outcome": "Govern quality, lineage and master data."
+      "expected_outcome": "Govern quality, lineage and master data.",
+      "keywords_ar": [
+        "جودة البيانات",
+        "حوكمة البيانات",
+        "نسب البيانات",
+        "البيانات الوصفية"
+      ]
     },
     {
       "id": "8",
@@ -116,7 +157,13 @@
         "observability",
         "infrastructure as code"
       ],
-      "expected_outcome": "Automate, monitor and operate data systems."
+      "expected_outcome": "Automate, monitor and operate data systems.",
+      "keywords_ar": [
+        "عمليات البيانات",
+        "المراقبة",
+        "قابلية الملاحظة",
+        "البنية التحتية ككود"
+      ]
     },
     {
       "id": "9",
@@ -129,7 +176,12 @@
         "trade-offs",
         "cost-aware"
       ],
-      "expected_outcome": "Design fit-for-purpose, cost-aware architectures."
+      "expected_outcome": "Design fit-for-purpose, cost-aware architectures.",
+      "keywords_ar": [
+        "معمارية البيانات",
+        "الأنظمة الموزعة",
+        "المفاضلات"
+      ]
     },
     {
       "id": "10",
@@ -141,7 +193,12 @@
         "dags",
         "workflow"
       ],
-      "expected_outcome": "Schedule and coordinate pipelines."
+      "expected_outcome": "Schedule and coordinate pipelines.",
+      "keywords_ar": [
+        "التنسيق",
+        "الجدولة",
+        "سير العمل"
+      ]
     },
     {
       "id": "11",
@@ -154,7 +211,12 @@
         "terraform",
         "docker"
       ],
-      "expected_outcome": "Apply software engineering discipline to data code."
+      "expected_outcome": "Apply software engineering discipline to data code.",
+      "keywords_ar": [
+        "البرمجة",
+        "جودة الكود",
+        "التحكم في الإصدارات"
+      ]
     }
   ]
 }

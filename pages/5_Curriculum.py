@@ -121,6 +121,12 @@ with library_tab:
         with st.expander("Reviewer notes: gaps and assumptions", expanded=bool(cur.notices)):
             for n in cur.notices:
                 st.markdown(f"- {n}")
+        if cur.market_suggestions:
+            with st.expander(f"Market demand: {len(cur.market_suggestions)} skill(s) named in matching tenders"):
+                st.caption("Suggestions from tenders found by the RFP agent. They are not part of the curriculum: "
+                           "add one with 'Add a topic to a module' below if the instructor agrees.")
+                for t in cur.market_suggestions:
+                    st.markdown(f"- **{t.text}** — {t.source}")
         st.markdown("**Modules**")
         st.dataframe([{"#": str(m.number), "module": m.title, "hours": m.hours, "topics": len(m.topics), "basis": m.origin.value} for m in cur.modules]
                      + ([{"#": "", "module": "Capstone project", "hours": cur.capstone.hours, "topics": "", "basis": cur.capstone.description.origin.value}] if cur.capstone else []),

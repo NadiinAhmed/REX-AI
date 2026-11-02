@@ -66,6 +66,11 @@ Faithfulness, answer relevancy and LLM-judged context metrics. Run with `--judge
 - Deterministic generation returns excerpts, so generation metrics are only meaningful with an LLM.
 - The semantic embedding (`sentence_transformers`) was not evaluated: it requires a model download that was not possible in the build environment. Re-run the baseline with `--set EMBEDDING_PROVIDER=sentence_transformers` and re-calibrate `RETRIEVAL_MIN_SCORE`.
 
+## Curriculum Agent (Agent 3) evaluation
+The accreditation-alignment checker is evaluated separately (no retrieval, no LLM: free and deterministic) against
+hand-labelled cases: `python -m evaluation.curriculum.run_alignment_eval`. Dataset, metrics and measured results:
+see [`docs/curriculum_agent.md`](curriculum_agent.md#evaluation-of-the-alignment-checker).
+
 ## Marketing Agent evaluation
 Agent 5 has its own reproducible evaluation (campaign quality and fact-checker precision/recall), with
 measured results: see [`docs/marketing_agent.md` §9](marketing_agent.md#9-evaluation).

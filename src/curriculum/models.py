@@ -34,6 +34,7 @@ class Origin(str, Enum):
     USER = "user"              # typed by the person requesting / reviewing the curriculum
     TEMPLATE = "template"      # produced by a deterministic template: a proposal, not evidence
     LLM = "llm"                # written by the language model: a proposal, must be reviewed
+    MARKET = "market"          # named in matching tenders (Agent 2): a suggestion, never added automatically
 
 
 class TracedText(BaseModel):
@@ -100,6 +101,9 @@ class Curriculum(BaseModel):
     total_hours: float | None = Field(default=None, gt=0)
     hours_origin: Origin = Origin.CATALOG
     market_signals: list[str] = Field(default_factory=list)
+    # skills that matching tenders ask for but this curriculum does not mention. Shown to the reviewer only:
+    # they are NOT topics until a person adds them (source = the tender ids).
+    market_suggestions: list[TracedText] = Field(default_factory=list)
     sources: list[SourceNote] = Field(default_factory=list)
     notices: list[str] = Field(default_factory=list)         # gaps and assumptions the reviewer must see
     generation_mode: str = "deterministic"                   # deterministic | llm

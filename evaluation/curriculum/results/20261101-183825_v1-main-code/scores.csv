@@ -1,0 +1,89 @@
+case,lang,kind,framework,area,area_title,expected,predicted,matched_terms,correct,direction
+c01,en,overlap,istqb-ctfl-4.0,3,Static Testing,partial,covered,code review|review,False,over
+c01,en,overlap,istqb-ctfl-4.0,4,Test Analysis and Design,missing,missing,,True,exact
+c01,en,overlap,istqb-ctfl-4.0,6,Test Tools,missing,missing,,True,exact
+c02,en,clear,istqb-ctfl-4.0,3,Static Testing,covered,covered,code review|linting|review|static analysis,True,exact
+c02,en,clear,istqb-ctfl-4.0,4,Test Analysis and Design,missing,missing,,True,exact
+c02,en,clear,istqb-ctfl-4.0,6,Test Tools,missing,missing,,True,exact
+c03,en,clear,istqb-ctfl-4.0,5,Managing the Test Activities,covered,covered,reporting|test estimation|test plan,True,exact
+c03,en,clear,istqb-ctfl-4.0,3,Static Testing,missing,missing,,True,exact
+c03,en,clear,istqb-ctfl-4.0,6,Test Tools,missing,missing,,True,exact
+c04,en,clear,istqb-ctfl-4.0,4,Test Analysis and Design,covered,covered,boundary value|equivalence partitioning|test cases,True,exact
+c04,en,clear,istqb-ctfl-4.0,3,Static Testing,missing,missing,,True,exact
+c04,en,clear,istqb-ctfl-4.0,6,Test Tools,missing,missing,,True,exact
+c05,en,clear,istqb-ctfl-4.0,6,Test Tools,covered,covered,jmeter|playwright,True,exact
+c05,en,clear,istqb-ctfl-4.0,3,Static Testing,missing,missing,,True,exact
+c05,en,clear,istqb-ctfl-4.0,4,Test Analysis and Design,missing,missing,,True,exact
+c06,en,synonym,istqb-ctfl-4.0,3,Static Testing,covered,missing,,False,under
+c06,en,synonym,istqb-ctfl-4.0,6,Test Tools,missing,missing,,True,exact
+c07,en,clear,istqb-ctfl-4.0,2,Testing Throughout the Software Development Lifecycle,covered,covered,agile|ci/cd|pipeline|regression testing|shift-left,True,exact
+c07,en,clear,istqb-ctfl-4.0,3,Static Testing,missing,missing,,True,exact
+c07,en,clear,istqb-ctfl-4.0,6,Test Tools,missing,missing,,True,exact
+c08,en,near-duplicate,istqb-ctfl-4.0,5,Managing the Test Activities,partial,covered,test plan|test planning,False,over
+c08,en,near-duplicate,istqb-ctfl-4.0,3,Static Testing,missing,missing,,True,exact
+c09,en,false-friend,istqb-ctfl-4.0,1,Fundamentals of Testing,missing,missing,,True,exact
+c09,en,false-friend,istqb-ctfl-4.0,3,Static Testing,missing,partial,review,False,over
+c10,ar,arabic,istqb-ctfl-4.0,3,Static Testing,covered,missing,,False,under
+c10,ar,arabic,istqb-ctfl-4.0,5,Managing the Test Activities,covered,missing,,False,under
+c10,ar,arabic,istqb-ctfl-4.0,6,Test Tools,missing,missing,,True,exact
+c11,ar,arabic-mixed,istqb-ctfl-4.0,6,Test Tools,covered,covered,cypress|playwright,True,exact
+c11,ar,arabic-mixed,istqb-ctfl-4.0,3,Static Testing,missing,missing,,True,exact
+c12,en,overlap,crisp-dm,5,Evaluation,partial,covered,evaluation|model evaluation,False,over
+c12,en,overlap,crisp-dm,6,Deployment,missing,missing,,True,exact
+c13,en,clear,crisp-dm,2,Data Understanding,covered,covered,data profiling|exploratory data analysis,True,exact
+c13,en,clear,crisp-dm,3,Data Preparation,covered,covered,data cleaning|feature engineering,True,exact
+c13,en,clear,crisp-dm,4,Modeling,missing,missing,,True,exact
+c13,en,clear,crisp-dm,6,Deployment,missing,missing,,True,exact
+c14,en,clear,crisp-dm,6,Deployment,covered,covered,drift|fastapi|monitoring|serving,True,exact
+c14,en,clear,crisp-dm,2,Data Understanding,missing,missing,,True,exact
+c15,ar,arabic,crisp-dm,3,Data Preparation,covered,missing,,False,under
+c15,ar,arabic,crisp-dm,6,Deployment,missing,missing,,True,exact
+c16,en,overlap,swebok-3,12,Software Engineering Economics,partial,covered,trade-off|trade-offs,False,over
+c16,en,overlap,swebok-3,1,Software Requirements,missing,missing,,True,exact
+c17,en,overlap,swebok-3,12,Software Engineering Economics,partial,covered,cost|cost-aware,False,over
+c17,en,overlap,swebok-3,1,Software Requirements,missing,missing,,True,exact
+c18,en,overlap,swebok-3,10,Software Quality,partial,covered,code quality|quality,False,over
+c18,en,overlap,swebok-3,1,Software Requirements,missing,missing,,True,exact
+c19,en,overlap,swebok-3,2,Software Design,partial,covered,architecture|system architecture,False,over
+c19,en,overlap,swebok-3,1,Software Requirements,missing,missing,,True,exact
+c20,en,clear,swebok-3,3,Software Construction,covered,covered,.net|c#|react|typescript|web api,True,exact
+c20,en,clear,swebok-3,1,Software Requirements,missing,missing,,True,exact
+c21,en,overlap,swebok-3,4,Software Testing,partial,covered,golden testing|testing,False,over
+c21,en,overlap,swebok-3,1,Software Requirements,missing,missing,,True,exact
+c22,en,clear,data-eng-lifecycle,10,Orchestration,covered,covered,airflow|dags,True,exact
+c22,en,clear,data-eng-lifecycle,6,Security,missing,missing,,True,exact
+c23,ar,arabic-mixed,data-eng-lifecycle,10,Orchestration,covered,partial,airflow,False,under
+c23,ar,arabic-mixed,data-eng-lifecycle,6,Security,missing,missing,,True,exact
+c24,en,negative,istqb-ctfl-4.0,1,Fundamentals of Testing,missing,missing,,True,exact
+c24,en,negative,istqb-ctfl-4.0,2,Testing Throughout the Software Development Lifecycle,missing,missing,,True,exact
+c24,en,negative,istqb-ctfl-4.0,3,Static Testing,missing,missing,,True,exact
+c24,en,negative,istqb-ctfl-4.0,4,Test Analysis and Design,missing,missing,,True,exact
+c24,en,negative,istqb-ctfl-4.0,5,Managing the Test Activities,missing,missing,,True,exact
+c24,en,negative,istqb-ctfl-4.0,6,Test Tools,missing,missing,,True,exact
+h01,ar,arabic-heldout,istqb-ctfl-4.0,4,Test Analysis and Design,covered,missing,,False,under
+h01,ar,arabic-heldout,istqb-ctfl-4.0,3,Static Testing,missing,missing,,True,exact
+h02,ar,arabic-heldout,istqb-ctfl-4.0,3,Static Testing,partial,missing,,False,under
+h02,ar,arabic-heldout,istqb-ctfl-4.0,6,Test Tools,missing,missing,,True,exact
+h03,ar,arabic-heldout,istqb-ctfl-4.0,2,Testing Throughout the Software Development Lifecycle,covered,missing,,False,under
+h03,ar,arabic-heldout,istqb-ctfl-4.0,6,Test Tools,partial,missing,,False,under
+h03,ar,arabic-heldout,istqb-ctfl-4.0,3,Static Testing,missing,missing,,True,exact
+h04,ar,arabic-heldout,istqb-ctfl-4.0,1,Fundamentals of Testing,missing,missing,,True,exact
+h04,ar,arabic-heldout,istqb-ctfl-4.0,5,Managing the Test Activities,missing,missing,,True,exact
+h05,ar,arabic-heldout,crisp-dm,4,Modeling,covered,missing,,False,under
+h05,ar,arabic-heldout,crisp-dm,6,Deployment,missing,missing,,True,exact
+h06,ar,arabic-heldout,crisp-dm,5,Evaluation,covered,missing,,False,under
+h06,ar,arabic-heldout,crisp-dm,6,Deployment,missing,missing,,True,exact
+h07,ar,arabic-heldout,crisp-dm,6,Deployment,missing,missing,,True,exact
+h07,ar,arabic-heldout,crisp-dm,4,Modeling,missing,missing,,True,exact
+h08,ar,arabic-heldout,crisp-dm,3,Data Preparation,partial,missing,,False,under
+h08,ar,arabic-heldout,crisp-dm,2,Data Understanding,partial,missing,,False,under
+h08,ar,arabic-heldout,crisp-dm,4,Modeling,missing,missing,,True,exact
+h09,ar,arabic-heldout,data-eng-lifecycle,4,Storage,covered,missing,,False,under
+h09,ar,arabic-heldout,data-eng-lifecycle,10,Orchestration,missing,missing,,True,exact
+h10,ar,arabic-heldout,data-eng-lifecycle,6,Security,covered,missing,,False,under
+h10,ar,arabic-heldout,data-eng-lifecycle,10,Orchestration,missing,missing,,True,exact
+h11,ar,arabic-heldout,swebok-3,10,Software Quality,missing,missing,,True,exact
+h11,ar,arabic-heldout,swebok-3,4,Software Testing,missing,missing,,True,exact
+h12,ar,arabic-heldout,swebok-3,4,Software Testing,partial,missing,,False,under
+h12,ar,arabic-heldout,swebok-3,5,Software Maintenance,partial,missing,,False,under
+h12,ar,arabic-heldout,swebok-3,1,Software Requirements,missing,missing,,True,exact

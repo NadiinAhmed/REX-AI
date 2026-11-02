@@ -23,6 +23,8 @@ SDK: official `mcp` Python SDK **2.3.0**. Version 2 renamed `FastMCP` to `MCPSer
 | tool | `search_knowledge_base` | `query` 1–300 chars, `top_k` 1–8 | passages with filename, page, score |
 | tool | `list_documents` | — | approved documents |
 | tool | `get_active_offers` | `course_id` (same pattern) | approved offers valid today (Agent 1 and Agent 5) |
+| tool | `get_approved_curriculum` | `course_id` (same pattern) | newest **approved** curriculum (modules, outcomes, hours, alignment summary) or `found=false`; drafts never returned (Agent 3 → Agent 5) |
+| tool | `list_approved_curricula` | — | courses that have an approved curriculum |
 | resource | `course://{course_id}` | — | course JSON |
 
 All tools are annotated `readOnlyHint=true, destructiveHint=false` and return **approved** data only.
@@ -60,8 +62,8 @@ Claude Desktop / other MCP clients (`claude_desktop_config.json`):
 | Agent | Tools from rex-academy | Own / external tools (later) | Needs human confirmation |
 |---|---|---|---|
 | RFP Research | — | existing web search/fetch MCP servers; `save_opportunity` (write, app-side) | alerts |
-| Curriculum | `get_course`, `search_courses`, `search_knowledge_base` | web research | curriculum approval |
+| Curriculum ✅ (provider) | exposes `get_approved_curriculum`, `list_approved_curricula`; itself reads the in-process DB directly | web research (later) | curriculum approval (page only, never over MCP) |
 | Document Generation | `get_course`, `search_knowledge_base` (templates) | file storage in a restricted folder | emailing documents |
-| Marketing ✅ | courses via `McpCourseRetriever`, `get_active_offers` via `McpOfferReader` (same connection) | content generation (LLM, in-app) | draft approval; no publish/send exists |
+| Marketing ✅ | courses via `McpCourseRetriever`, `get_active_offers` via `McpOfferReader`, approved curricula via `McpCurriculumSource` (same connection, direct fallback) | content generation (LLM, in-app) | draft approval; no publish/send exists |
 
 Each agent should connect with `AcademyMcpClient.for_settings(settings)` and call only the tools in its row.

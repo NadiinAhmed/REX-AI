@@ -117,3 +117,12 @@ def test_page_shows_errors_instead_of_crashing(page):
     next(r for r in page.radio if r.label == "Base").set_value("New course").run()
     _click(page, "Generate curriculum")
     assert not page.exception and page.error                       # empty title is rejected with a message
+
+
+def test_page_shows_market_suggestions_after_an_rfp_scan(page):
+    from src.ui_context import get_context
+    get_context().registry.dispatch("rfp_research", AgentRequest(message="scan"))     # synthetic demo feed
+    _click(page, "Generate curriculum")                                              # default course: TRK-001
+    assert not page.exception
+    labels = [e.label for e in page.expander]
+    assert any(label.startswith("Market demand:") for label in labels), labels

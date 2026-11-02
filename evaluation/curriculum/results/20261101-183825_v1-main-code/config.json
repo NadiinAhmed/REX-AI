@@ -1,0 +1,16 @@
+{
+  "label": "v1-main-code",
+  "created_at": "20261101-183825",
+  "git_commit": "88bfdc2",
+  "git_dirty": true,
+  "dataset": "evaluation/curriculum/dataset.jsonl",
+  "dataset_sha256": "24cd822aad14",
+  "covered_min_hits": 2,
+  "framework_files": {
+    "crisp-dm.json": "e00642e824d3",
+    "data-eng-lifecycle.json": "9557bcf28da9",
+    "istqb-ctfl-4.0.json": "902b716f80df",
+    "swebok-3.json": "189466c178e5"
+  },
+  "llm": "none (the checker is deterministic)"
+}

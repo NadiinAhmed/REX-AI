@@ -70,7 +70,7 @@ class CurriculumAgent(Agent):
             if _LIST.search(norm):
                 return self._list(lang)
         except CurriculumError as exc:
-            return self._reply(str(exc), lang)
+            return self._reply(str(exc), lang, intent="error")
         return self._overview(lang)
 
     # ------------------------------------------------------------------ intents
@@ -173,12 +173,15 @@ class CurriculumAgent(Agent):
                 + (self._t(lang, " (proposed: not published)", " (مقترحة: غير منشورة)") if c.hours_origin.value == "template" else ""),
                 f"- {self._t(lang, 'Modules', 'الوحدات')} ({len(c.modules)}): " + "; ".join(f"{m.number}. {m.title} ({m.hours:g} h)" for m in c.modules[:6])
                 + ("…" if len(c.modules) > 6 else ""),
-                f"- {self._t(lang, 'Learning outcomes', 'مخرجات التعلم')}: {len(c.learning_outcomes)} · "
-                f"{self._t(lang, 'Capstone', 'مشروع التخرج')}: {c.capstone.hours:g} h" if c.capstone else ""]
+                f"- {self._t(lang, 'Learning outcomes', 'مخرجات التعلم')}: {len(c.learning_outcomes)}"
+                + (f" · {self._t(lang, 'Capstone', 'مشروع التخرج')}: {c.capstone.hours:g} h" if c.capstone else "")]
         for rep in s.alignment:
             gaps = [a.title for a in rep.areas if a.status != AreaStatus.COVERED]
             rows.append(f"- {self._t(lang, 'Alignment with', 'المواءمة مع')} {rep.framework_id}: {rep.coverage_percent:g}%"
                         + (self._t(lang, f" · gaps: {', '.join(gaps)}", f" · الفجوات: {', '.join(gaps)}") if gaps else ""))
+        if c.market_suggestions:
+            rows.append(f"- {self._t(lang, 'Skills named in matching tenders (suggestions)', 'مهارات مطلوبة في مناقصات مطابقة (اقتراحات)')}: "
+                        + ", ".join(t.text for t in c.market_suggestions))
         if c.notices:
             rows.append(self._t(lang, "\n**Review before approval:**", "\n**للمراجعة قبل الاعتماد:**"))
             rows += [f"- {n}" for n in c.notices[:4]]
