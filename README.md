@@ -50,7 +50,7 @@ XAI_API_KEY=xai-...     # or GROQ_API_KEY=gsk_...
 LLM_MODEL=              # empty = default; check the provider console for current model names
 ```
 The LLM only rewrites facts already retrieved; on any failure the answer falls back to the
-deterministic one and is labelled. **Live calls were not tested in the build environment** (no network to the providers).
+deterministic one and is labelled. Live calls were tested with Groq (`openai/gpt-oss-20b`) using `python -m evaluation.live_check` (results in `evaluation/live/`).
 
 ### Better Arabic/semantic retrieval (optional)
 `pip install sentence-transformers`, then `EMBEDDING_PROVIDER=sentence_transformers` (downloads

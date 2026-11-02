@@ -78,6 +78,17 @@ def load_course_catalog(settings: Settings, courses: CourseRepository) -> tuple[
     return dataset, warnings
 
 
+def course_title_terms(courses: CourseRepository) -> set[str]:
+    """Search terms of every approved course title (English and Arabic), read on each call so a
+    catalog change needs no restart."""
+    from src.knowledge_base.text_utils import tokenize
+    terms: set[str] = set()
+    for c in courses.list_approved():
+        terms.update(tokenize(c.title))
+        terms.update(tokenize(c.title_ar or ""))
+    return terms
+
+
 def build_knowledge_base(settings: Settings, db: Database, seed_dir: Path | None) -> KnowledgeBase:
     from src.ingestion.chunker import TextChunker
     from src.ingestion.pdf import PdfTextExtractor, PdfValidator
@@ -109,7 +120,8 @@ def build_knowledge_base(settings: Settings, db: Database, seed_dir: Path | None
             documents.set_embedding_model(doc.id, model_id)
     passages = PassageRetriever(documents, vectors, embeddings, settings.retrieval_top_k,
                                 settings.retrieval_min_score,
-                                require_term_overlap=settings.keyword_gate_enabled)
+                                require_term_overlap=settings.keyword_gate_enabled,
+                                topic_terms=lambda: course_title_terms(CourseRepository(db)))
     return KnowledgeBase(ingestion=ingestion, passages=passages, documents=documents, embedding_model=model_id,
                          embeddings=embeddings)
 

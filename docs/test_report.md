@@ -1,4 +1,24 @@
-# Sprint 1 Test Report
+# Test Report
+
+## Current status — 2026-11-02 (branch with the Agent 1 final fixes, on top of `main` da04b23)
+
+`python -m pytest` → **613 passed** (Linux, Python 3.12; the team ran 573 on `main` on Windows before
+these fixes). Agent 1 regression files added in this period:
+
+| File | What it covers |
+|---|---|
+| test_course_resolver.py | short course names, Arabic prefixes, ambiguity, REX + Marketing use |
+| test_live_findings.py | problems from the first live Groq run (L1–L4) |
+| test_agent1_final.py | abstention evidence rule, NOT_FOUND, glossary normalization, Arabic patterns, nicknames, prompt rules (A1–A7) |
+
+Live LLM check: `python -m evaluation.live_check` (Groq) — results in `evaluation/live/`.
+RAG measurements: `docs/evaluation.md`.
+
+The Sprint 1 report below is kept as history.
+
+---
+
+# Sprint 1 Test Report (history)
 
 Recorded when the Sprint 1 package was prepared (2026-10-16) in a Linux sandbox:
 Python 3.12.3 and Python 3.11.15, pydantic 2.14.1, streamlit 1.66.0, pytest 9.1.1, anthropic 1.15.0.

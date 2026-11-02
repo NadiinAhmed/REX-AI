@@ -31,7 +31,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Protocol
 
-from src.knowledge_base.text_utils import normalize_arabic
+from src.knowledge_base.text_utils import SYNONYMS, normalize_arabic
 from src.models.course import Course
 
 _TOKEN = re.compile(r"[a-z0-9+#]+|[\u0621-\u064A]+")
@@ -101,6 +101,12 @@ def _clean_token(token: str) -> str:
     return token
 
 
+def canonical(words: list[str] | set[str]) -> set[str]:
+    """Map words through the shared search glossary: "qa" -> "testing", "موبايل" -> "mobile",
+    "دوت" -> ".net", "net" -> ".net". This lets nicknames that are not in any title find a course."""
+    return {c for w in words for c in SYNONYMS.get(w, w).split()}
+
+
 def tokens(text: str) -> list[str]:
     """Normalized, prefix-stripped tokens, in order (order matters for phrases)."""
     return [_clean_token(t) for t in _TOKEN.findall(normalize_arabic(text.lower()))]
@@ -112,6 +118,8 @@ class _CourseAliases:
     phrases: set[tuple[str, ...]]      # consecutive title words, length >= 2
     names: set[str]                    # distinctive single title words
     words: set[str]                    # every title word (used with a neighbouring course noun)
+    canon_names: set[str] = field(default_factory=set)   # glossary forms of the names ("qa" -> testing)
+    canon_words: set[str] = field(default_factory=set)
 
 
 class CourseResolver:
@@ -133,9 +141,11 @@ class CourseResolver:
         has_noun = any(w in COURSE_NOUNS for w in words)
 
         alias_hits: set[str] = set()
+        canon = canonical(words)
         if course_context or has_noun:
             for a in aliases:
-                if any(self._contains(words, p) for p in a.phrases) or any(n in words for n in a.names):
+                if (any(self._contains(words, p) for p in a.phrases) or any(n in words for n in a.names)
+                        or canon & a.canon_names):
                     alias_hits.add(a.course_id)
         noun_hits = self._noun_adjacent_hits(words, aliases)
 
@@ -159,6 +169,7 @@ class CourseResolver:
         return segments
 
     def _build_aliases(self, courses: list[Course]) -> list[_CourseAliases]:
+        courses_by_id = {c.course_id: c for c in courses}
         result: list[_CourseAliases] = []
         word_owners: dict[str, set[str]] = {}
         for c in courses:
@@ -173,6 +184,16 @@ class CourseResolver:
             # A word shared by two titles ("data") identifies neither course.
             a.words = {w for w in a.words if len(word_owners[w]) == 1}
             a.names = {w for w in a.words if w not in GENERIC_WORDS and len(w) >= _MIN_NAME_LENGTH}
+        # Same idea for glossary forms: "mobile" (from "تطبيقات") belongs only to the Flutter track.
+        canon_owners: dict[str, set[str]] = {}
+        for a in result:
+            for w in canonical(a.words | {w for seg in self._title_segments(courses_by_id[a.course_id])
+                                          for w in seg}):
+                canon_owners.setdefault(w, set()).add(a.course_id)
+        for a in result:
+            mine = {w for w, owners in canon_owners.items() if owners == {a.course_id}}
+            a.canon_words = mine
+            a.canon_names = {w for w in mine if w not in GENERIC_WORDS and len(w) >= _MIN_NAME_LENGTH}
         return result
 
     @staticmethod
@@ -190,4 +211,5 @@ class CourseResolver:
                     neighbours.add(words[i - 1])
                 if i + 1 < len(words):
                     neighbours.add(words[i + 1])
-        return {a.course_id for a in aliases if a.words & neighbours}
+        canon_neighbours = canonical(neighbours)
+        return {a.course_id for a in aliases if a.words & neighbours or a.canon_words & canon_neighbours}

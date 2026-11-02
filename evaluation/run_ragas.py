@@ -77,7 +77,8 @@ def generate(settings, rows: list[dict]) -> tuple[list[dict], dict]:
             "retrieved_context_ids": [f"p{c['page']}" for c in contexts],
             "reference_context_ids": [f"p{p}" for p in row["reference_pages"]],
             "reference_contexts": [t for p in row["reference_pages"] for t in page_text.get(p, [])],
-            "abstained": not contexts,
+            # Abstained = nothing retrieved, or (LLM mode) the LLM answered NOT_FOUND from the passages.
+            "abstained": not contexts or bool(r.data.get("llm_abstained")),
             "top_score": r.data["retrieval"]["top_score"],
             "latency_ms": round((time.perf_counter() - started) * 1000, 1),
         })
@@ -176,7 +177,9 @@ def main() -> None:
     rows = load_dataset(args.dataset)
 
     import ragas
-    with tempfile.TemporaryDirectory() as tmp:
+    load_settings()   # loads .env into the environment (LLM provider and key for --judge)
+    # ignore_cleanup_errors: on Windows the temporary database can still be open at cleanup.
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         settings = build_settings(overrides, Path(tmp), args.judge)
         samples, meta = generate(settings, rows)
         asyncio.run(score_retrieval(samples))
@@ -192,7 +195,7 @@ def main() -> None:
         commit = "unknown"
     config = {
         "label": args.label, "git_commit": commit, "ragas_version": ragas.__version__,
-        "dataset": str(args.dataset.relative_to(PROJECT_ROOT)), "dataset_size": len(rows),
+        "dataset": str(args.dataset.resolve().relative_to(PROJECT_ROOT)), "dataset_size": len(rows),
         "answerable": sum(r["answerable"] for r in rows), "unanswerable": sum(not r["answerable"] for r in rows),
         "embedding_model": meta["embedding_model"], "generation": meta["llm_status"], "judge": judge,
         "chunk_size": settings.chunk_size, "chunk_overlap": settings.chunk_overlap,
