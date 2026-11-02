@@ -101,10 +101,10 @@ def test_migrations_create_the_documents_table_and_keep_a_single_head():
     from src.db.database import Database
     db = Database("sqlite://")
     db.migrate()
-    assert {"rfp_opportunities", "curricula", "generated_documents"} <= set(inspect(db.engine).get_table_names())
+    assert {"rfp_opportunities", "curricula", "generated_documents", "document_templates"} <= set(inspect(db.engine).get_table_names())
     cfg = Config(str(PROJECT_ROOT / "alembic.ini"))
     cfg.set_main_option("script_location", str(PROJECT_ROOT / "migrations"))
-    assert ScriptDirectory.from_config(cfg).get_heads() == ["0004_documents"]
+    assert ScriptDirectory.from_config(cfg).get_heads() == ["0005_document_templates"]   # 0005: academy templates
 
 
 # ------------------------------------------------------------------ Streamlit page

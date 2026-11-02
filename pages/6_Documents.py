@@ -31,7 +31,7 @@ if not require_admin(ctx):
     st.stop()
 
 curricula = ctx.curriculum_service
-create_tab, library_tab, chat_tab = st.tabs(["➕ Generate", "📋 Library & review", "💬 Ask the agent"])
+create_tab, library_tab, templates_tab, chat_tab = st.tabs(["➕ Generate", "📋 Library & review", "🏛️ Academy templates", "💬 Ask the agent"])
 
 # ------------------------------------------------------------------ generate
 with create_tab:
@@ -56,6 +56,12 @@ with create_tab:
     language = c1.radio("Language", ["en", "ar"], horizontal=True, format_func=lambda x: "English" if x == "en" else "العربية")
     audience = c2.text_input("Intended audience (optional)", help="Shown on the cover and in the text. Default: the course's target audience.")
     strict = st.checkbox("Only use an approved curriculum", value=False)
+    academy = service.active_template(doc_type, "en" if doc_type == DocType.CURRICULUM_PDF else language)
+    use_template = st.checkbox("Follow the academy's approved template", value=True, disabled=academy is None,
+                               help="Upload and approve templates in the Academy templates tab.")
+    st.caption(f"🏛️ Academy template for this type and language: **{academy.name}** ({academy.id}, "
+               f"{len(academy.headings)} sections)." if academy else
+               "No approved academy template for this type and language: the built-in template is used.")
     use_llm = st.checkbox("Let the LLM translate to Arabic / write multiple-choice questions", value=True,
                           disabled=not ctx.settings or not ctx.settings.llm_enabled,
                           help="Needs LLM_PROVIDER and a key in .env. Without it, templates and the course data are used as stored.")
@@ -64,7 +70,8 @@ with create_tab:
         try:
             with st.spinner("Building the document…"):
                 doc = service.generate(DocumentRequest(doc_type=doc_type, course_id=course_id, curriculum_id=curriculum_id, language=language,
-                                                       audience=audience.strip() or None, require_approved_curriculum=strict),
+                                                       audience=audience.strip() or None, require_approved_curriculum=strict,
+                                                       use_academy_template=use_template),
                                        actor=actor or "admin", use_llm=use_llm)
             st.session_state.selected_document = doc.id
             st.success(f"Created {doc.id}: {doc.title}. Open it in the Library tab to review.")
@@ -94,7 +101,8 @@ with library_tab:
             st.success(f"Approved by {doc.approved_by}.")
         else:
             st.warning("Draft: not approved. The PDF carries a DRAFT banner until you approve it.")
-        st.caption(f"Built from: {doc.basis} · template v{doc.template_version} · mode: {doc.generation_mode}")
+        template_text = doc.template_version if doc.template_version.startswith("academy") else f"built-in v{doc.template_version}"
+        st.caption(f"Built from: {doc.basis} · template: {template_text} · mode: {doc.generation_mode}")
         with st.expander("Notes for the reviewer", expanded=bool(doc.notices)):
             for n in doc.notices:
                 st.markdown(f"- {n}")
@@ -146,6 +154,54 @@ with library_tab:
                         st.error(str(exc))
         with st.expander("Log"):
             st.dataframe(doc.log, use_container_width=True, hide_index=True)
+
+# ------------------------------------------------------------------ academy templates
+with templates_tab:
+    st.caption("Upload one of the academy's own documents (e.g. its real participant guide). REX AI keeps only its "
+               "**section headings** and, once a reviewer approves it, generates that document type in the same structure. "
+               "Sections without academy data are marked 'to be completed'; nothing is invented.")
+    with st.form("upload_template", clear_on_submit=True):
+        u1, u2 = st.columns(2)
+        t_type = u1.selectbox("Document type", list(DocType), format_func=lambda d: d.label)
+        t_lang = u2.radio("Language", ["en", "ar"], horizontal=True, format_func=lambda x: "English" if x == "en" else "العربية")
+        t_name = st.text_input("Template name", placeholder="e.g. Academy participant guide 2026")
+        t_file = st.file_uploader("Academy document (Word .docx works best: use Heading 1/2 styles)", type=["docx", "pdf", "md", "txt"])
+        t_who = st.text_input("Your name", value="admin")
+        if st.form_submit_button("Upload template"):
+            if t_file is None:
+                st.error("Choose a file.")
+            else:
+                try:
+                    row = service.upload_template(t_type, t_lang, t_name, t_file.name, t_file.getvalue(), t_who)
+                    st.success(f"{row.id} uploaded with {len(row.headings)} section headings. It is pending: approve it below to use it.")
+                except DocumentError as exc:
+                    st.error(str(exc))
+    templates = service.list_templates()
+    st.dataframe([{"id": r.id, "type": DocType(r.doc_type).label, "language": r.language, "name": r.name, "file": r.filename,
+                   "sections": len(r.headings), "status": r.status, "uploaded by": r.uploaded_by,
+                   "reviewed by": r.reviewed_by or ""} for r in templates], use_container_width=True, hide_index=True)
+    if templates:
+        chosen = st.selectbox("Template", [r.id for r in templates],
+                              format_func=lambda i: next(f"{r.id} · {r.name} · {r.status}" for r in templates if r.id == i))
+        tpl = next(r for r in templates if r.id == chosen)
+        st.markdown("**Sections the generated document will follow:**")
+        st.markdown("\n".join(f"{n}. {h}" for n, h in enumerate(tpl.headings, start=1)))
+        t_reviewer = st.text_input("Reviewer name", key=f"tpl_rev_{tpl.id}")
+        b1, b2, b3 = st.columns(3)
+        if b1.button("✅ Approve template", disabled=tpl.status == "approved"):
+            try:
+                service.review_template(tpl.id, True, t_reviewer); st.rerun()
+            except DocumentError as exc:
+                st.error(str(exc))
+        if b2.button("🚫 Reject", disabled=tpl.status == "rejected"):
+            try:
+                service.review_template(tpl.id, False, t_reviewer); st.rerun()
+            except DocumentError as exc:
+                st.error(str(exc))
+        if b3.button("🗑️ Delete"):
+            service.delete_template(tpl.id); st.rerun()
+        st.caption("Approving a template retires any other approved template for the same type and language. "
+                   "Documents already generated keep their structure.")
 
 with chat_tab:
     st.caption("Try: types · generate a participant guide for TRK-001 · list · DOC-XXXXXX · اعمل دليل المدرب لـ TRK-002 بالعربية")

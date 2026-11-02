@@ -22,6 +22,26 @@ Templates live in `src/documents/templates.py` (`TEMPLATE_VERSION` is printed on
 - **No accreditation claims.** Every document carries a disclaimer; a test scans all 10 types × 2 languages for affirmative claims.
 - **Basis is printed.** The cover says "Built from: Approved curriculum CUR-… (revision n)" or "Course record … (no approved curriculum)".
 
+## Academy-approved templates (brief §10 "Is there an approved template to follow?", §11 reference documents)
+The academy can upload **its own document** (Word .docx works best; PDF, Markdown and text also work) as the template
+for a document type and language: Documents page → **🏛️ Academy templates**.
+
+1. **Upload:** REX AI keeps only the **section headings**, in order (Word Heading 1/2 styles, Markdown `#`, or lines that
+   look like headings in a PDF/text). The template's own text is never copied into generated documents. The same file
+   cannot be uploaded twice.
+2. **Approve:** a template is **pending** and never used until a named reviewer approves it. Approving one retires
+   any other approved template for the same type + language; rejecting or deleting stops its use.
+3. **Generate:** when an approved template exists (and "Follow the academy's approved template" is ticked), the generated
+   document follows the academy's headings and order. Each academy heading gets the generated section that matches it
+   best (synonyms such as Objectives ≈ What you will achieve, Arabic included); a numbered series (Module 1, Module 2…)
+   moves together under the matching heading. An academy heading with no matching data gets a visible
+   **"to be completed"** note (nothing is invented). Generated sections the template has no place for are **kept at the
+   end** and listed in the reviewer notes. The cover shows the template's name and ID.
+
+Code: `src/documents/academy_templates.py` (`read_outline`, `apply_outline`), table `document_templates`
+(migration `0005_document_templates`), `DocumentTemplateRepository`, `DocumentService.upload_template / review_template /
+delete_template / active_template`. Tests: `tests/test_document_templates.py`.
+
 ## Languages
 `language = en | ar`. Arabic documents are laid out right-to-left with shaped letters, mirrored tables and correct brackets
 (`src/pdf/renderer.py`, font DejaVu Sans in `assets/fonts`). Headings and fixed text are written in Arabic; the catalog's Arabic course title is used.
@@ -56,7 +76,8 @@ addresses validated and de-duplicated); the PDF is attached; the log records the
 | Workflow | `src/documents/service.py` — `generate`, `edit_markdown`, `approve`, `pdf`, `markdown`, `email`, `list`, `get` |
 | Templates | `src/documents/templates.py` (`build_document`) |
 | LLM helpers | `src/documents/llm_helpers.py` |
-| Table | `generated_documents` (migration `0004_documents`) |
+| Table | `generated_documents` (migration `0004_documents`); `document_templates` (migration `0005_document_templates`) |
+| Academy templates | `src/documents/academy_templates.py`; `DocumentTemplateRepository`; page tab **Academy templates** |
 | Page | `pages/6_Documents.py` |
 | Reads from Agent 3 | `CurriculumService.approved_for_course(course_id)` / `.get(curriculum_id)` / `.draft_for_course(course_id)` |
 
@@ -65,10 +86,13 @@ Chat: `generate a participant guide for TRK-001` · `question bank for CUR-XXXXX
 
 ## Discovery questions (brief §10) → inputs
 Document type → `doc_type` · course/curriculum → `course_id`/`curriculum_id` · audience → `audience` · language → `language` ·
-template → fixed per type (`TEMPLATE_VERSION`) · "approved sources only" → `require_approved_curriculum`.
+template → the academy's approved template for the type + language if one exists (`use_academy_template`), else the built-in one · "approved sources only" → `require_approved_curriculum`.
 
 ## Limitations
 - The presentation type is an **outline** (slide titles, bullets, speaker notes), not a .pptx file.
 - Arabic content is only as good as the LLM translation, which a human must review.
 - Rubric descriptors and milestones are generic; instructors adapt them.
-- A new Arabic template sentence is a code change (`templates.py`); there is no template editor UI.
+- Academy templates set the **structure** (headings and order) only; the built-in text fills the sections.
+  A new built-in sentence is still a code change (`templates.py`).
+- Headings are read best from Word heading styles; headings in a PDF are found by layout clues and may need checking
+  (the Academy templates tab lists them before approval).

@@ -35,3 +35,24 @@ class GeneratedDocumentRecord(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     approved_by: Mapped[str | None] = mapped_column(String(200))
+
+
+class DocumentTemplateRecord(Base):
+    """An academy reference document used as the structure for one document type + language. Migration 0005.
+
+    Only `headings` (the outline) is used when generating; the uploaded file's text is not copied into documents.
+    status: pending (uploaded, never used) → approved (in use) → retired (replaced by a newer approved one) | rejected.
+    """
+    __tablename__ = "document_templates"
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)                    # "TPL-1A2B3C"
+    doc_type: Mapped[str] = mapped_column(String(40), index=True)
+    language: Mapped[str] = mapped_column(String(5))
+    name: Mapped[str] = mapped_column(String(200))
+    filename: Mapped[str] = mapped_column(String(300))
+    sha256: Mapped[str] = mapped_column(String(64), unique=True, index=True)        # same file twice = rejected
+    headings: Mapped[list] = mapped_column(JSON, default=list)
+    status: Mapped[str] = mapped_column(String(20), index=True)
+    uploaded_by: Mapped[str] = mapped_column(String(200))
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    reviewed_by: Mapped[str | None] = mapped_column(String(200))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

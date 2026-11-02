@@ -6,12 +6,14 @@ Only APPROVED documents can be e-mailed. Any edit sends an approved document bac
 """
 from __future__ import annotations
 
+import hashlib
 from datetime import date
 from typing import Callable
 
 from src.curriculum.service import CurriculumService
 from src.db.document_models import GeneratedDocumentRecord
-from src.db.document_repository import GeneratedDocumentRepository
+from src.db.document_repository import DocumentTemplateRepository, GeneratedDocumentRepository
+from src.documents.academy_templates import TemplateError, apply_outline, read_outline
 from src.documents.context import DocumentError, resolve_context
 from src.documents.llm_helpers import generate_mcq, translate_document
 from src.documents.models import DocStatus, DocType, DocumentRequest, StoredDocument
@@ -25,6 +27,7 @@ from src.utils.logging_config import get_logger
 
 logger = get_logger("documents.service")
 MAX_MARKDOWN_CHARS = 300_000
+MAX_TEMPLATE_BYTES = 10_000_000
 
 
 def _stored(r: GeneratedDocumentRecord) -> StoredDocument:
@@ -39,8 +42,9 @@ def _stored(r: GeneratedDocumentRecord) -> StoredDocument:
 class DocumentService:
     def __init__(self, repository: GeneratedDocumentRepository, curricula: CurriculumService, courses,
                  llm: LLMService | None = None, email: EmailService | None = None,
-                 today: Callable[[], date] = date.today) -> None:
+                 today: Callable[[], date] = date.today, templates: DocumentTemplateRepository | None = None) -> None:
         self._repo = repository
+        self._templates = templates
         self._curricula = curricula
         self._courses = courses
         self._llm = llm
@@ -77,14 +81,71 @@ class DocumentService:
             used_llm = used_llm or (tr_notice or "").startswith("Course content was translated")
             if tr_notice:
                 notices.append(tr_notice)
+        template_version = TEMPLATE_VERSION
+        academy = self.active_template(request.doc_type, language) if request.use_academy_template else None
+        if academy is not None:
+            doc, template_notices = apply_outline(doc, list(academy.headings), f"{academy.name} ({academy.id})")
+            notices.extend(template_notices)
+            template_version = f"academy {academy.id}"
         row = self._repo.create(
             actor=actor, note=ctx.basis, doc_type=request.doc_type.value, course_id=ctx.curriculum.course_id,
             curriculum_id=ctx.curriculum_id, curriculum_revision=ctx.curriculum_revision, language=language,
-            title=doc.title, basis=ctx.basis, template_version=TEMPLATE_VERSION,
+            title=doc.title, basis=ctx.basis, template_version=template_version,
             generation_mode="llm" if used_llm else "deterministic", content=doc.model_dump(mode="json"),
             notices=list(dict.fromkeys(notices)))
         logger.info("Document %s generated (%s, %s, mode=%s)", row.id, request.doc_type.value, language, row.generation_mode)
         return _stored(row)
+
+    # ------------------------------------------------------------------ academy templates
+    @property
+    def templates_enabled(self) -> bool:
+        return self._templates is not None
+
+    def _templates_required(self) -> DocumentTemplateRepository:
+        if self._templates is None:
+            raise DocumentError("Academy templates are not available.")
+        return self._templates
+
+    def upload_template(self, doc_type: DocType, language: str, name: str, filename: str, data: bytes, actor: str):
+        """Read the outline of an academy document and store it as a PENDING template (not used until approved)."""
+        repo = self._templates_required()
+        if language not in ("en", "ar"):
+            raise DocumentError("Template language must be en or ar.")
+        if not (name or "").strip():
+            raise DocumentError("Give the template a name (e.g. 'Academy participant guide 2026').")
+        if not data or len(data) > MAX_TEMPLATE_BYTES:
+            raise DocumentError("The file is empty or larger than 10 MB.")
+        digest = hashlib.sha256(data).hexdigest()
+        existing = repo.find_by_hash(digest)
+        if existing is not None:
+            raise DocumentError(f"This file was already uploaded as {existing.id} ({existing.status}).")
+        try:
+            headings = read_outline(filename, data)
+        except TemplateError as exc:
+            raise DocumentError(str(exc)) from exc
+        row = repo.create(doc_type=doc_type.value, language=language, name=name.strip()[:200], filename=filename[:300],
+                          sha256=digest, headings=headings, uploaded_by=(actor or "unknown")[:200])
+        logger.info("Template %s uploaded for %s/%s (%d headings)", row.id, doc_type.value, language, len(headings))
+        return row
+
+    def review_template(self, template_id: str, approve: bool, reviewer: str):
+        if not (reviewer or "").strip():
+            raise DocumentError("Approving or rejecting a template needs the reviewer's name.")
+        row = self._templates_required().review(template_id, approve=approve, reviewer=reviewer.strip())
+        if row is None:
+            raise DocumentError(f"No template with ID {template_id}.")
+        return row
+
+    def delete_template(self, template_id: str) -> None:
+        if not self._templates_required().delete(template_id):
+            raise DocumentError(f"No template with ID {template_id}.")
+
+    def list_templates(self, **filters) -> list:
+        return self._templates.list(**filters) if self._templates else []
+
+    def active_template(self, doc_type: DocType, language: str):
+        """The approved academy template for this type + language, or None (then the built-in template is used)."""
+        return self._templates.active(doc_type.value, language) if self._templates else None
 
     # ------------------------------------------------------------------ read
     def get(self, document_id: str) -> StoredDocument | None:

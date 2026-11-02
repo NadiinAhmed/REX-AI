@@ -307,12 +307,12 @@ def register_document_agent(registry: AgentRegistry, settings: Settings, db: Dat
         return None
     try:
         from src.agents.document_generation import DocumentGenerationAgent
-        from src.db.document_repository import GeneratedDocumentRepository
+        from src.db.document_repository import DocumentTemplateRepository, GeneratedDocumentRepository
         from src.documents.service import DocumentService
         from src.services.email_service import EmailService
 
         service = DocumentService(GeneratedDocumentRepository(db), curriculum_service, courses, llm=llm,
-                                  email=EmailService(settings))
+                                  email=EmailService(settings), templates=DocumentTemplateRepository(db))
         registry.register(DocumentGenerationAgent(service, courses))
         return service
     except Exception as exc:
