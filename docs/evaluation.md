@@ -125,3 +125,29 @@ calls per case. Nothing is scored automatically: a person reads the answers. The
 (Groq, `openai/gpt-oss-20b`, 2026-11-02) found four problems, fixed as L1-L4 in
 `docs/agent1_audit.md`.
 
+## Agent 1 final fixes — measured 2026-11-02 (offline, hashing embeddings, no LLM)
+
+Commands: `python -m evaluation.run_ragas --label <name>` and
+`python -m evaluation.run_ragas --label <name> --dataset evaluation/dataset_heldout.jsonl`.
+
+**Held-out set** (`evaluation/dataset_heldout.jsonl`, 10 questions: 4 answerable, 6 unanswerable,
+EN + AR). Written after the fixes were designed and **not used to tune them**, to check that the
+rules were not fitted to the main dataset.
+
+| Metric | Main set before | Main set after | Held-out before | Held-out after |
+|---|---|---|---|---|
+| Correct abstention on unanswerable | 0.6667 (4/6) | **1.0 (6/6)** | 0.3333 (2/6) | **1.0 (6/6)** |
+| Answered rate on answerable | 1.0 | 1.0 | 1.0 | 1.0 |
+| ID context recall | 0.9187 | 0.9062 | 0.75 | **1.0** |
+| ID context precision | 0.5469 | 0.526 | 0.375 | 0.4583 |
+| Non-LLM context precision | 0.9114 | 0.8802 | 0.6458 | 0.7083 |
+| Non-LLM context recall | 0.6325 | 0.6292 | 0.625 | 0.675 |
+
+Trade-off: on the main set the stricter word stem (A2) dropped one supporting page from one English
+question (precision −0.02, recall −0.01); the question is still answered. The course-recommendation
+evaluation is unchanged (balanced 0.8334). Changes are listed as A1–A7 in `docs/agent1_audit.md`.
+
+Limits: 22 + 10 questions is small; one question changes a rate by 0.06–0.17. These runs use the
+hashing embedding and no LLM. LLM-judged metrics (faithfulness, answer relevancy) and the
+semantic-embedding run must be measured separately and reported as measured.
+

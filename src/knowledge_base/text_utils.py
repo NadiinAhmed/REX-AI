@@ -79,7 +79,8 @@ SYNONYMS: dict[str, str] = {
     "شهاده": "certificate", "شهادات": "certificate", "certification": "certificate",
     "ادوات": "tools", "تواصل": "contact", "التواصل": "contact", "شراكه": "partnership",
     "شراكات": "partnership", "partnerships": "partnership", "مشروع": "project", "تخرج": "capstone",
-    "وظائف": "career", "مخرجات": "outcomes",
+    "وظائف": "career roles", "مخرجات": "outcomes",   # وظائف = jobs/roles
+    "ساعات": "hours", "ساعه": "hours", "مده": "duration", "متاحه": "available",
 }
 
 
@@ -101,6 +102,20 @@ def _strip_arabic_prefix(token: str) -> str:
         if rest in STOPWORDS or rest in SYNONYMS:
             return rest
     return token
+
+
+def _normalize_vocabulary() -> None:
+    """Questions are normalized before lookup ("وظائف" -> "وظايف"), so the word lists must be too.
+    Before this, entries spelled with ئ/أ/إ/آ/ى/ة could never match (found 2026-11-02)."""
+    global STOPWORDS
+    STOPWORDS = {normalize_arabic(w) for w in STOPWORDS}
+    for key in list(SYNONYMS):
+        normalized = normalize_arabic(key)
+        if normalized != key:
+            SYNONYMS.setdefault(normalized, SYNONYMS.pop(key))
+
+
+_normalize_vocabulary()
 
 
 def tokenize(text: str) -> list[str]:

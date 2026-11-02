@@ -1,0 +1,10 @@
+{"id": "ho01", "lang": "en", "question": "Does the Flutter track use Firebase?", "reference": "Yes, Firebase is part of the Flutter Development tech stack.", "reference_pages": [4], "answerable": true}
+{"id": "ho02", "lang": "en", "question": "Is Kafka taught in the Data Engineering track?", "reference": "Yes, Kafka is part of the Data Engineering track's modern data stack.", "reference_pages": [5], "answerable": true}
+{"id": "ho03", "lang": "en", "question": "Which cloud platform is used for deployment in the Full Stack track?", "reference": "Azure (deployment with IIS and Azure).", "reference_pages": [7], "answerable": true}
+{"id": "ho04", "lang": "ar", "question": "كم ساعة مسار علم البيانات والذكاء الاصطناعي؟", "reference": "مسار علم البيانات والذكاء الاصطناعي وتعلم الآلة مدته 100 ساعة.", "reference_pages": [8], "answerable": true}
+{"id": "ho05", "lang": "en", "question": "Can I pay the fees in installments?", "reference": "", "reference_pages": [], "answerable": false}
+{"id": "ho06", "lang": "en", "question": "What is the minimum GPA required to join the Software Testing track?", "reference": "", "reference_pages": [], "answerable": false}
+{"id": "ho07", "lang": "en", "question": "Is there a job guarantee after the Data Science track?", "reference": "", "reference_pages": [], "answerable": false}
+{"id": "ho08", "lang": "en", "question": "Are the Flutter lectures recorded?", "reference": "", "reference_pages": [], "answerable": false}
+{"id": "ho09", "lang": "ar", "question": "هل يوجد سكن للطلاب المغتربين؟", "reference": "", "reference_pages": [], "answerable": false}
+{"id": "ho10", "lang": "ar", "question": "هل يمكن تقسيط رسوم مسار هندسة البيانات؟", "reference": "", "reference_pages": [], "answerable": false}

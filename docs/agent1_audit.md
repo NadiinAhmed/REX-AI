@@ -20,9 +20,19 @@
 | L4 (live) | "هل الأكاديمية معتمدة؟" → "Which course?" | "مده" (duration) matched inside "معتمده" | Arabic words in the duration/offer patterns must start a word (prefixes ال/و/ب/ل/ف allowed) |
 
 Live checks are run with `python -m evaluation.live_check --label <name>` (see `docs/evaluation.md`).
+| A1 (2026-11-02) | "How much does the Flutter Development track cost?" answered from the Flutter pages | the course name matched the pages; no page states a cost | a result needs an *evidence term*: a question word that is not a course-name word (`src/rag/retriever.py`). Abstention 4/6 → 6/6, held-out 2/6 → 6/6 |
+| A2 | "international" matched "interview" | fixed 5-letter word stem | stem keeps all but the last 3 letters (min. 5) |
+| A3 | a "not found" LLM answer still listed sources | the LLM wrote free text | the LLM replies `NOT_FOUND`; the code writes the message and shows no sources |
+| A4 | glossary words with ئ/أ/ة never matched ("وظائف") | glossary not normalized like the question | glossary normalized at load; added ساعات → hours, وظائف → career roles |
+| A5 | "مدرس" matched inside "مدرسة", "وظائف"/"ماذا سأتعلم" never matched | Arabic patterns without word boundaries or normalization | one helper `_ar()` for all Arabic attribute words (26 cases tested) |
+| A6 | "QA", "mobile", "دوت نت" not recognised | nicknames not in titles | the resolver maps words through the shared search glossary |
+| A7 | LLM promised "I'll check for updates", claimed "common in the job market" | no rule against it | two prompt rules (no promises, no claims outside the data) |
+
+All A-fixes: `tests/test_agent1_final.py` (40 tests). Measurements: `docs/evaluation.md`.
 
 ## Still open
-- Short names come from the course titles. Nicknames that are not in a title ("QA", "mobile", "دوت نت") are
-  not matched yet; the learner gets a recommendation or is asked which course instead.
+- Nicknames work only if they are in the search glossary (`src/knowledge_base/text_utils.py`).
+- The evidence-term rule applies with the keyword gate (hashing embeddings). With semantic embeddings
+  the `NOT_FOUND` rule (A3) is the safeguard; measure abstention there with `run_ragas` as well.
 `docs/ROLE_3_ARCHITECTURE_INTEGRATION_QA_GUIDE.md` is still tracked although other role guides were
 removed; README/RACI no longer use role ownership in new docs. Deleting the file is a team decision.

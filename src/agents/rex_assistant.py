@@ -36,22 +36,34 @@ logger = get_logger("rex_assistant")
 # Course question topics: field name -> regex over normalized lower text
 # Start of an Arabic word, allowing the prefixes "ال", "و", "ب", "ل" (Arabic has no spaces before them).
 _AR_WORD_START = r"(?<![\u0621-\u064A])(?:و|ب|ل|ف)?(?:ال)?"
+def _ar(*words: str) -> str:
+    """Regex for Arabic words or phrases that must start a word (prefixes ال/و/ب/ل/ف allowed).
+
+    Words are normalized like the message ("وظائف" -> "وظايف"), and must not be found inside a
+    longer word: "مده" (duration) inside "معتمده" (accredited), "مدرس" (teacher) inside "مدرسه"
+    (school). Both bugs were found on 2026-11-02.
+    """
+    alternatives = "|".join(sorted({re.escape(normalize_arabic(w)) for w in words}, key=len, reverse=True))
+    return rf"{_AR_WORD_START}(?:{alternatives})(?![\u0621-\u064A])"
+
+
 _ATTRIBUTE_PATTERNS: dict[str, str] = {
-    "fee": r"\b(price|prices|cost|fees?|how much)\b|سعر|اسعار|تكلفه|بكام|رسوم|كم سعر|بكم",
-    # Arabic words must start a word (optionally after "ال"/"و"/"ب"): "مده" (duration) is also inside
-    # "معتمده" (accredited), which used to turn "هل الأكاديمية معتمدة؟" into a duration question.
-    "duration": rf"\b(duration|how long|hours|weeks|length)\b|{_AR_WORD_START}مده\b|كام ساعه|كم ساعه|كم اسبوع",
-    "prerequisites": r"\b(prerequisites?|requirements?|need to know)\b|متطلبات|شروط",
-    "instructor": r"\b(instructors?|trainers?|teachers?|lecturers?)\b|مدرب|مدربين|محاضر|مدرس|مدرسين",
-    "schedule": r"\b(schedule|when does|when is|start date|starts?\s+on|dates?|timing)\b|موعد|مواعيد|ميعاد|امتي|متي|يبدا",
-    "modules": r"\b(content|modules?|syllabus|topics|curriculum)\b|محتوي|محاور|منهج",
-    "learning_outcomes": r"\b(outcomes?|will i learn|skills)\b|مخرجات|ماذا سأتعلم|هتعلم ايه",
-    "delivery_format": r"\b(format|delivered|delivery)\b|طريقه الدراسه|طريقه التدريس",
-    "career_paths": r"\b(career|jobs?|opportunit\w*)\b|وظائف|فرص|شغل",
+    "fee": r"\b(price|prices|cost|fees?|how much)\b|" + _ar("سعر", "اسعار", "تكلفة", "بكام", "رسوم", "بكم"),
+    "duration": r"\b(duration|how long|hours|weeks|length)\b|" + _ar("مدة", "كام ساعة", "كم ساعة", "كم اسبوع"),
+    "prerequisites": r"\b(prerequisites?|requirements?|need to know)\b|" + _ar("متطلبات", "شروط"),
+    "instructor": r"\b(instructors?|trainers?|teachers?|lecturers?|who teaches|taught by)\b|" + _ar(
+        "مدرب", "مدربين", "محاضر", "محاضرين", "مدرس", "مدرسين"),
+    "schedule": r"\b(schedule|when does|when is|start date|starts?\s+on|dates?|timing)\b|" + _ar(
+        "موعد", "مواعيد", "ميعاد", "امتى", "متى", "يبدأ"),
+    "modules": r"\b(content|modules?|syllabus|topics|curriculum)\b|" + _ar("محتوى", "محاور", "منهج"),
+    "learning_outcomes": r"\b(outcomes?|will i learn|skills)\b|" + _ar("مخرجات", "ماذا سأتعلم", "هتعلم ايه"),
+    "delivery_format": r"\b(format|delivered|delivery)\b|" + _ar("طريقة الدراسة", "طريقة التدريس"),
+    "career_paths": r"\b(career|jobs?|opportunit\w*)\b|" + _ar("وظائف", "وظيفة", "فرص", "فرصة", "شغل"),
     # "offer" only as a noun ("any offer?", "offers on X"). As a verb ("Does the academy offer
     # scholarships?") it is a general question, not a question about a course discount.
-    "promotions": (rf"\b(discounts?|promotions?|promo)\b|\b(any|an|special|current|latest|new)\s+offers?\b"
-                   rf"|\boffers?\s+(on|for)\s+(the|this|that|it|[a-z]{{2,4}}-\d{{3}})\b|{_AR_WORD_START}(خصم|خصومات|عرض|عروض)\b"),
+    "promotions": (r"\b(discounts?|promotions?|promo)\b|\b(any|an|special|current|latest|new)\s+offers?\b"
+                   r"|\boffers?\s+(on|for)\s+(the|this|that|it|[a-z]{2,4}-\d{3})\b|"
+                   + _ar("خصم", "خصومات", "عرض", "عروض")),
 }
 # Document fallback for topics missing from the catalog: keep only passages scoring at least this
 # fraction of the best one, so a page that merely shares a word is not shown as evidence.
@@ -87,9 +99,10 @@ _VALUE_AR = {
 
 # Extra attributes answered from the new course fields (tools, capstone, deliverables).
 _ATTRIBUTE_PATTERNS.update({
-    "tools": r"\b(tools?|tech stack|stack|technolog\w*|frameworks?|libraries)\b|ادوات|تقنيات|تكنولوجيا",
-    "capstone": r"\b(capstone|graduation project|final project)\b|مشروع التخرج|المشروع النهائي",
-    "deliverables": r"\b(deliverables?|certificates?|certification)\b|شهاده|شهادات",
+    "tools": r"\b(tools?|tech stack|stack|technolog\w*|frameworks?|libraries)\b|" + _ar(
+        "أدوات", "تقنيات", "تكنولوجيا"),
+    "capstone": r"\b(capstone|graduation project|final project)\b|" + _ar("مشروع التخرج", "المشروع النهائي"),
+    "deliverables": r"\b(deliverables?|certificates?|certification)\b|" + _ar("شهادة", "شهادات"),
 })
 for _lang, _extra in {"en": {"tools": "Tools", "capstone": "Capstone project", "deliverables": "Deliverables"},
                       "ar": {"tools": "الأدوات", "capstone": "مشروع التخرج", "deliverables": "المخرجات"}}.items():
@@ -393,13 +406,9 @@ class RexAssistant(Agent):
                 "contexts": [{"chunk_id": p.chunk_id, "page": p.page, "filename": p.filename, "text": p.text}
                              for p in result.passages]}
         if not result.found:
-            text = self._t(lang,
-                "I couldn't find this in the academy's approved documents, so I can't answer it reliably. "
-                "You can ask me about our programs, their content, tools, duration or career paths.",
-                "لم أجد هذه المعلومة في مستندات الأكاديمية المعتمدة، لذلك لا يمكنني الإجابة عليها بدقة. "
-                "يمكنك سؤالي عن برامجنا ومحتواها وأدواتها ومدتها والمسارات المهنية.")
             data["llm_status"] = "not_needed"
-            return AgentResponse(agent_name=self.name, text=text, mode=ResponseMode.DETERMINISTIC, data=data)
+            return AgentResponse(agent_name=self.name, text=self._not_found_text(lang),
+                                 mode=ResponseMode.DETERMINISTIC, data=data)
 
         sources = [SourceReference(source_type="document", reference=p.citation, document_id=p.document_id,
                                    filename=p.filename, page=p.page, score=p.score) for p in result.passages]
@@ -416,6 +425,11 @@ class RexAssistant(Agent):
         try:
             text = self._llm.generate(system, [ChatMessage(role="user", content=user)])
             data["llm_status"] = "used"
+            if prompts.DOC_QA_NOT_FOUND in text[:40]:
+                # The passages were retrieved but do not answer the question: no citations.
+                data["llm_abstained"] = True
+                return AgentResponse(agent_name=self.name, text=self._not_found_text(lang),
+                                     mode=ResponseMode.LLM, data=data)
             return AgentResponse(agent_name=self.name, text=text, mode=ResponseMode.LLM, sources=sources, data=data)
         except LLMError as exc:
             logger.warning("Falling back to excerpts: %s", exc)
@@ -424,6 +438,13 @@ class RexAssistant(Agent):
                              "(خدمة الذكاء الاصطناعي غير متاحة، لذا هذه المقتطفات ذات الصلة.)")
             return AgentResponse(agent_name=self.name, text=f"{prefix}\n\n{fallback}",
                                  mode=ResponseMode.DETERMINISTIC, sources=sources, data=data)
+
+    def _not_found_text(self, lang: str) -> str:
+        return self._t(lang,
+            "I couldn't find this in the academy's approved documents, so I can't answer it reliably. "
+            "You can ask me about our programs, their content, tools, duration or career paths.",
+            "لم أجد هذه المعلومة في مستندات الأكاديمية المعتمدة، لذلك لا يمكنني الإجابة عليها بدقة. "
+            "يمكنك سؤالي عن برامجنا ومحتواها وأدواتها ومدتها والمسارات المهنية.")
 
     def answer_from_documents(self, question: str) -> AgentResponse:
         """Public RAG entry point (used by the evaluation scripts): retrieve + generate, no routing."""
