@@ -77,6 +77,9 @@ class RawTender(BaseModel):
     link: str | None = None
     documents: list[str] = Field(default_factory=list)
     source: str = "unknown"
+    # The full notice document as plain text (real sources). Read for requirements and deadlines
+    # when they are not given as fields; not stored in the database.
+    full_text: str = ""
 
 
 class Opportunity(BaseModel):
@@ -129,6 +132,24 @@ class ScanReport(BaseModel):
     expired_marked: int = 0                                 # stored ones whose deadline has now passed
     source_notices: list[str] = Field(default_factory=list)
     summary_mode: str = "deterministic"
+    # LLM steps (ai.py): what they did in this scan
+    ai_mode: str = "off"                                    # "off" or "on (<provider>)"
+    ai_calls: int = 0
+    ai_failed: int = 0                                      # LLM error or invalid answer: rules result kept
+    ai_rescued: list[str] = Field(default_factory=list)     # titles kept by AI review with verified evidence
+    ai_enriched: int = 0                                    # tenders that got verified AI details
+    ai_not_run: int = 0                                     # skipped because the per-scan call limit was reached
+
+    def ai_summary(self) -> str:
+        if self.ai_mode == "off":
+            return "AI: off (no LLM configured): rule-based results only."
+        text = (f"AI {self.ai_mode}: {self.ai_calls} notice(s) read, {len(self.ai_rescued)} kept that keyword "
+                f"rules missed, {self.ai_enriched} enriched with verified details")
+        if self.ai_failed:
+            text += f", {self.ai_failed} failed (rule-based result kept)"
+        if self.ai_not_run:
+            text += f", {self.ai_not_run} not read (call limit)"
+        return text + "."
 
     def excluded_count(self, reason: ExclusionReason) -> int:
         return sum(e.reason == reason for e in self.excluded)

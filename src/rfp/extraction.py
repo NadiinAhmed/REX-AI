@@ -90,7 +90,8 @@ def _safe_date(y: int, mo: int, d: int) -> date | None:
 
 # ----------------------------------------------------------------------------- country
 _COUNTRY_NAMES = {
-    Country.EGYPT: ("egypt", "eg", "arab republic of egypt", "مصر", "جمهورية مصر العربية", "egyptian"),
+    Country.EGYPT: ("egypt", "eg", "arab republic of egypt", "egypt, arab republic of",   # World Bank spelling
+                    "مصر", "جمهورية مصر العربية", "egyptian"),
     Country.SAUDI_ARABIA: ("saudi arabia", "ksa", "sa", "kingdom of saudi arabia", "saudi",
                            "السعودية", "المملكة العربية السعودية", "المملكه"),
 }
@@ -169,18 +170,29 @@ def dedup_key(title: str, organization: str | None, country: Country) -> str:
 
 
 def extract(raw: RawTender, *, synthetic: bool = False) -> tuple[Opportunity, bool]:
-    """RawTender -> (Opportunity, is_training_related). Pure function: no I/O."""
+    """RawTender -> (Opportunity, is_training_related). Pure function: no I/O.
+
+    If the source gave the full notice document but no eligibility or deadline field, those are
+    read from the document itself (documents.py).
+    """
+    from src.rfp.documents import deadline_from_text, requirement_sentences   # avoids a circular import
+
     country = detect_country(raw)
     categories, training = classify(raw)
     title = re.sub(r"\s+", " ", raw.title).strip()
+    eligibility = (raw.eligibility or "").strip() or None
+    deadline = parse_date(raw.deadline)
+    if raw.full_text:
+        eligibility = eligibility or requirement_sentences(raw.full_text)
+        deadline = deadline or deadline_from_text(raw.full_text)
     opp = Opportunity(
         title=title,
         issuing_organization=(raw.organization or "").strip() or None,
         country=country,
-        deadline=parse_date(raw.deadline),
+        deadline=deadline,
         publication_date=parse_date(raw.published),
         description=raw.description.strip(),
-        eligibility=(raw.eligibility or "").strip() or None,
+        eligibility=eligibility,
         categories=categories,
         submission_link=(raw.link or "").strip() or None,
         documents=[d.strip() for d in raw.documents if d.strip()],

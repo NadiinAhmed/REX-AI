@@ -79,6 +79,7 @@ class RfpResearchAgent(Agent):
                                  "\n🔔 **فرص جديدة في مصر: تحتاج مراجعة الآن**"))
             lines += [self._line(r) for r in records]
         lines += [f"_{n}_" for n in report.source_notices]
+        lines.append(f"_{report.ai_summary()}_")
         return self._response("\n".join(lines), lang, records, intent="scan",
                               data={"report": report.model_dump(mode="json")})
 
@@ -119,6 +120,7 @@ class RfpResearchAgent(Agent):
             f"- {self._t(lang, 'Documents', 'المستندات')}: {', '.join(r.documents) or na}",
             f"- {self._t(lang, 'Submission link', 'رابط التقديم')}: {r.submission_link or na}",
             f"- {self._t(lang, 'Status', 'الحالة')}: {r.status.replace('_', ' ')}",
+            f"- {self._t(lang, 'Source', 'المصدر')}: {r.source_name}",
             "",
             f"**{self._t(lang, 'Summary', 'ملخص')}:** {r.summary}",
             "",

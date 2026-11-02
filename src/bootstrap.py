@@ -245,18 +245,37 @@ def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database
         from src.agents.rfp_research import RfpResearchAgent
         from src.db.rfp_repository import RfpRepository
         from src.rfp.pipeline import RfpScanPipeline
-        from src.rfp.sources import JsonFileSource
+        from src.rfp.ai import TenderAI
 
         repository = RfpRepository(db)
+        use_summaries = llm is not None and settings.rfp_llm_summaries != "off"
+        use_ai = llm is not None and settings.rfp_ai != "off"
+        if llm is None and "on" in (settings.rfp_ai, settings.rfp_llm_summaries):
+            warnings.append("RFP agent: AI features are on but no LLM is configured (set LLM_PROVIDER and its "
+                            "API key). Running rule-based only.")
         pipeline = RfpScanPipeline(
-            sources=[JsonFileSource(settings.rfp_feed_path)], repository=repository,
-            courses=courses.all_courses, llm=llm if settings.rfp_llm_summaries else None)
+            sources=build_rfp_sources(settings), repository=repository, courses=courses.all_courses,
+            llm=llm if use_summaries else None, ai=TenderAI(llm) if use_ai else None,
+            ai_max_calls=settings.rfp_ai_max_calls)
         registry.register(RfpResearchAgent(pipeline, repository))
         return repository
     except Exception as exc:
         logger.exception("RFP research agent unavailable")
         warnings.append(f"RFP research agent unavailable: {exc}")
         return None
+
+
+def build_rfp_sources(settings: Settings) -> list:
+    """Tender sources in the order of RFP_SOURCES: the live World Bank API and/or the JSON feed file."""
+    from src.rfp.sources import JsonFileSource
+    from src.rfp.worldbank import WorldBankSource
+
+    available = {
+        "worldbank": lambda: WorldBankSource(rows=settings.rfp_worldbank_rows,
+                                             timeout=settings.rfp_http_timeout_seconds),
+        "file": lambda: JsonFileSource(settings.rfp_feed_path),
+    }
+    return [available[name]() for name in settings.rfp_sources]
 
 
 

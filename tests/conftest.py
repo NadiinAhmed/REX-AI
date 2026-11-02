@@ -59,6 +59,7 @@ def test_env(tmp_path: Path):
             "VECTOR_DIR": str(tmp_path / "vectors"),
             "UPLOAD_DIR": str(tmp_path / "uploads"),
             "REX_COURSES_PATH": str(DATASET),
+            "RFP_SOURCES": "file",          # tests never call the live World Bank API
         }
         env.update(overrides)
         return env
