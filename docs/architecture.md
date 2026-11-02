@@ -1,6 +1,9 @@
 # REX AI — System Architecture (Sprint 2)
 
 ## Layers
+The chat UI sends every message to the **Agent Orchestrator / Router** (`src/agents/orchestrator.py`),
+which picks the agent and enforces student/staff permissions. See [orchestrator.md](orchestrator.md).
+
 
 | Layer | Modules | Responsibility |
 |---|---|---|
@@ -72,7 +75,7 @@ graph TD;
 | `PassageRetriever` / MCP `search_knowledge_base` | Curriculum (accreditation docs), Document Generation (templates) |
 | `LLMService` (LangChain adapter) | every agent that generates text |
 | `Database`, migrations, repositories | new tables (`curricula`, `generated_documents`, `rfp_opportunities`, `marketing_contents`) are added by migration and reference `courses.course_id` |
-| LangGraph pattern (analyze → route → finalize) | each agent's workflow, and later the multi-agent orchestrator |
+| LangGraph pattern (analyze → route → finalize) | each agent's workflow and the orchestrator ([orchestrator.md](orchestrator.md)) |
 
 ## Agent 5 — Marketing Agent
 A LangGraph workflow (parse → facts → strategy → generate ⇄ fact-check → evaluate → save → respond)

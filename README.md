@@ -99,6 +99,11 @@ and download the PDF. If the course has an **approved curriculum** (Curriculum p
 course record, and says so. Chat: `generate a participant guide for TRK-001`.
 Details: [docs/document_agent.md](docs/document_agent.md).
 
+## One chat for all agents (Orchestrator)
+The main chat routes every message to the right agent. Students reach REX Assistant; after the
+staff sign-in in the sidebar, the other four agents are reachable too (`/help` lists commands).
+Details: [docs/orchestrator.md](docs/orchestrator.md).
+
 ## Documentation
 [Architecture](docs/architecture.md) · [RAG workflow](docs/rag_workflow.md) ·
 [Database schema](docs/database_schema.md) · [MCP](docs/mcp.md) · [Evaluation](docs/evaluation.md) ·

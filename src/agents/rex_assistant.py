@@ -162,6 +162,10 @@ class RexAssistant(Agent):
         g.add_edge("finalize", END)
         return g.compile()
 
+    def expects_reply(self, state: dict) -> bool:
+        """While consent or contact details are being collected, the next message belongs to REX."""
+        return (state.get("lead") or {}).get("stage") in ("awaiting_consent", "awaiting_contact")
+
     def graph_diagram(self) -> str:
         """Mermaid diagram of the conversation graph (used in the docs)."""
         return self._graph.get_graph().draw_mermaid()

@@ -1,17 +1,23 @@
 """REX AI Streamlit entry point. Run with:  streamlit run app.py
-Admin pages (knowledge base, leads) are in pages/ and appear in the sidebar."""
+
+One chat for the whole system: every message goes to the OrchestratorAgent, which routes it to
+the right agent. Students reach REX Assistant only; after the staff sign-in in the sidebar the
+RFP, Curriculum, Documents and Marketing agents are reachable too. Review/approval screens stay
+on the admin pages in pages/."""
 from __future__ import annotations
+
+import hmac
 
 import streamlit as st
 
 from src.agents.base import AgentRequest, AgentStatus, ResponseMode
+from src.agents.orchestrator import ALL_AGENTS, PROFILES, PUBLIC_AGENTS
 from src.config import ConfigError
 from src.db.database import DatabaseError
 from src.knowledge_base.loader import KnowledgeBaseError
 from src.ui_context import get_context
 from src.utils.logging_config import get_logger
 
-AGENT = "rex_assistant"
 logger = get_logger("app")
 MODE_BADGE = {
     ResponseMode.LLM: "🤖 LLM-generated (grounded in academy data)",
@@ -54,8 +60,26 @@ with st.sidebar:
         st.rerun()
     st.caption("Contact details are saved only after you agree to the consent text (type \"register\").")
 
-st.title("🎓 REX Assistant")
-st.caption("Ask in English or Arabic · اسأل بالعربية أو الإنجليزية")
+    st.subheader("Staff")
+    expected = ctx.settings.admin_password if ctx.settings else None
+    if st.session_state.get("admin_ok"):
+        st.success("Staff mode: all agents available.")
+    elif expected:
+        entered = st.text_input("Staff password", type="password", key="staff_pw")
+        if entered and hmac.compare_digest(entered, expected):
+            st.session_state.admin_ok = True
+            st.rerun()
+        elif entered:
+            st.error("Wrong password.")
+    elif st.checkbox("Staff mode (ADMIN_PASSWORD is not set, so this is open)"):
+        st.session_state.admin_ok = True
+        st.rerun()
+
+staff = bool(st.session_state.get("admin_ok"))
+allowed = ALL_AGENTS if staff else PUBLIC_AGENTS
+st.title("🎓 REX AI" if staff else "🎓 REX Assistant")
+st.caption("Ask in English or Arabic · اسأل بالعربية أو الإنجليزية"
+           + (" · Requests are routed to the right agent automatically. Type /help for commands." if staff else ""))
 
 st.session_state.setdefault("messages", [])
 st.session_state.setdefault("agent_state", {})
@@ -73,9 +97,13 @@ if prompt:
         st.markdown(prompt)
     with st.chat_message("assistant"):
         try:
-            response = ctx.registry.dispatch(AGENT, AgentRequest.from_text(prompt, st.session_state.agent_state))
+            response = ctx.orchestrator.handle(AgentRequest.from_text(prompt, st.session_state.agent_state),
+                                               allowed_agents=allowed)
             st.session_state.agent_state = response.state
             text, meta = response.text, MODE_BADGE[response.mode]
+            routed = response.data.get("routing", {})
+            if staff and routed.get("action") == "dispatch":
+                meta = f"→ {PROFILES[routed['agent']].label_en} ({routed['reason']}) · " + meta
             if response.sources:
                 meta += " · Sources: " + "; ".join(dict.fromkeys(s.label() for s in response.sources))
         except Exception as exc:  # keep the UI alive; details go to the log
