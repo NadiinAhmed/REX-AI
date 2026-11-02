@@ -74,12 +74,12 @@ if role is not None:
         else:
             st.caption("Contact details are saved only after you agree to the consent text "
                        "(type \"register\" / \"سجلني\").")
-        if st.button("Start new conversation", use_container_width=True):
+        if st.button("Start new conversation", width="stretch"):
             for key in ("messages", "agent_state"):
                 st.session_state.pop(key, None)
             st.rerun()
         if st.button("Sign out" if role == "staff" else "Change role", key="leave_role",
-                     use_container_width=True):
+                     width="stretch"):
             leave_role()
             st.rerun()
 

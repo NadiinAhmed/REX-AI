@@ -9,6 +9,7 @@ never fails because of a provider outage or a malformed model answer.
 from __future__ import annotations
 
 import json
+import time
 import re
 from typing import Protocol
 
@@ -17,7 +18,7 @@ from pydantic import BaseModel, Field, ValidationError
 from src.marketing.models import CampaignBrief, CampaignObjective, CourseFacts, DraftVariation, Platform, StrategyPlan
 from src.marketing.platforms import spec_for
 from src.marketing.prompt_builder import MarketingPromptBuilder
-from src.services.llm_service import ChatMessage, LLMError, LLMService
+from src.services.llm_service import ChatMessage, LLMError, LLMService, log_llm_latency
 from src.utils.logging_config import get_logger
 
 logger = get_logger("marketing.generator")
@@ -94,7 +95,10 @@ class LLMContentGenerator:
         if chat_model is not None:                       # LangChain path: typed structured output
             try:
                 structured = chat_model.with_structured_output(LLMDraftSet)
-                return _to_variations(structured.invoke(self._prompts.messages(variables)), brief, platform, lang)
+                started = time.perf_counter()
+                result = structured.invoke(self._prompts.messages(variables))
+                log_llm_latency(f"{self._llm.name} structured:{platform.value}", time.perf_counter() - started)
+                return _to_variations(result, brief, platform, lang)
             except NotImplementedError:
                 pass                                     # model without tool calling: use the JSON path
             except GenerationError as exc:

@@ -11,6 +11,8 @@ is one line in `_build_chat_model()`.
 """
 from __future__ import annotations
 
+import time
+
 from dataclasses import dataclass
 from typing import Any, Literal, Protocol
 
@@ -58,11 +60,14 @@ class LangChainChatService:
         for m in messages:
             lc_messages.append(HumanMessage(content=m.content) if m.role == "user"
                                else AIMessage(content=m.content))
+        started = time.perf_counter()
         try:
             result = self._model.invoke(lc_messages)
         except Exception as exc:  # provider SDKs raise many error types; normalise them
-            logger.warning("LLM call failed (%s): %s", self.name, type(exc).__name__)
+            logger.warning("LLM call failed (%s) after %.2fs: %s", self.name,
+                           time.perf_counter() - started, type(exc).__name__)
             raise LLMError(f"LLM request failed ({type(exc).__name__}).") from exc
+        log_llm_latency(self.name, time.perf_counter() - started)
         content = result.content
         if isinstance(content, list):  # some providers return content blocks
             content = "".join(b.get("text", "") if isinstance(b, dict) else str(b) for b in content)
@@ -104,10 +109,28 @@ class AnthropicLLMService:
 _KEY_ENV = {"groq": "GROQ_API_KEY", "xai": "XAI_API_KEY", "anthropic": "ANTHROPIC_API_KEY"}
 
 
+SLOW_CALL_SECONDS = 5.0
+
+
+def log_llm_latency(name: str, seconds: float) -> None:
+    """One log line per LLM call, so a slow answer can be traced to the call that caused it."""
+    if seconds >= SLOW_CALL_SECONDS:
+        logger.warning("Slow LLM call (%s): %.2fs", name, seconds)
+    else:
+        logger.info("LLM call ok (%s): %.2fs", name, seconds)
+
+
+def is_reasoning_model(model: str) -> bool:
+    """Groq's gpt-oss models 'think' before answering; others reject the reasoning setting."""
+    return "gpt-oss" in model.lower()
+
+
 def _build_chat_model(settings: Settings, api_key: str) -> Any:
     """Create the LangChain chat model for an OpenAI-style provider (groq / xai)."""
     common = dict(model=settings.llm_model, api_key=api_key, temperature=settings.llm_temperature,
                   timeout=settings.llm_timeout_seconds, max_retries=1, max_tokens=1024)
+    if settings.llm_provider == "groq" and is_reasoning_model(settings.llm_model):
+        common["reasoning_effort"] = settings.llm_reasoning_effort
     try:
         if settings.llm_provider == "groq":
             from langchain_groq import ChatGroq

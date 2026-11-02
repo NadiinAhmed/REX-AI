@@ -70,6 +70,8 @@ class Settings:
     xai_api_key: str | None = field(default=None, repr=False)
     llm_timeout_seconds: float = 30.0
     llm_temperature: float = 0.2
+    # Thinking budget for reasoning models (Groq openai/gpt-oss-*). Lower = faster answers.
+    llm_reasoning_effort: str = "low"
     # --- Storage -----------------------------------------------------------------------
     database_url: str = "sqlite:///data/rex.db"
     vector_dir: Path = PROJECT_ROOT / "data" / "vectorstore"
@@ -175,6 +177,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         xai_api_key=env.get("XAI_API_KEY") or None,
         llm_timeout_seconds=_number(env, "LLM_TIMEOUT_SECONDS", "30", minimum=1),
         llm_temperature=_number(env, "LLM_TEMPERATURE", "0.2", minimum=0),
+        llm_reasoning_effort=_choice(env, "LLM_REASONING_EFFORT", "low", ("low", "medium", "high")),
         database_url=_database_url(env),
         vector_dir=_path(env, "VECTOR_DIR", "data/vectorstore"),
         upload_dir=_path(env, "UPLOAD_DIR", "data/uploads"),

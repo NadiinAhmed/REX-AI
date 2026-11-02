@@ -18,7 +18,7 @@ with student.container(border=True):
     st.subheader("I'm a student")
     st.markdown("Find the right training track, ask about a course, and register your interest.  \n"
                 "اعثر على المسار المناسب واسأل عن الكورسات وسجّل اهتمامك.")
-    if st.button("Continue as student", key="enter_student", type="primary", use_container_width=True):
+    if st.button("Continue as student", key="enter_student", type="primary", width="stretch"):
         enter_as_student()
         st.rerun()
 
@@ -31,7 +31,7 @@ with staff.container(border=True):
     else:
         password = ""
         st.caption("ADMIN_PASSWORD is not set, so staff access is open. Set it in .env before a shared demo.")
-    if st.button("Sign in as staff", key="enter_staff", use_container_width=True):
+    if st.button("Sign in as staff", key="enter_staff", width="stretch"):
         if enter_as_staff(ctx, password):
             st.rerun()
         st.error("Wrong password. Ask the project admin for the staff password.")
