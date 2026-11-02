@@ -248,10 +248,11 @@ Manual check:
   learning outcomes. Ads are correct but less specific until the academy provides this data.
 - Regex claim detection misses paraphrases (Section 9). Deterministic audience relevance cannot
   compare Arabic copy with an English audience; that case is reported as "not measured", not as a score.
-- Course names in Arabic must match the official Arabic title. Otherwise the agent asks which course
-  is meant (safer than guessing).
+- Courses are recognised by code, title or a short name from the title ("the data science track",
+  "كورس الفلاتر") through the shared `CourseResolver`, the same one REX Assistant uses. Words in the
+  audience field never choose the course, and text that matches two courses makes the agent ask.
+  Nicknames that are not in a title ("QA", "mobile") are not matched.
 - Structured output on Groq `openai/gpt-oss-120b` is verified offline (the API exists) but **not
   yet verified live**. The shared `max_tokens=1024` may truncate long Arabic sets; the JSON fallback
   and templates cover that case.
 - Platform limits are team guideline values, not official platform limits.
-- Agent 1 does not read `course_offers` yet; that is a separate small follow-up PR.

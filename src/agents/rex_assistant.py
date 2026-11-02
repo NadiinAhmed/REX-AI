@@ -18,6 +18,7 @@ from langgraph.graph import END, START, StateGraph
 
 from src.agents import prompts
 from src.agents.base import Agent, AgentRequest, AgentResponse, ResponseMode, SourceReference
+from src.knowledge_base.course_resolver import CourseResolver
 from src.knowledge_base.retriever import CourseRetriever
 from src.knowledge_base.text_utils import contains_arabic, normalize_arabic
 from src.models.course import Course
@@ -88,6 +89,8 @@ for _lang, _extra in {"en": {"tools": "Tools", "capstone": "Capstone project", "
 _LABELS["en"]["none_required"] = "none listed in our current data"
 _LABELS["ar"]["none_required"] = "لا توجد متطلبات مذكورة في بياناتنا"
 
+_FORMAT_QUESTION_RE = re.compile(
+    r"\b(online|offline|in[- ]person|onsite|on-site|remote|virtual|hybrid)\b|اونلاين|اون لاين|حضوري|عن بعد")
 _QUESTION_RE = re.compile(
     r"[?؟]|^\s*(what|how|is|are|does|do|can|who|where|which|why|will|tell me)\b|^\s*(هل|ما|ماذا|كيف|ازاي|مين|فين|ايه|اي)\b")
 _CATALOG_RE = re.compile(
@@ -138,9 +141,11 @@ class RexAssistant(Agent):
         self, retriever: CourseRetriever, llm: LLMService | None = None,
         dataset_notice: str = "", top_k: int = 3,
         passages: PassageRetriever | None = None, lead_service: LeadService | None = None,
-        offers: OfferReader | None = None,
+        offers: OfferReader | None = None, resolver: CourseResolver | None = None,
     ) -> None:
         self._retriever = retriever
+        # Shared with the Marketing Agent: finds "the flutter track" / "كورس الفلاتر", not only TRK-002.
+        self._resolver = resolver or CourseResolver(retriever)
         self._llm = llm
         self._dataset_notice = dataset_notice
         self._top_k = top_k
@@ -213,7 +218,13 @@ class RexAssistant(Agent):
         # about a course attribute, leftover words that match no course are noise, not a topic.
         if attributes and turn.has_topic() and not self._retriever.search(turn.search_query(), top_k=1):
             turn = turn.model_copy(update={"interests": [], "career_goal": None})
-        course, explicit = self._referenced_course(message, last_ids)
+        course, explicit = self._referenced_course(message, last_ids, about_course=bool(attributes))
+        # "Is the Software Testing course online?" asks about the course's delivery format. Stated as a
+        # preference ("I prefer online") it stays a preference, so this only applies to a question
+        # that names a course.
+        if (course is not None and explicit and not attributes and out["is_question"]
+                and _FORMAT_QUESTION_RE.search(norm)):
+            attributes = ["delivery_format"]
         out |= {"turn": turn, "attributes": attributes, "course": course, "explicit_course": explicit}
 
         if _CATALOG_RE.search(norm) and not turn.has_topic():
@@ -606,11 +617,17 @@ class RexAssistant(Agent):
             turn = turn.model_copy(update={"interests": [], "career_goal": None})
         return prior.merge(turn)
 
-    def _referenced_course(self, message: str, last_ids: list[str]) -> tuple[Course | None, bool]:
-        """Return (course, explicit). Explicit = named by ID or title in this message."""
-        course = self._retriever.find_by_title(message)
-        if course:
-            return course, True
+    def _referenced_course(self, message: str, last_ids: list[str],
+                           about_course: bool = False) -> tuple[Course | None, bool]:
+        """Return (course, explicit). Explicit = named in this message by ID, title or short name.
+
+        `about_course` is True when the message asks about a course attribute (fees, instructor...):
+        then a short name such as "Flutter" identifies the course. Without it, "I want to learn
+        flutter" stays a learner goal and gets a recommendation with reasons.
+        """
+        match = self._resolver.resolve(message, course_context=about_course)
+        if match.course:
+            return match.course, True
         text = normalize_arabic(message.lower())
         for idx, pattern in _ORDINALS.items():
             if re.search(pattern, text):

@@ -60,7 +60,9 @@ class BriefParser:
 
         if (m := _COURSE_ID.search(message)) and (cid := self._resolve_course(m.group(1).upper())):
             data["course_id"] = cid
-        elif cid := self._resolve_course(message):
+        elif cid := self._resolve_course(_AUDIENCE.sub(" ", message.translate(_DIGITS))):
+            # The audience text is removed first: in "audience: data science students" the words
+            # describe the people, not the course being promoted.
             data["course_id"] = cid
 
         if re.search(_ALL_PLATFORMS, t):

@@ -53,6 +53,8 @@ def test_env(tmp_path: Path):
     def _env(**overrides) -> dict[str, str]:
         env = {
             "LLM_PROVIDER": "none",
+            "EMBEDDING_PROVIDER": "hashing",      # tests must not depend on the developer's .env
+            "COURSE_RETRIEVER": "keyword",        # (or load a model and hit the 30 s UI timeout)
             "DATABASE_URL": f"sqlite:///{tmp_path / 'rex.db'}",
             "VECTOR_DIR": str(tmp_path / "vectors"),
             "UPLOAD_DIR": str(tmp_path / "uploads"),
