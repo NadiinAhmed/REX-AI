@@ -1,7 +1,7 @@
 # REX AI — Smart Academy Multi-Agent System
 
 Graduation project MVP for Andalusia Academy. Five planned agents share one database, one course
-catalog and one knowledge base. **Agent 1 (REX Assistant), Agent 2 (RFP Research) and Agent 5 (AI Marketing) are implemented.**
+catalog and one knowledge base. **All five agents are implemented.**
 
 | Agent | Status |
 |---|---|
@@ -55,6 +55,18 @@ deterministic one and is labelled. Live calls were tested with Groq (`openai/gpt
 ### Better Arabic/semantic retrieval (optional)
 `pip install sentence-transformers`, then `EMBEDDING_PROVIDER=sentence_transformers` (downloads
 `intfloat/multilingual-e5-small` once). Documents are re-indexed automatically. Re-run the evaluation.
+
+## Student and staff entry
+`streamlit run app.py` opens a **Welcome** page that asks who is using the app:
+- **Student** → the REX Assistant chat only. Answers show a plain note on where they came from and a
+  **Sources** list. No admin pages exist in the navigation.
+- **Academy staff** (needs `ADMIN_PASSWORD`) → the chat with all five agents, plus the admin pages grouped
+  as *Academy data* (Knowledge base, Leads, Offers) and *Agents* (RFP, Curriculum, Documents, Marketing).
+  Answers also show which agent replied, why it was routed there, and whether an LLM wrote the text.
+- **Change role / Sign out** in the sidebar returns to the Welcome page and clears the chat.
+
+`app.py` is only the router (`st.navigation`); the pages are `views/welcome.py`, `views/chat.py` and the
+existing `pages/*.py`. Answer layout lives in `src/response_view.py` (unit-tested in `tests/test_response_view.py`).
 
 ## Managing documents
 - UI: sidebar → **Knowledge base**: upload PDFs, approve/reject, replace, delete (with confirmation), test retrieval.

@@ -1,29 +1,24 @@
 """REX AI Streamlit entry point. Run with:  streamlit run app.py
 
-One chat for the whole system: every message goes to the OrchestratorAgent, which routes it to
-the right agent. Students reach REX Assistant only; after the staff sign-in in the sidebar the
-RFP, Curriculum, Documents and Marketing agents are reachable too. Review/approval screens stay
-on the admin pages in pages/."""
-from __future__ import annotations
+This file is now only the router. It decides which pages exist for the current visitor:
 
-import hmac
+    no role yet  ->  Welcome (choose "student" or "academy staff")
+    student      ->  REX Assistant chat only
+    staff        ->  chat with all five agents + the admin pages (knowledge base, leads, offers,
+                     RFP, curriculum, documents, marketing)
+
+Because a page that is not passed to st.navigation does not exist for that visitor, students can
+neither see nor open the admin pages. Each admin page still calls require_admin() as a second check.
+"""
+from __future__ import annotations
 
 import streamlit as st
 
-from src.agents.base import AgentRequest, AgentStatus, ResponseMode
-from src.agents.orchestrator import ALL_AGENTS, PROFILES, PUBLIC_AGENTS
+from src.agents.base import AgentStatus
 from src.config import ConfigError
 from src.db.database import DatabaseError
 from src.knowledge_base.loader import KnowledgeBaseError
-from src.ui_context import get_context
-from src.utils.logging_config import get_logger
-
-logger = get_logger("app")
-MODE_BADGE = {
-    ResponseMode.LLM: "🤖 LLM-generated (grounded in academy data)",
-    ResponseMode.DETERMINISTIC: "⚙️ Deterministic rule-based answer (no LLM)",
-    ResponseMode.ERROR: "❌ Error",
-}
+from src.ui_context import current_role, get_context, leave_role
 
 st.set_page_config(page_title="REX AI", page_icon="🎓", layout="centered")
 # Let each paragraph pick its own direction so Arabic renders right-to-left.
@@ -39,76 +34,53 @@ except (ConfigError, KnowledgeBaseError, DatabaseError) as exc:
     st.error(f"REX AI could not start: {exc}")
     st.stop()
 
-with st.sidebar:
-    st.header("REX AI")
-    st.caption("Andalusia Academy graduation project")
-    if ctx.dataset.is_synthetic:
-        st.warning(ctx.dataset.notice)
-    else:
-        st.info(ctx.dataset.notice)
-    st.write(f"**Courses:** {ctx.course_count} ({ctx.course_backend_status})  \n"
-             f"**LLM:** {ctx.llm_status}  \n**Documents:** {ctx.rag_status}")
-    for w in ctx.warnings:
-        st.warning(w)
-    st.subheader("Agents")
-    for info in ctx.registry.list_agents():
-        icon = "✅" if info.status == AgentStatus.IMPLEMENTED else "🕓 planned"
-        st.write(f"{icon} {info.description}")
-    if st.button("Start new conversation"):
-        for key in ("messages", "agent_state"):
-            st.session_state.pop(key, None)
-        st.rerun()
-    st.caption("Contact details are saved only after you agree to the consent text (type \"register\").")
+role = current_role()
+welcome = st.Page("views/welcome.py", title="Welcome", icon="🎓", default=True)
+chat = st.Page("views/chat.py", title="REX Assistant" if role != "staff" else "Assistant chat",
+               icon="💬", url_path="chat", default=True)
 
-    st.subheader("Staff")
-    expected = ctx.settings.admin_password if ctx.settings else None
-    if st.session_state.get("admin_ok"):
-        st.success("Staff mode: all agents available.")
-    elif expected:
-        entered = st.text_input("Staff password", type="password", key="staff_pw")
-        if entered and hmac.compare_digest(entered, expected):
-            st.session_state.admin_ok = True
+if role is None:
+    navigation = st.navigation([welcome], position="hidden")
+elif role == "student":
+    navigation = st.navigation([chat], position="hidden")
+else:
+    navigation = st.navigation({
+        "Assistant": [chat],
+        "Academy data": [st.Page("pages/1_Knowledge_Base.py", title="Knowledge base", icon="📚"),
+                         st.Page("pages/2_Leads.py", title="Leads", icon="📇"),
+                         st.Page("pages/5_Offers.py", title="Offers", icon="🏷️")],
+        "Agents": [st.Page("pages/3_RFP_Opportunities.py", title="RFP opportunities", icon="📑"),
+                   st.Page("pages/5_Curriculum.py", title="Curriculum", icon="🗂️"),
+                   st.Page("pages/6_Documents.py", title="Documents", icon="📄"),
+                   st.Page("pages/4_Marketing.py", title="Marketing", icon="📣")],
+    })
+
+if role is not None:
+    with st.sidebar:
+        if ctx.dataset.is_synthetic:
+            st.warning(ctx.dataset.notice)
+        if role == "staff":
+            st.success("Signed in as academy staff")
+            with st.expander("System status"):
+                if not ctx.dataset.is_synthetic:
+                    st.caption(ctx.dataset.notice)
+                st.caption(f"Courses: {ctx.course_count} ({ctx.course_backend_status})  \n"
+                           f"LLM: {ctx.llm_status}  \nDocuments: {ctx.rag_status}")
+                for w in ctx.warnings:
+                    st.warning(w)
+                for info in ctx.registry.list_agents():
+                    mark = "✅" if info.status == AgentStatus.IMPLEMENTED else "🕓 planned"
+                    st.caption(f"{mark} {info.description}")
+        else:
+            st.caption("Contact details are saved only after you agree to the consent text "
+                       "(type \"register\" / \"سجلني\").")
+        if st.button("Start new conversation", use_container_width=True):
+            for key in ("messages", "agent_state"):
+                st.session_state.pop(key, None)
             st.rerun()
-        elif entered:
-            st.error("Wrong password.")
-    elif st.checkbox("Staff mode (ADMIN_PASSWORD is not set, so this is open)"):
-        st.session_state.admin_ok = True
-        st.rerun()
+        if st.button("Sign out" if role == "staff" else "Change role", key="leave_role",
+                     use_container_width=True):
+            leave_role()
+            st.rerun()
 
-staff = bool(st.session_state.get("admin_ok"))
-allowed = ALL_AGENTS if staff else PUBLIC_AGENTS
-st.title("🎓 REX AI" if staff else "🎓 REX Assistant")
-st.caption("Ask in English or Arabic · اسأل بالعربية أو الإنجليزية"
-           + (" · Requests are routed to the right agent automatically. Type /help for commands." if staff else ""))
-
-st.session_state.setdefault("messages", [])
-st.session_state.setdefault("agent_state", {})
-
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-        if msg.get("meta"):
-            st.caption(msg["meta"])
-
-prompt = st.chat_input("e.g. I'm a final-year student and want to work in data")
-if prompt:
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    with st.chat_message("assistant"):
-        try:
-            response = ctx.orchestrator.handle(AgentRequest.from_text(prompt, st.session_state.agent_state),
-                                               allowed_agents=allowed)
-            st.session_state.agent_state = response.state
-            text, meta = response.text, MODE_BADGE[response.mode]
-            routed = response.data.get("routing", {})
-            if staff and routed.get("action") == "dispatch":
-                meta = f"→ {PROFILES[routed['agent']].label_en} ({routed['reason']}) · " + meta
-            if response.sources:
-                meta += " · Sources: " + "; ".join(dict.fromkeys(s.label() for s in response.sources))
-        except Exception as exc:  # keep the UI alive; details go to the log
-            logger.exception("Unhandled error while answering")
-            text, meta = "Sorry, something went wrong. Please try again.", f"Error: {type(exc).__name__}"
-        st.markdown(text)
-        st.caption(meta)
-    st.session_state.messages.append({"role": "assistant", "content": text, "meta": meta})
+navigation.run()

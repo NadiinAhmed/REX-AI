@@ -1,0 +1,6 @@
+# Shared UI theme. Only the accent is set, so the app still follows the viewer's light/dark mode.
+[theme]
+primaryColor = "#0E6B5C"   # Andalusian tile green: buttons, links, focus
+
+[client]
+showSidebarNavigation = true
