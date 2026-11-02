@@ -56,6 +56,9 @@ class DocumentRequest(BaseModel):
     language: Literal["en", "ar"] = "en"
     audience: str | None = Field(default=None, max_length=300)    # "Who is the intended audience?"
     require_approved_curriculum: bool = False
+    # "Is there an approved template to follow?": use the academy's approved template for this type + language
+    # when one exists (see academy_templates.py); otherwise the built-in template.
+    use_academy_template: bool = True
 
     @model_validator(mode="after")
     def _needs_a_subject(self) -> "DocumentRequest":
