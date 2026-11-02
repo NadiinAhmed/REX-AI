@@ -40,7 +40,10 @@ def _filters_from(profile: LearnerProfile) -> CourseFilters:
 
 
 def explain_match(course: Course, matched_terms: list[str], profile: LearnerProfile) -> list[Reason]:
-    reasons = [Reason(code="topic_match", facts={"terms": matched_terms})]
+    if matched_terms:
+        reasons = [Reason(code="topic_match", facts={"terms": matched_terms})]
+    else:   # found by meaning (semantic search) without sharing an exact word with the request
+        reasons = [Reason(code="semantic_match", facts={"focus": course.department or course.title})]
 
     if profile.career_goal:
         goal_tokens = set(tokenize(profile.career_goal))
@@ -103,14 +106,23 @@ def recommend_courses(
     if not query:
         return RecommendationResult(recommendations=[])
 
-    results = retriever.search(query, top_k=top_k, filters=_filters_from(profile))
+    def search(filters: CourseFilters | None):
+        if getattr(retriever, "uses_natural_language", False):
+            # Semantic retriever: embed the learner's sentence, keep the keyword bag for exact matches.
+            return retriever.search(profile.semantic_query(), top_k=top_k, filters=filters, keyword_query=query)
+        return retriever.search(query, top_k=top_k, filters=filters)
+
+    results = search(_filters_from(profile))
     relaxed = False
     if not results:
-        results = retriever.search(query, top_k=top_k)
+        results = search(None)
         relaxed = bool(results)
-    results = [r for r in results if r.score >= MIN_ABSOLUTE_SCORE]
+    # Each retriever knows its own score scale; keyword-scale defaults otherwise.
+    min_absolute = getattr(retriever, "min_absolute_score", MIN_ABSOLUTE_SCORE)
+    min_relative = getattr(retriever, "min_relative_score", MIN_RELATIVE_SCORE)
+    results = [r for r in results if r.score >= min_absolute]
     if results:
-        cutoff = results[0].score * MIN_RELATIVE_SCORE
+        cutoff = results[0].score * min_relative
         results = [r for r in results if r.score >= cutoff]
 
     recs = [

@@ -538,6 +538,7 @@ class RexAssistant(Agent):
         def j(v): return ", ".join(v) if isinstance(v, list) else str(v)
         en = {
             "topic_match": f"Covers your interest: {j(f.get('terms', []))}",
+            "semantic_match": f"Closely related to what you described ({f.get('focus')})",
             "career_match": f"Leads toward: {j(f.get('paths', []))}",
             "level_match": "Matches your level",
             "level_mismatch": f"Different level from yours (course is {f.get('course_level')})",
@@ -552,6 +553,7 @@ class RexAssistant(Agent):
         }
         ar = {
             "topic_match": f"يغطي اهتمامك: {j(f.get('terms', []))}",
+            "semantic_match": f"قريب جداً مما وصفته ({f.get('focus')})",
             "career_match": f"يؤهلك نحو: {j(f.get('paths', []))}",
             "level_match": "مناسب لمستواك",
             "level_mismatch": f"مستوى مختلف عن مستواك (مستوى الدورة: {_VALUE_AR.get(str(f.get('course_level')), f.get('course_level'))})",

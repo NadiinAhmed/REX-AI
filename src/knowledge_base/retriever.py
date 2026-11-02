@@ -123,3 +123,8 @@ class KeywordRetriever:
             if same_currency and course.fee.amount > f.max_fee:
                 return False
         return True
+
+
+def passes_filters(course: Course, filters: CourseFilters) -> bool:
+    """Public access to the hard-filter rule, so every retriever applies the same filters."""
+    return KeywordRetriever._passes(course, filters)

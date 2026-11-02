@@ -35,6 +35,7 @@ class KnowledgeBase:
     passages: object           # PassageRetriever
     documents: DocumentRepository
     embedding_model: str
+    embeddings: object | None = None     # the loaded Embeddings model, shared with course search
 
 
 @dataclass
@@ -109,11 +110,15 @@ def build_knowledge_base(settings: Settings, db: Database, seed_dir: Path | None
     passages = PassageRetriever(documents, vectors, embeddings, settings.retrieval_top_k,
                                 settings.retrieval_min_score,
                                 require_term_overlap=settings.keyword_gate_enabled)
-    return KnowledgeBase(ingestion=ingestion, passages=passages, documents=documents, embedding_model=model_id)
+    return KnowledgeBase(ingestion=ingestion, passages=passages, documents=documents, embedding_model=model_id,
+                         embeddings=embeddings)
 
 
-def build_course_retriever(settings: Settings, courses: CourseRepository) -> tuple[CourseRetriever, str]:
-    if settings.course_backend == "mcp":
+def build_course_retriever(settings: Settings, courses: CourseRepository,
+                           embeddings: object | None = None) -> tuple[CourseRetriever, str]:
+    """Pick the course search: MCP server, semantic (embeddings) or keyword. Every failure falls back
+    to keyword search with a status the sidebar shows, so the assistant keeps working."""
+    if settings.course_backend == "mcp":   # the MCP server does keyword search (semantic: future work)
         try:
             from src.mcp_client.academy_client import McpCourseRetriever
             retriever = McpCourseRetriever.connect(settings)
@@ -121,7 +126,27 @@ def build_course_retriever(settings: Settings, courses: CourseRepository) -> tup
         except Exception as exc:   # never let an MCP problem take the assistant down
             logger.warning("MCP course backend unavailable: %s", exc)
             return KeywordRetriever(courses.list_approved()), f"direct (MCP unavailable: {exc})"
+    if settings.course_retriever == "semantic":
+        return _semantic_or_keyword(settings, courses, embeddings)
     return KeywordRetriever(courses.list_approved()), "direct"
+
+
+def _semantic_or_keyword(settings: Settings, courses: CourseRepository,
+                         embeddings: object | None) -> tuple[CourseRetriever, str]:
+    approved = courses.list_approved()
+    if embeddings is None:
+        return KeywordRetriever(approved), "direct, keyword search (semantic needs the embedding model: RAG is off)"
+    if settings.embedding_provider != "sentence_transformers":
+        # The hashing embedding matches spelling, not meaning: "semantic" search on it would be misleading.
+        return KeywordRetriever(approved), ("direct, keyword search (COURSE_RETRIEVER=semantic needs "
+                                            "EMBEDDING_PROVIDER=sentence_transformers)")
+    from src.knowledge_base.semantic_retriever import SemanticCourseRetriever
+    try:
+        retriever = SemanticCourseRetriever(approved, embeddings, settings.course_semantic_min_score)
+    except Exception as exc:
+        logger.exception("Semantic course search unavailable")
+        return KeywordRetriever(approved), f"direct, keyword search (semantic failed: {type(exc).__name__})"
+    return retriever, f"direct, semantic search (min similarity {settings.course_semantic_min_score:g})"
 
 
 def build_offer_reader(offers: OfferService, retriever: CourseRetriever) -> OfferReader:
@@ -185,7 +210,10 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
             rag_status = f"Document search unavailable: {exc}"
             warnings.append(rag_status)
 
-    retriever, backend_status = build_course_retriever(settings, courses)
+    retriever, backend_status = build_course_retriever(settings, courses,
+                                                       knowledge.embeddings if knowledge else None)
+    if settings.course_retriever == "semantic" and "semantic search" not in backend_status:
+        warnings.append(f"Semantic course search is not active: {backend_status}")
     leads = LeadRepository(db)
     offers = OfferService(OfferRepository(db), courses)
     registry = AgentRegistry()

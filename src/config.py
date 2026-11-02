@@ -12,6 +12,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SUPPORTED_LLM_PROVIDERS = ("none", "anthropic", "groq", "xai")
 SUPPORTED_EMBEDDING_PROVIDERS = ("hashing", "sentence_transformers")
+SUPPORTED_COURSE_RETRIEVERS = ("keyword", "semantic")
 SUPPORTED_COURSE_BACKENDS = ("direct", "mcp")
 
 # Default model per provider. Model names change often: check the provider console.
@@ -83,6 +84,9 @@ class Settings:
     retrieval_keyword_gate: str = "auto"     # auto = on for the hashing embedding, off otherwise
     max_upload_mb: float = 20.0
     max_pdf_pages: int = 300
+    # Course recommendations: keyword (exact words, default) | semantic (sentence-transformer meaning)
+    course_retriever: str = "keyword"
+    course_semantic_min_score: float = 0.80   # PLACEHOLDER until calibrated (evaluation/calibrate_courses.py)
     # --- Integration -------------------------------------------------------------------
     course_backend: str = "direct"
     mcp_timeout_seconds: float = 20.0
@@ -165,6 +169,8 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         retrieval_keyword_gate=_choice(env, "RETRIEVAL_KEYWORD_GATE", "auto", ("auto", "on", "off")),
         max_upload_mb=_number(env, "MAX_UPLOAD_MB", "20", minimum=0.1),
         max_pdf_pages=_number(env, "MAX_PDF_PAGES", "300", int, minimum=1),
+        course_retriever=_choice(env, "COURSE_RETRIEVER", "keyword", SUPPORTED_COURSE_RETRIEVERS),
+        course_semantic_min_score=_unit_interval(env, "COURSE_SEMANTIC_MIN_SCORE", "0.80"),
         course_backend=_choice(env, "COURSE_BACKEND", "direct", SUPPORTED_COURSE_BACKENDS),
         mcp_timeout_seconds=_number(env, "MCP_TIMEOUT_SECONDS", "20", minimum=1),
         admin_password=env.get("ADMIN_PASSWORD") or None,
@@ -180,6 +186,13 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         marketing_max_attempts=_number(env, "MARKETING_MAX_ATTEMPTS", "2", int, minimum=1),
         marketing_pass_threshold=_pass_threshold(env),
     )
+
+
+def _unit_interval(env: dict[str, str], key: str, default: str) -> float:
+    value = _number(env, key, default, minimum=0)
+    if value > 1:
+        raise ConfigError(f"{key} must be between 0 and 1.")
+    return value
 
 
 def _pass_threshold(env: dict[str, str]) -> float:

@@ -26,6 +26,10 @@ class LearnerProfile(BaseModel):
     preferred_format: DeliveryFormat | None = None
     budget: Budget | None = None
     hours_per_week: int | None = None
+    # The learner's own words about the topic (contact details, budget and hours removed). Semantic
+    # search embeds this whole phrase: "make websites that look nice" carries meaning that the
+    # keyword bag ("web nice") loses.
+    topic_text: str | None = None
 
     def has_topic(self) -> bool:
         return bool(self.interests or self.career_goal)
@@ -38,6 +42,10 @@ class LearnerProfile(BaseModel):
     def search_query(self) -> str:
         return " ".join(self.interests + ([self.career_goal] if self.career_goal else []))
 
+    def semantic_query(self) -> str:
+        """Natural-language query for meaning-based search; falls back to the keyword query."""
+        return self.topic_text or self.search_query()
+
     def merge(self, other: "LearnerProfile") -> "LearnerProfile":
         """Combine a new turn into the stored profile.
 
@@ -48,13 +56,14 @@ class LearnerProfile(BaseModel):
         """
         data = self.model_dump()
         for key, value in other.model_dump().items():
-            if key in ("interests", "career_goal"):
+            if key in ("interests", "career_goal", "topic_text"):
                 continue
             if value not in (None, [], ""):
                 data[key] = value
         if other.has_topic():
             data["interests"] = other.interests
             data["career_goal"] = other.career_goal
+            data["topic_text"] = other.topic_text
         return LearnerProfile.model_validate(data)
 
 
@@ -145,6 +154,7 @@ def extract_profile(message: str) -> LearnerProfile:
         profile.background = _clean_phrase(m.group(1) or m.group(2)) or None
         if profile.background:  # background describes the past, not what to search for
             topic_text = topic_text.replace(profile.background, " ")
+    natural_topic = " ".join(topic_text.split())    # keeps the career goal, unlike the keyword bag
     if m := _GOAL_RE.search(text):
         profile.career_goal = _clean_phrase(m.group(1) or m.group(2)) or None
         if profile.career_goal:  # the goal is added to the query separately
@@ -153,4 +163,6 @@ def extract_profile(message: str) -> LearnerProfile:
     profile.interests = [
         t for t in dict.fromkeys(tokenize(topic_text)) if t not in _NON_TOPIC and not t.isdigit()
     ]
+    if profile.has_topic():
+        profile.topic_text = natural_topic
     return profile

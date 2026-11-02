@@ -1,0 +1,7 @@
+{
+  "label": "keyword-baseline",
+  "git_commit": "2644ea2",
+  "retriever": "keyword",
+  "catalog": "data/courses_official.json",
+  "queries": 24
+}
