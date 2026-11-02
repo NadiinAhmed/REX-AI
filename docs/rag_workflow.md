@@ -78,4 +78,5 @@ spelling, so calling it semantic would be misleading) or a model load error -> k
 
 **Threshold.** Multilingual E5 models give even unrelated texts fairly high similarity, so the
 threshold must be measured per model: `python -m evaluation.courses.run_course_eval
---retriever semantic --label <name> --scan`. The default 0.80 is a placeholder until then.
+--retriever semantic --label <name> --scan`. The default 0.84 was measured for
+`intfloat/multilingual-e5-small` (see docs/evaluation.md); re-scan after changing the model.

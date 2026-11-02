@@ -86,7 +86,7 @@ class Settings:
     max_pdf_pages: int = 300
     # Course recommendations: keyword (exact words, default) | semantic (sentence-transformer meaning)
     course_retriever: str = "keyword"
-    course_semantic_min_score: float = 0.80   # PLACEHOLDER until calibrated (evaluation/calibrate_courses.py)
+    course_semantic_min_score: float = 0.84   # measured for multilingual-e5-small (evaluation/courses, --scan)
     # --- Integration -------------------------------------------------------------------
     course_backend: str = "direct"
     mcp_timeout_seconds: float = 20.0
@@ -170,7 +170,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         max_upload_mb=_number(env, "MAX_UPLOAD_MB", "20", minimum=0.1),
         max_pdf_pages=_number(env, "MAX_PDF_PAGES", "300", int, minimum=1),
         course_retriever=_choice(env, "COURSE_RETRIEVER", "keyword", SUPPORTED_COURSE_RETRIEVERS),
-        course_semantic_min_score=_unit_interval(env, "COURSE_SEMANTIC_MIN_SCORE", "0.80"),
+        course_semantic_min_score=_unit_interval(env, "COURSE_SEMANTIC_MIN_SCORE", "0.84"),
         course_backend=_choice(env, "COURSE_BACKEND", "direct", SUPPORTED_COURSE_BACKENDS),
         mcp_timeout_seconds=_number(env, "MCP_TIMEOUT_SECONDS", "20", minimum=1),
         admin_password=env.get("ADMIN_PASSWORD") or None,

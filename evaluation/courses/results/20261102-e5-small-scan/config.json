@@ -1,0 +1,10 @@
+{
+  "label": "e5-small",
+  "git_commit": "f26a842",
+  "retriever": "semantic",
+  "catalog": "data\\courses_official.json",
+  "queries": 24,
+  "embedding_model": "intfloat/multilingual-e5-small",
+  "min_score": 0.84,
+  "chosen_by": "max balanced, then hit@3"
+}

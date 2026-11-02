@@ -69,6 +69,9 @@ def run(rows: list[dict], retriever) -> list[dict]:
         recs = recommend_courses(profile, retriever, top_k=3).recommendations
         got = [r.course.course_id for r in recs]
         sample = {**row, "recommended": got, "scores": [r.score for r in recs],
+                  # raw similarity to EVERY course (semantic only): shows why a course was or was not kept
+                  "similarities": retriever.similarities(profile.semantic_query())
+                  if hasattr(retriever, "similarities") and profile.has_topic() else None,
                   "reasons": [r.reasons[0].code for r in recs], "topic_detected": profile.has_topic()}
         if row["expected"]:
             sample["hit@1"] = float(bool(got) and got[0] in row["expected"])
