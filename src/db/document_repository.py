@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from sqlalchemy import func, select
 
 from src.db.database import Database
-from src.db.document_models import GeneratedDocumentRecord
+from src.db.document_models import DocumentTemplateRecord, GeneratedDocumentRecord
 
 
 def _now() -> datetime:
@@ -82,3 +82,66 @@ class GeneratedDocumentRepository:
     @staticmethod
     def _entry(actor: str, action: str, note: str) -> dict:
         return {"at": _now().isoformat(timespec="seconds"), "by": actor, "action": action, "note": note}
+
+
+def new_template_id() -> str:
+    return f"TPL-{secrets.token_hex(3).upper()}"
+
+
+class DocumentTemplateRepository:
+    """The only code that reads or writes `document_templates` (academy reference templates for Agent 4)."""
+
+    def __init__(self, db: Database) -> None:
+        self._db = db
+
+    def get(self, template_id: str) -> DocumentTemplateRecord | None:
+        with self._db.session() as s:
+            return s.get(DocumentTemplateRecord, template_id.strip().upper())
+
+    def find_by_hash(self, sha256: str) -> DocumentTemplateRecord | None:
+        with self._db.session() as s:
+            return s.scalar(select(DocumentTemplateRecord).where(DocumentTemplateRecord.sha256 == sha256))
+
+    def list(self, *, doc_type: str | None = None, language: str | None = None,
+             status: str | None = None) -> list[DocumentTemplateRecord]:
+        q = select(DocumentTemplateRecord)
+        for column, value in ((DocumentTemplateRecord.doc_type, doc_type), (DocumentTemplateRecord.language, language),
+                              (DocumentTemplateRecord.status, status)):
+            if value:
+                q = q.where(column == value)
+        with self._db.session() as s:
+            return list(s.scalars(q.order_by(DocumentTemplateRecord.uploaded_at.desc())).all())
+
+    def active(self, doc_type: str, language: str) -> DocumentTemplateRecord | None:
+        rows = self.list(doc_type=doc_type, language=language, status="approved")
+        return rows[0] if rows else None
+
+    def create(self, **fields) -> DocumentTemplateRecord:
+        record = DocumentTemplateRecord(id=new_template_id(), status="pending", **fields)
+        with self._db.session() as s:
+            s.add(record)
+        return record
+
+    def review(self, template_id: str, *, approve: bool, reviewer: str) -> DocumentTemplateRecord | None:
+        """Approve (retiring any other approved template for the same type + language) or reject."""
+        with self._db.session() as s:
+            row = s.get(DocumentTemplateRecord, template_id.strip().upper())
+            if row is None:
+                return None
+            if approve:
+                others = s.scalars(select(DocumentTemplateRecord).where(
+                    DocumentTemplateRecord.doc_type == row.doc_type, DocumentTemplateRecord.language == row.language,
+                    DocumentTemplateRecord.status == "approved", DocumentTemplateRecord.id != row.id)).all()
+                for other in others:
+                    other.status = "retired"
+            row.status = "approved" if approve else "rejected"
+            row.reviewed_by, row.reviewed_at = reviewer, _now()
+            return row
+
+    def delete(self, template_id: str) -> bool:
+        with self._db.session() as s:
+            row = s.get(DocumentTemplateRecord, template_id.strip().upper())
+            if row is None:
+                return False
+            s.delete(row)
+            return True
