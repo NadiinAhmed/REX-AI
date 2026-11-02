@@ -12,7 +12,11 @@
 | — | `replace()` kept the old filename (found by new tests) | wrong default | uses the new file's name |
 | B7 | after a recommendation, "how many hours?" / "بكام الكورس ده؟" → "not found in the documents" | leftover question words ("many", "كم", "ده") became a new topic and replaced the course | on attribute questions, leftover words that match no course are ignored (`tests/test_followup_regressions.py`) |
 
+| B8 (2026-11-02) | "Who is the instructor for Flutter?" → recommendation list; "the data science track" not recognised | courses matched only by full title or ID | shared `CourseResolver` (`src/knowledge_base/course_resolver.py`): short names, Arabic prefixes, ambiguity check (`tests/test_course_resolver.py`) |
+| B9 (2026-11-02) | "Is the software testing course online?" → raw PDF passage | "online" was not an attribute word | a format word in a question that names a course asks for the delivery format; "I prefer online" stays a preference |
+
 ## Still open
-- Course names are only recognised by their **full** title or ID ("the data science track" is not matched to "Data Science, AI & Machine Learning"). Learners can use the code, e.g. TRK-005.
+- Short names come from the course titles. Nicknames that are not in a title ("QA", "mobile", "دوت نت") are
+  not matched yet; the learner gets a recommendation or is asked which course instead.
 `docs/ROLE_3_ARCHITECTURE_INTEGRATION_QA_GUIDE.md` is still tracked although other role guides were
 removed; README/RACI no longer use role ownership in new docs. Deleting the file is a team decision.

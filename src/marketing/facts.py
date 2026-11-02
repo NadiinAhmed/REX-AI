@@ -13,6 +13,7 @@ from typing import Any, Protocol
 
 from pydantic import BaseModel, Field
 
+from src.knowledge_base.course_resolver import CourseResolver
 from src.knowledge_base.retriever import CourseRetriever
 from src.marketing.models import CourseFacts, Fact
 from src.models.course import Course, DeliveryFormat, SkillLevel
@@ -77,6 +78,7 @@ class CourseFactsProvider:
     def __init__(self, courses: CourseRetriever, offers: OfferReader | None = None,
                  curriculum: CurriculumSource | None = None, is_synthetic: bool = False) -> None:
         self._courses = courses
+        self._resolver = CourseResolver(courses)     # same resolver REX Assistant uses
         self._offers = offers
         self._curriculum = curriculum or NullCurriculumSource()
         self._is_synthetic = is_synthetic
@@ -86,7 +88,9 @@ class CourseFactsProvider:
         return self._courses.all_courses()
 
     def find_course(self, text: str) -> Course | None:
-        return self._courses.find_by_title(text)
+        """Code, full title or short name ("the flutter track", "كورس الفلاتر"). A campaign request is
+        always about one course, so short names count; ambiguous text ("flutter or react") returns None."""
+        return self._resolver.resolve(text, course_context=True).course
 
     def get_course(self, course_id: str) -> Course | None:
         return self._courses.get_by_id(course_id)
