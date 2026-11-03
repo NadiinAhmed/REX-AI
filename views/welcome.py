@@ -4,26 +4,26 @@ from __future__ import annotations
 import streamlit as st
 
 from src.ui_context import enter_as_staff, enter_as_student, get_context, staff_password_required
+from src.ui_theme import cover, footer
 
 ctx = get_context()
 
-st.title("REX AI")
-st.markdown("Andalusia Academy  \nأكاديمية الأندلس")
+cover("REX AI", "Your guide to Andalusia Academy's training programs")
 if ctx.dataset.is_synthetic:
     st.warning(ctx.dataset.notice)
 
-student, staff = st.columns(2, gap="large")
+student, staff = st.columns(2, gap="medium")
 
-with student.container(border=True):
-    st.subheader("I'm a student")
-    st.markdown("Find the right training track, ask about a course, and register your interest.  \n"
-                "اعثر على المسار المناسب واسأل عن الكورسات وسجّل اهتمامك.")
+with student.container(key="card_student"):
+    st.subheader("For students")
+    st.markdown("Find the right training track, ask about a course, and register your interest.")
+    st.markdown("اعثر على المسار المناسب واسأل عن الكورسات وسجّل اهتمامك.")
     if st.button("Continue as student", key="enter_student", type="primary", width="stretch"):
         enter_as_student()
         st.rerun()
 
-with staff.container(border=True):
-    st.subheader("I'm academy staff")
+with staff.container(key="card_staff"):
+    st.subheader("For academy staff")
     st.markdown("Manage documents, leads and offers, and work with the tender, curriculum, "
                 "document and marketing agents.")
     if staff_password_required(ctx):
@@ -37,3 +37,4 @@ with staff.container(border=True):
         st.error("Wrong password. Ask the project admin for the staff password.")
 
 st.caption("Contact details are saved only after you agree to the consent text in the chat.")
+footer()

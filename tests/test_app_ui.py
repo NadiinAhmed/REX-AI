@@ -82,7 +82,7 @@ def test_staff_sign_in_routes_to_the_right_agent(monkeypatch, test_env):
     at.text_input(key="staff_pw").set_value("s3cret")
     at.button(key="enter_staff").click().run()
     assert not at.exception
-    assert any("Signed in as academy staff" in s.value for s in at.sidebar.success)
+    assert "Signed in as academy staff" in " ".join(m.value for m in at.sidebar.markdown)
     at.chat_input[0].set_value("Any education tenders in Egypt?").run()
     assert not at.exception
     captions = _captions(at)

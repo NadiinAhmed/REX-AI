@@ -7,7 +7,7 @@ which picks the agent and enforces student/staff permissions. See [orchestrator.
 
 | Layer | Modules | Responsibility |
 |---|---|---|
-| UI | `app.py`, `pages/1_Knowledge_Base.py`, `pages/2_Leads.py`, `src/ui_context.py` | Chat; admin upload/approve/remove PDFs; consented leads |
+| UI | `app.py`, `admin_pages/1_Knowledge_Base.py`, `admin_pages/2_Leads.py`, `src/ui_context.py` | Chat; admin upload/approve/remove PDFs; consented leads |
 | Composition root | `src/bootstrap.py` | Creates and connects every component (dependency injection) |
 | Agents | `src/agents/` (contract, registry, REX Assistant, prompts) | Conversation logic per agent |
 | Workflows | `src/workflows/` | Learner-profile extraction, course scoring + explanations |

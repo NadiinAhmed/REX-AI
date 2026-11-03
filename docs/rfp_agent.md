@@ -18,7 +18,7 @@ qualify?" assessment, and stores the result in the shared database for the dashb
 | Short AI summary | `summary.py` — LLM summary of each **new** tender whenever an LLM is configured; deterministic fallback |
 | Identify relevant opportunities (AI) | `ai.py` + pipeline `ai_review` — the LLM re-reads near-misses and may keep them with a verified evidence quote |
 | Assess whether the academy may qualify | `qualification.assess()` — catalog topic match + requirements to verify; pipeline `ai_analyze` adds LLM-read requirements, deadline and fit explanation, each verified against the notice |
-| Store in a searchable dashboard | `rfp_opportunities` table (migration 0002) + `pages/3_RFP_Opportunities.py` (filters, search, CSV export for Excel / Google Sheets) |
+| Store in a searchable dashboard | `rfp_opportunities` table (migration 0002) + `admin_pages/3_RFP_Opportunities.py` (filters, search, CSV export for Excel / Google Sheets) |
 | Alerts for new relevant RFPs | new **Egypt** opportunities are flagged and listed as alerts on scan, in chat and on the dashboard |
 | **Business rule:** Egypt → immediate review; Saudi → monitored | `screening.initial_status()` |
 

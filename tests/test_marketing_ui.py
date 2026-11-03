@@ -16,7 +16,7 @@ def page(monkeypatch, test_env):
         monkeypatch.setenv(key, value)
 
     def _open(name):
-        at = AppTest.from_file(str(PROJECT_ROOT / "pages" / name), default_timeout=60)
+        at = AppTest.from_file(str(PROJECT_ROOT / "admin_pages" / name), default_timeout=60)
         at.run()
         assert not at.exception
         return at

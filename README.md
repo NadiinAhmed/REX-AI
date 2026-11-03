@@ -66,7 +66,7 @@ deterministic one and is labelled. Live calls were tested with Groq (`openai/gpt
 - **Change role / Sign out** in the sidebar returns to the Welcome page and clears the chat.
 
 `app.py` is only the router (`st.navigation`); the pages are `views/welcome.py`, `views/chat.py` and the
-existing `pages/*.py`. Answer layout lives in `src/response_view.py` (unit-tested in `tests/test_response_view.py`).
+existing `admin_pages/*.py`. Answer layout lives in `src/response_view.py` (unit-tested in `tests/test_response_view.py`).
 
 ## Managing documents
 - UI: sidebar → **Knowledge base**: upload PDFs, approve/reject, replace, delete (with confirmation), test retrieval.

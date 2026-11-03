@@ -9,6 +9,7 @@ from src.agents.base import AgentRequest
 from src.agents.orchestrator import ALL_AGENTS, PROFILES, PUBLIC_AGENTS
 from src.response_view import ResponseView
 from src.ui_context import current_role, get_context
+from src.ui_theme import USER_AVATAR, assistant_avatar, banner
 from src.utils.logging_config import get_logger
 
 logger = get_logger("app.chat")
@@ -58,18 +59,19 @@ def answer(prompt: str) -> ResponseView:
 
 
 if role == "staff":
-    st.title("REX AI")
-    st.caption("Ask in English or Arabic. Requests go to the right agent automatically; type /help for commands.")
+    banner("REX AI", kicker="Andalusia Academy · Staff workspace",
+           subtitle="Ask in English or Arabic. Requests go to the right agent; type /help for commands.")
 else:
-    st.title("REX Assistant")
-    st.caption("Ask in English or Arabic about Andalusia Academy's training tracks.  \n"
-               "اسأل بالعربي أو بالإنجليزي عن مسارات أكاديمية الأندلس.")
+    banner("REX Assistant", kicker="Andalusia Academy · Course advisor",
+           subtitle="Ask in English or Arabic about the academy's training tracks.\n"
+                    "اسأل بالعربي أو بالإنجليزي عن مسارات أكاديمية الأندلس.")
+AVATAR = {"assistant": assistant_avatar(), "user": USER_AVATAR}
 
 st.session_state.setdefault("messages", [])
 st.session_state.setdefault("agent_state", {})
 
 for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
+    with st.chat_message(msg["role"], avatar=AVATAR[msg["role"]]):
         if msg["role"] == "assistant":
             render(ResponseView.from_dict(msg["view"]))
         else:
@@ -85,9 +87,9 @@ if not st.session_state.messages and not prompt:
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar=AVATAR["user"]):
         st.markdown(prompt)
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=AVATAR["assistant"]):
         with st.spinner("Thinking..."):
             view = answer(prompt)
         render(view)

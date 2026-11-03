@@ -118,7 +118,7 @@ LLM error falls back to the deterministic draft with a notice. Without an LLM ev
 | Agent (chat) | `src/agents/curriculum.py` — registered as `curriculum` |
 | Workflow | `src/curriculum/service.py` — `create`, `align`, `submit`, `approve`, `request_changes`, `apply_edits`, `approved_for_course` |
 | Table | `curricula` (migration `0003_curriculum`) via `src/db/curriculum_repository.py` |
-| Page | `pages/5_Curriculum.py` |
+| Page | `admin_pages/5_Curriculum.py` |
 | PDF | `src/curriculum/export.py` + shared kit `src/pdf/` |
 | **For other agents** | `CurriculumService.approved_for_course(course_id)` returns only an **approved** curriculum |
 | **Over MCP** | `get_approved_curriculum(course_id)`, `list_approved_curricula()` on the `rex-academy` server (read-only, approved only). Marketing uses it when `COURSE_BACKEND=mcp`, falling back to the direct service if a call fails ([docs/mcp.md](mcp.md)) |
