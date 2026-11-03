@@ -20,6 +20,13 @@ from src.models.course import Course, CourseCatalog, DatasetInfo
 from src.models.offer import Offer
 
 
+PUBLISHED_REFERENCE_PREFIX = "Approved curriculum"   # source.reference of courses published from Agent 3
+
+
+def is_published_from_curriculum(data: dict) -> bool:
+    return str((data.get("source") or {}).get("reference", "")).startswith(PUBLISHED_REFERENCE_PREFIX)
+
+
 class CourseRepository:
     def __init__(self, db: Database) -> None:
         self._db = db
@@ -29,16 +36,42 @@ class CourseRepository:
             return s.scalar(select(func.count()).select_from(CourseRecord)) or 0
 
     def replace_catalog(self, catalog: CourseCatalog, source_file: str | None = None) -> int:
-        """Replace ALL courses with `catalog` in one transaction (all or nothing)."""
+        """Replace the courses with `catalog` in one transaction (all or nothing).
+
+        Courses published from an approved curriculum are kept (a re-seed must not delete them),
+        unless the new catalog file now contains a course with the same id."""
+        new_ids = {c.course_id for c in catalog.courses}
         with self._db.session() as s:
+            published = [Course.model_validate(r.data) for r in s.scalars(select(CourseRecord)).all()
+                         if r.course_id not in new_ids and is_published_from_curriculum(r.data)]
             s.execute(delete(CourseRecord))
             s.execute(delete(CatalogMeta))
             s.add(CatalogMeta(id=1, name=catalog.dataset.name, version=catalog.dataset.version,
                               is_synthetic=catalog.dataset.is_synthetic, notice=catalog.dataset.notice,
                               source_file=source_file))
-            for c in catalog.courses:
+            for c in [*catalog.courses, *published]:
                 s.add(self._to_record(c))
         return len(catalog.courses)
+
+    def add(self, course: Course) -> None:
+        """Add ONE approved course (used when a curriculum for a new course is approved)."""
+        with self._db.session() as s:
+            if s.get(CourseRecord, course.course_id) is not None:
+                raise ValueError(f"Course {course.course_id} already exists.")
+            s.add(self._to_record(course))
+
+    def next_id(self, prefix: str = "TRK") -> str:
+        """The next free id in the PREFIX-NNN series, e.g. TRK-006 after TRK-005."""
+        with self._db.session() as s:
+            ids = s.scalars(select(CourseRecord.course_id).where(CourseRecord.course_id.like(f"{prefix}-%"))).all()
+        numbers = [int(i.split("-")[1]) for i in ids if i.split("-")[1].isdigit()]
+        return f"{prefix}-{max(numbers, default=0) + 1:03d}"
+
+    def version(self) -> tuple:
+        """Cheap fingerprint of the approved catalog: changes whenever a course is added, removed or edited."""
+        with self._db.session() as s:
+            return tuple(s.execute(select(func.count(), func.max(CourseRecord.updated_at))
+                                   .where(CourseRecord.approved.is_(True))).one())
 
     def list_approved(self) -> list[Course]:
         with self._db.session() as s:

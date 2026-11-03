@@ -106,6 +106,10 @@ with library_tab:
         st.subheader(f"{cur.title} — {stored.status.label} (revision {stored.revision})")
         if stored.status == CurriculumStatus.APPROVED:
             st.success(f"Approved by {stored.approved_by}. Document Generation and Marketing may use this version.")
+            if stored.curriculum.course_id and ctx.courses and ctx.courses.get(stored.curriculum.course_id) \
+                    and "Approved curriculum" in ctx.courses.get(stored.curriculum.course_id).source.reference:
+                st.info(f"Published to the course catalog as **{stored.curriculum.course_id}**: REX Assistant, "
+                        "Marketing, RFP and Document Generation can all use it now.")
         else:
             st.warning("Not approved yet: other agents do not use this curriculum.")
         problems = cur.validation_problems()

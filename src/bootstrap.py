@@ -17,6 +17,7 @@ from src.db.repositories import (
     CourseRepository, DocumentRepository, LeadRepository, MarketingRepository, OfferRepository,
 )
 from src.knowledge_base.loader import load_catalog
+from src.knowledge_base.live_retriever import LiveCourseRetriever
 from src.knowledge_base.retriever import CourseRetriever, KeywordRetriever
 from src.models.course import DatasetInfo
 from src.services.lead_service import LeadService
@@ -138,15 +139,25 @@ def build_course_retriever(settings: Settings, courses: CourseRepository,
             return retriever, f"MCP (rex-academy server, {len(retriever.all_courses())} courses)"
         except Exception as exc:   # never let an MCP problem take the assistant down
             logger.warning("MCP course backend unavailable: %s", exc)
-            return KeywordRetriever(courses.list_approved()), f"direct (MCP unavailable: {exc})"
+            return LiveCourseRetriever(courses, KeywordRetriever), f"direct (MCP unavailable: {exc})"
     if settings.course_retriever == "semantic":
         return _semantic_or_keyword(settings, courses, embeddings)
-    return KeywordRetriever(courses.list_approved()), "direct"
+    return LiveCourseRetriever(courses, KeywordRetriever), "direct"
 
 
 def _semantic_or_keyword(settings: Settings, courses: CourseRepository,
                          embeddings: object | None) -> tuple[CourseRetriever, str]:
-    approved = courses.list_approved()
+    retriever, status = _pick_semantic_or_keyword(settings, courses.list_approved(), embeddings)
+    if isinstance(retriever, KeywordRetriever):
+        return LiveCourseRetriever(courses, KeywordRetriever), status
+    from src.knowledge_base.semantic_retriever import SemanticCourseRetriever
+    # Rebuilt (re-embedded) only when the catalog changes, e.g. a curriculum is published as a course.
+    return LiveCourseRetriever(courses, lambda approved: SemanticCourseRetriever(
+        approved, embeddings, settings.course_semantic_min_score)), status
+
+
+def _pick_semantic_or_keyword(settings: Settings, approved: list,
+                              embeddings: object | None) -> tuple[CourseRetriever, str]:
     if embeddings is None:
         return KeywordRetriever(approved), "direct, keyword search (semantic needs the embedding model: RAG is off)"
     if settings.embedding_provider != "sentence_transformers":

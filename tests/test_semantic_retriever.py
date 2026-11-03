@@ -165,7 +165,7 @@ def test_settings_default_to_keyword_and_validate(test_env):
 def test_semantic_with_hashing_embeddings_falls_back_to_keyword_with_a_warning(test_env):
     from src.bootstrap import build_app
     ctx = build_app(load_settings(test_env(COURSE_RETRIEVER="semantic")))
-    assert isinstance(ctx.registry.get("rex_assistant")._retriever, KeywordRetriever)
+    assert isinstance(ctx.registry.get("rex_assistant")._retriever.inner, KeywordRetriever)
     assert any("Semantic course search is not active" in w for w in ctx.warnings)
 
 
@@ -175,5 +175,5 @@ def test_semantic_is_built_with_sentence_transformer_settings(test_env, embeddin
     settings = load_settings(test_env(COURSE_RETRIEVER="semantic", EMBEDDING_PROVIDER="sentence_transformers",
                                       COURSE_SEMANTIC_MIN_SCORE="0.6"))
     retriever, status = build_course_retriever(settings, ctx.courses, embeddings)
-    assert isinstance(retriever, SemanticCourseRetriever) and retriever.min_score == 0.6
+    assert isinstance(retriever.inner, SemanticCourseRetriever) and retriever.min_score == 0.6
     assert "semantic search" in status

@@ -95,6 +95,16 @@ class CurriculumRepository:
             row.review_log = [*row.review_log, self._entry(actor, action, note)]
             return row
 
+    def link_course(self, curriculum_id: str, course_id: str) -> CurriculumRecord | None:
+        """Attach a catalog course to a curriculum without starting a new revision."""
+        with self._db.session() as s:
+            row = s.get(CurriculumRecord, curriculum_id.strip().upper())
+            if row is None:
+                return None
+            row.course_id = course_id
+            row.content = {**row.content, "course_id": course_id}
+            return row
+
     def save_alignment(self, curriculum_id: str, alignment: list[AlignmentReport]) -> None:
         with self._db.session() as s:
             row = s.get(CurriculumRecord, curriculum_id.strip().upper())
