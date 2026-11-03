@@ -1,10 +1,14 @@
-"""Admin: Marketing Agent — create campaigns, review/edit drafts, approve. Nothing is published or sent."""
+"""Admin: Marketing Agent — create campaigns, review/edit drafts, approve, then send APPROVED drafts.
+
+Sending goes through DistributionService only: approved drafts, re-checked facts, explicit confirmation,
+every attempt logged. MARKETING_DELIVERY_MODE=dry_run (default) logs without sending."""
 from __future__ import annotations
 
 import streamlit as st
 
 from src.db.models import DraftStatus
 from src.marketing.models import CampaignBrief, CampaignObjective, DraftVariation, Platform, Tone
+from src.marketing.distribution import DistributionError
 from src.marketing.platforms import spec_for
 from src.services.approval_service import ApprovalError
 from src.ui_context import get_context, require_admin
@@ -16,7 +20,7 @@ if not require_admin(ctx):
     st.stop()
 agent = ctx.registry.get("marketing")
 st.caption("Copy is generated only from approved course data and approved offers. Every draft waits for a named "
-           "reviewer. Nothing is published or sent by the system: approved text is copied and distributed by a person.")
+           "reviewer. Only approved drafts can be sent, after an explicit confirmation; every attempt is logged.")
 
 tab_new, tab_review, tab_approved = st.tabs(["Create campaign", "Review drafts", "Approved"])
 
@@ -87,9 +91,42 @@ with tab_review:
 
 with tab_approved:
     approved = ctx.marketing.list_drafts(DraftStatus.APPROVED)
-    st.write(f"{len(approved)} approved draft(s). Copy the text and distribute it manually.")
+    dist = ctx.distribution
+    st.write(f"{len(approved)} approved draft(s). Copy the text, or send it below.")
+    if dist is not None and dist.dry_run:
+        st.info("Delivery mode: **dry run**. Sending runs every check and logs the attempt, but nothing leaves "
+                "the system. Set MARKETING_DELIVERY_MODE=live in .env to really send.")
     for d in approved:
         v = DraftVariation.model_validate(d.content)
         st.markdown(f"**{spec_for(v.platform).label_en}** · approved by {d.reviewed_by} on {d.reviewed_at:%Y-%m-%d %H:%M}"
                     + (f" · note: {d.review_note}" if d.review_note else ""))
         st.code(v.full_text(), language=None)
+        if dist is None:
+            continue
+        channels = dist.channels(v.platform)
+        with st.expander("Send this draft"):
+            if not channels:
+                st.caption("Only e-mail and LinkedIn drafts can be sent. For those, configure SMTP_* or "
+                           "LINKEDIN_ACCESS_TOKEN and LINKEDIN_AUTHOR_URN in .env.")
+                continue
+            labels = {c.label: c.name for c in channels}
+            choice = st.selectbox("Channel", list(labels), key=f"ch{d.id}")
+            recipients = ""
+            if labels[choice] == "email":
+                recipients = st.text_input("Recipients (comma-separated, max 10)", key=f"to{d.id}")
+            sender = st.text_input("Your name", key=f"by{d.id}")
+            confirmed = st.checkbox("I confirm this approved text may be sent outside the academy.", key=f"ok{d.id}")
+            repeat = st.checkbox("Send again (it was already sent to this target)", key=f"rp{d.id}")
+            if st.button("Send", key=f"send{d.id}", type="primary"):
+                try:
+                    outcome = dist.deliver(d.id, labels[choice], requested_by=sender, confirmed=confirmed,
+                                           recipients=recipients, allow_repeat=repeat)
+                    (st.success if outcome.status.value == "sent" else st.info)(outcome.message)
+                except DistributionError as exc:
+                    st.error(str(exc))
+            history = dist.history(d.id)
+            if history:
+                st.caption("Delivery log")
+                st.table([{"when": h.created_at.strftime("%Y-%m-%d %H:%M"), "channel": h.channel,
+                           "target": h.target, "status": h.status, "by": h.requested_by,
+                           "error": h.error or ""} for h in history])

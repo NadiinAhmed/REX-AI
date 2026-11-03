@@ -58,6 +58,7 @@ class AppContext:
     offers: OfferService | None = None            # shared approved offers (Agent 1, Agent 5, MCP)
     marketing: MarketingRepository | None = None  # campaigns and drafts
     approvals: object | None = None               # ApprovalService (human review of drafts)
+    distribution: object | None = None            # DistributionService (sends APPROVED drafts only)
     orchestrator: object | None = None            # OrchestratorAgent: routes the unified chat
 
 
@@ -206,6 +207,17 @@ def build_marketing(courses: CourseRepository, retriever: CourseRetriever, offer
     return agent, repo, ApprovalService(repo, facts, validator, evaluator)
 
 
+def build_distribution(settings: Settings, db: Database, drafts: MarketingRepository, approvals):
+    """Sending approved drafts: e-mail (shared SMTP settings, same EmailService as Agent 4) and LinkedIn."""
+    from src.db.repositories import MarketingDeliveryRepository
+    from src.marketing.distribution import DistributionService, EmailChannel, LinkedInChannel
+    from src.services.email_service import EmailService
+    channels = [EmailChannel(EmailService(settings)),
+                LinkedInChannel(settings.linkedin_access_token, settings.linkedin_author_urn,
+                                settings.linkedin_api_version)]
+    return DistributionService(settings, drafts, MarketingDeliveryRepository(db), approvals.recheck, channels)
+
+
 def build_app(settings: Settings, llm: LLMService | None = None, use_configured_llm: bool = True,
               enable_rag: bool = True, seed_dir: Path | None = SEED_DOCUMENTS_DIR) -> AppContext:
     """Raises KnowledgeBaseError if the course data cannot be loaded, DatabaseError if the DB fails."""
@@ -251,6 +263,7 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
     marketing_agent, marketing_repo, approvals = build_marketing(courses, retriever, offers, db, llm, dataset, settings,
                                                                  curriculum_service)
     registry.register(marketing_agent)
+    distribution = build_distribution(settings, db, marketing_repo, approvals)
     from src.agents.orchestrator import OrchestratorAgent
     orchestrator = OrchestratorAgent(registry)
     return AppContext(registry=registry, dataset=dataset, course_count=len(retriever.all_courses()),
@@ -258,7 +271,7 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
                       rag_status=rag_status, leads=leads, course_backend_status=backend_status, warnings=warnings,
                       rfp_repository=rfp_repository, curriculum_service=curriculum_service,
                       document_service=document_service, offers=offers, marketing=marketing_repo,
-                      approvals=approvals, orchestrator=orchestrator)
+                      approvals=approvals, distribution=distribution, orchestrator=orchestrator)
 
 
 def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database,
