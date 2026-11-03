@@ -51,8 +51,10 @@ SYNONYMS: dict[str, str] = {
     "تسويق": "marketing", "رقمي": "digital", "سوشيال": "social", "ميديا": "media",
     "اداره": "management", "مشاريع": "project", "مشروع": "project", "pmp": "project",
     "شبكات": "networking", "network": "networking", "networks": "networking",
-    "امن": "cybersecurity", "سيبراني": "cybersecurity", "security": "cybersecurity",
+    "امن": "cybersecurity", "سيبراني": "cybersecurity",
     "cyber": "cybersecurity",
+    # English "security" and "quality" are NOT mapped: "Data Quality, Governance & Security" (Data
+    # Engineering) and "Testing & Security" (.NET) matched QA and cybersecurity learners by mistake.
     "تصميم": "design", "جرافيك": "graphic", "واجهات": "ui", "ux": "ui",
     "محاسبه": "accounting", "ماليه": "finance", "financial": "finance",
     "انجليزي": "english", "انجليزيه": "english", "لغه": "language",
@@ -61,7 +63,7 @@ SYNONYMS: dict[str, str] = {
     "سحابه": "cloud", "سحابيه": "cloud",
     # Official catalog domains (Andalusia Academy portfolio 2026-2027)
     "testing": "testing", "tester": "testing", "test": "testing", "tests": "testing",
-    "qa": "testing", "quality": "testing", "اختبار": "testing", "اختبارات": "testing",
+    "qa": "testing", "اختبار": "testing", "اختبارات": "testing",
     "تيستنج": "testing", "تيستر": "testing", "جوده": "testing",
     "flutter": "flutter", "فلاتر": "flutter", "dart": "flutter", "دارت": "flutter",
     "mobile": "mobile", "موبايل": "mobile", "تطبيقات": "mobile", "app": "mobile", "apps": "mobile",
