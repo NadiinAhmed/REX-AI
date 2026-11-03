@@ -112,6 +112,11 @@ class Settings:
     # --- Marketing Agent ---------------------------------------------------------------
     marketing_max_attempts: int = 2          # generate -> fact-check retries per platform
     marketing_pass_threshold: float = 0.7    # evaluator mean needed to mark a draft "checks passed"
+    # Sending APPROVED drafts (DistributionService). dry_run = record only, nothing leaves the system.
+    marketing_delivery_mode: str = "dry_run"
+    linkedin_access_token: str | None = field(default=None, repr=False)  # OAuth token, w_member_social
+    linkedin_author_urn: str | None = None     # urn:li:person:<id> or urn:li:organization:<id>
+    linkedin_api_version: str | None = None    # YYYYMM; empty = an active version is chosen automatically
 
     @property
     def email_enabled(self) -> bool:
@@ -211,6 +216,10 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         log_level=env.get("LOG_LEVEL", "INFO").upper(),
         marketing_max_attempts=_number(env, "MARKETING_MAX_ATTEMPTS", "2", int, minimum=1),
         marketing_pass_threshold=_pass_threshold(env),
+        marketing_delivery_mode=_choice(env, "MARKETING_DELIVERY_MODE", "dry_run", ("dry_run", "live")),
+        linkedin_access_token=env.get("LINKEDIN_ACCESS_TOKEN", "").strip() or None,
+        linkedin_author_urn=env.get("LINKEDIN_AUTHOR_URN", "").strip() or None,
+        linkedin_api_version=env.get("LINKEDIN_API_VERSION", "").strip() or None,
     )
 
 

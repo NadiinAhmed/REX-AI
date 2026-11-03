@@ -216,3 +216,25 @@ class MarketingDraftRecord(Base):
     review_note: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     campaign: Mapped[MarketingCampaignRecord] = relationship(back_populates="drafts")
+
+
+class DeliveryStatus(str, Enum):
+    SENT = "sent"           # the channel accepted the message
+    FAILED = "failed"       # the channel refused or was unreachable (error kept, message not sent)
+    DRY_RUN = "dry_run"     # MARKETING_DELIVERY_MODE=dry_run: recorded, nothing left the system
+
+
+class MarketingDeliveryRecord(Base):
+    """One attempt to distribute an APPROVED draft (audit log: who, what, where, when, result).
+
+    Recipients are stored as a count plus a short masked hint, never full addresses (privacy).
+    """
+    __tablename__ = "marketing_deliveries"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    draft_id: Mapped[str] = mapped_column(ForeignKey("marketing_drafts.id", ondelete="CASCADE"), index=True)
+    channel: Mapped[str] = mapped_column(String(30), index=True)
+    target: Mapped[str] = mapped_column(String(200))          # masked: "2 recipients (n***@gmail.com…)" / webhook label
+    status: Mapped[str] = mapped_column(String(20), index=True)
+    error: Mapped[str | None] = mapped_column(Text)
+    requested_by: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

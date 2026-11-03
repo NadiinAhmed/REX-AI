@@ -151,3 +151,41 @@ Limits: 22 + 10 questions is small; one question changes a rate by 0.06–0.17. 
 hashing embedding and no LLM. LLM-judged metrics (faithfulness, answer relevancy) and the
 semantic-embedding run must be measured separately and reported as measured.
 
+## Embedding comparison for the document RAG — measured 2026-11-03 (no LLM, git eb320ce)
+
+Same datasets, retrieval only. Run on Windows by the team with
+`python -m evaluation.run_ragas --label <name> --set EMBEDDING_PROVIDER=<...> [--set RETRIEVAL_KEYWORD_GATE=on]`.
+
+| Main set (16 answerable, 6 unanswerable) | Hashing + keyword gate | Semantic e5-small, gate off | Semantic e5-small + gate |
+|---|---|---|---|
+| Correct abstention | **1.0 (6/6)** | 0.0 (0/6) | 0.8333 (5/6) |
+| Answered rate on answerable | 1.0 | 1.0 | 1.0 |
+| ID context recall | 0.9062 | 0.8438 | **0.9062** |
+| ID context recall (Arabic) | 0.9 | 0.7 | 0.9 |
+| ID context precision | 0.526 | 0.5052 | **0.5573** |
+| Non-LLM context recall | 0.6292 | 0.6104 | **0.6625** |
+
+| Held-out set (4 answerable, 6 unanswerable) | Hashing + gate | Semantic, gate off | Semantic + gate |
+|---|---|---|---|
+| Correct abstention | **1.0 (6/6)** | 0.0 (0/6) | **1.0 (6/6)** |
+| ID context recall | 1.0 | 1.0 | 1.0 |
+| ID context precision | 0.4583 | 0.4166 | 0.4583 |
+
+Findings:
+- With semantic embeddings and the gate off, retrieval never abstains: `RETRIEVAL_MIN_SCORE=0.15` is
+  below the similarity e5 gives to almost any passage, so unrelated pages always pass.
+- The evidence-term gate fixes this for semantic search too. Semantic + gate has the best precision
+  and recall on the main set; hashing + gate has the best abstention (6/6 vs 5/6).
+- With an LLM, the `NOT_FOUND` rule is a second safeguard: an unanswerable question that passes
+  retrieval is still answered "not found" with no sources (live check 2026-11-03).
+- Recommended configuration: `EMBEDDING_PROVIDER=sentence_transformers` with
+  `RETRIEVAL_KEYWORD_GATE=on`. Small datasets: one question changes a rate by 0.06-0.17.
+
+Live check 2026-11-03 (`evaluation/live/20261103-001542_groq-final.json`): 7/9 replies by Groq; 2 hit
+the free-tier rate limit and REX fell back to its rule-based answers as designed; the unanswerable
+question returned "not found" with no sources; exactly one lead was stored, after consent.
+
+LLM-judged metrics (faithfulness, answer relevancy): the first judge run failed (Groq gpt-oss-20b
+returned invalid JSON to RAGAS, plus rate limits). `run_ragas.py` now takes `JUDGE_MODEL`, retries,
+and reports unscored calls instead of crashing. Results are recorded here only once measured.
+

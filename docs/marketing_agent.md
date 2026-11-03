@@ -1,7 +1,7 @@
 # Agent 5 — AI Marketing Agent
 
 Generates multi-channel marketing campaigns **only from approved academy data**, checks every
-claim, scores quality, and waits for a **named human reviewer**. It never publishes or sends anything.
+claim, scores quality, and waits for a **named human reviewer**. The agent itself never publishes or sends; only approved drafts can be sent, by a person, through `DistributionService` (section 8).
 
 > Analogy: a small advertising agency inside the academy. A clerk pulls the official course file
 > (`CourseFactsProvider`), a planner picks platforms (`StrategyPlanner`), a copywriter drafts ads
@@ -19,7 +19,7 @@ claim, scores quality, and waits for a **named human reviewer**. It never publis
 | 39 | Simple campaign strategy | `src/marketing/strategy.py` | `test_marketing_rules.py` |
 | 40 | Multiple variations | `CampaignBrief.variations` (1–5, default 3) | `test_marketing_agent.py` |
 | 41 | Connect with the Curriculum Agent | `CurriculumServiceSource` (`src/marketing/facts.py`) reads `CurriculumService.approved_for_course()`; wired in `bootstrap.py` | `test_marketing_curriculum_link.py` |
-| 42 | Manual approval before sending/publishing | `src/services/approval_service.py`; no send/publish code exists | `test_no_publishing_or_sending_code_exists` |
+| 42 | Manual approval before sending/publishing | `src/services/approval_service.py`; sending only in `src/marketing/distribution.py`, approved drafts only | `test_no_publishing_or_sending_code_exists`, `test_marketing_distribution.py` |
 
 **About requirement 41.** Agent 5 reads Agent 3 through one small adapter, `CurriculumServiceSource`.
 It calls `CurriculumService.approved_for_course(course_id)`, so **only a curriculum a reviewer approved**
@@ -156,9 +156,24 @@ tested in `test_offers_survive_a_catalog_reseed`. Drafts do have a cascading for
 - **Approval re-checks against today's data**, not the generation snapshot, so an expired offer or a
   changed fee blocks approval.
 - **Editing** re-runs the fact-checker and sends the draft back to `pending_review`.
-- **There is no publish or send method anywhere.** "Approved" means a person may copy the text out
-  (the Approved tab shows a copy box). A test fails if a publish/send-style method appears on the agent,
-  the repository or the approval service, or if the approval service imports an email or HTTP library.
+- **The agent, the repository and the approval service still cannot send.** A test fails if a
+  publish/send-style method appears on them, or if the approval service imports an email or HTTP library.
+- **Sending approved drafts** (`src/marketing/distribution.py`, Approved tab → "Send this draft"):
+  - **E-mail drafts → e-mail** (the shared `EmailService`, same SMTP settings as Agent 4);
+    **LinkedIn drafts → LinkedIn** (official Posts API, `POST /rest/posts`). Other platforms are copied by hand;
+  - every request needs the sender's **name** and an explicit **confirmation**; the draft must be
+    **approved**; its claims are **re-checked against today's data**; a repeat to the same target needs
+    "send again";
+  - every attempt is logged in `marketing_deliveries` (sent / failed / dry_run, who, when). E-mail
+    recipients are stored masked ("2 recipient(s): s***@example.com"); the LinkedIn token and URN are never stored;
+  - `MARKETING_DELIVERY_MODE=dry_run` (default) runs every check and logs the attempt but sends nothing;
+    `live` really sends;
+  - LinkedIn needs an access token with `w_member_social` ("Share on LinkedIn" product) and the author URN
+    (`urn:li:person:<id>`; company pages need `urn:li:organization:<id>` and LinkedIn's approval for
+    `w_organization_social`). Post text is escaped for LinkedIn's "little text" format. Tokens expire
+    (about 60 days) and must be regenerated.
+- Tests: `tests/test_marketing_distribution.py` (18). LinkedIn is tested against a local server that imitates
+  `/rest/posts` (path, headers, 201 + `x-restli-id`, error codes); the real API is not called by tests.
 
 ## 9. Evaluation
 

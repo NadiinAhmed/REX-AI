@@ -13,7 +13,8 @@ from sqlalchemy import delete, func, select
 from src.db.database import Database
 from src.db.models import (
     ApprovalStatus, CatalogMeta, ChunkRecord, CourseRecord, DocumentRecord, DraftStatus, EvaluationRunRecord,
-    IndexStatus, LeadRecord, MarketingCampaignRecord, MarketingDraftRecord, OfferRecord,
+    DeliveryStatus, IndexStatus, LeadRecord, MarketingCampaignRecord, MarketingDeliveryRecord, MarketingDraftRecord,
+    OfferRecord,
 )
 from src.models.course import Course, CourseCatalog, DatasetInfo
 from src.models.offer import Offer
@@ -259,6 +260,35 @@ class OfferRepository:
             row.approval_status, row.approved_by = status.value, by
             row.approved_at = datetime.now(timezone.utc)
             return True
+
+
+class MarketingDeliveryRepository:
+    """`marketing_deliveries`: the audit log of distribution attempts. Writing a log row does not
+    send anything; sending happens only in `src/marketing/distribution.py`."""
+
+    def __init__(self, db: Database) -> None:
+        self._db = db
+
+    def record(self, *, draft_id: str, channel: str, target: str, status: DeliveryStatus,
+               requested_by: str, error: str | None = None) -> str:
+        row_id = str(uuid.uuid4())
+        with self._db.session() as s:
+            s.add(MarketingDeliveryRecord(id=row_id, draft_id=draft_id, channel=channel, target=target[:200],
+                                          status=status.value, error=error, requested_by=requested_by))
+        return row_id
+
+    def list_for_draft(self, draft_id: str) -> list[MarketingDeliveryRecord]:
+        with self._db.session() as s:
+            return list(s.scalars(select(MarketingDeliveryRecord)
+                                  .where(MarketingDeliveryRecord.draft_id == draft_id)
+                                  .order_by(MarketingDeliveryRecord.created_at.desc())).all())
+
+    def already_sent(self, draft_id: str, channel: str, target: str) -> bool:
+        with self._db.session() as s:
+            return s.scalar(select(func.count()).select_from(MarketingDeliveryRecord).where(
+                MarketingDeliveryRecord.draft_id == draft_id, MarketingDeliveryRecord.channel == channel,
+                MarketingDeliveryRecord.target == target[:200],
+                MarketingDeliveryRecord.status == DeliveryStatus.SENT.value)) > 0
 
 
 class MarketingRepository:
