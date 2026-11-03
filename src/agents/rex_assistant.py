@@ -237,7 +237,10 @@ class RexAssistant(Agent):
         # Bug B7: in "how many hours?" or "بكام الكورس ده؟" the leftover words ("many", "ده")
         # looked like a new topic and replaced the course being discussed. When the turn asks
         # about a course attribute, leftover words that match no course are noise, not a topic.
-        if attributes and turn.has_topic() and not self._retriever.search(turn.search_query(), top_k=1):
+        # A topic covered only by an approved PDF ("the cybersecurity track" from a newly uploaded
+        # document) is a real topic, so it is kept and answered from that document.
+        if (attributes and turn.has_topic() and not self._retriever.search(turn.search_query(), top_k=1)
+                and not self._documents_cover(turn.search_query())):
             turn = turn.model_copy(update={"interests": [], "career_goal": None})
         course, explicit = self._referenced_course(message, last_ids, about_course=bool(attributes))
         # "Is the Software Testing course online?" asks about the course's delivery format. Stated as a
@@ -304,6 +307,10 @@ class RexAssistant(Agent):
             if s.get("is_question"):
                 return {"profile": s["prior"], "route": "document_question", "response": doc}
         return {"profile": profile, "response": response}
+
+    def _documents_cover(self, topic: str) -> bool:
+        """True when an approved document has evidence for `topic` (False without a knowledge base)."""
+        return bool(topic) and self._passages is not None and self._passages.retrieve(topic).found
 
     @staticmethod
     def _sounds_like_a_program(message: str, is_question: bool) -> bool:

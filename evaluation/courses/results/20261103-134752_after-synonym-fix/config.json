@@ -1,0 +1,7 @@
+{
+  "label": "after-synonym-fix",
+  "git_commit": "f5b42e8",
+  "retriever": "keyword",
+  "catalog": "data/courses_official.json",
+  "queries": 24
+}
