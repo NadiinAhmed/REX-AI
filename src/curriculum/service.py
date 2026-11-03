@@ -166,7 +166,24 @@ class CurriculumService:
         problems = stored.curriculum.validation_problems()
         if problems:
             raise CurriculumWorkflowError("Cannot approve: " + " ".join(problems))
+        if stored.curriculum.course_id is None:
+            self._publish_to_catalog(stored, reviewer)   # a NEW course: make it visible to every agent
         return self._set(curriculum_id, CurriculumStatus.APPROVED, reviewer, "approved", note)
+
+    def _publish_to_catalog(self, stored: StoredCurriculum, reviewer: str) -> str:
+        """Add the approved new course to the shared catalog and link the curriculum to it.
+        Runs BEFORE the status change, so a failure leaves the curriculum unapproved."""
+        from src.curriculum.publish import course_from_curriculum
+        if not (hasattr(self._courses, "add") and hasattr(self._courses, "next_id")):
+            raise CurriculumWorkflowError("The course catalog cannot accept new courses here.")
+        course_id = self._courses.next_id()
+        try:
+            self._courses.add(course_from_curriculum(stored.curriculum, course_id, stored.id, reviewer))
+        except ValueError as exc:
+            raise CurriculumWorkflowError(f"Could not publish the course to the catalog: {exc}") from exc
+        self._repo.link_course(stored.id, course_id)
+        logger.info("Curriculum %s published to the catalog as %s", stored.id, course_id)
+        return course_id
 
     def request_changes(self, curriculum_id: str, reviewer: str, note: str) -> StoredCurriculum:
         if not (note or "").strip():

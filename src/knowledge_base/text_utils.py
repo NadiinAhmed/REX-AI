@@ -60,7 +60,7 @@ SYNONYMS: dict[str, str] = {
     "انجليزي": "english", "انجليزيه": "english", "لغه": "language",
     "ويب": "web", "مواقع": "web", "website": "web", "websites": "web",
     "اكسل": "excel", "spreadsheets": "excel",
-    "سحابه": "cloud", "سحابيه": "cloud",
+    "سحابه": "cloud", "سحابيه": "cloud", "كلاود": "cloud", "ديفوبس": "devops",
     # Official catalog domains (Andalusia Academy portfolio 2026-2027)
     "testing": "testing", "tester": "testing", "test": "testing", "tests": "testing",
     "qa": "testing", "اختبار": "testing", "اختبارات": "testing",
