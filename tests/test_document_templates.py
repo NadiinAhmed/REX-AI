@@ -179,7 +179,7 @@ def test_documents_page_has_templates_tab(monkeypatch, test_env):
     for k, v in test_env(REX_COURSES_PATH=str(OFFICIAL_DATASET)).items():
         monkeypatch.setenv(k, v)
     get_context.clear()
-    at = AppTest.from_file(str(PROJECT_ROOT / "pages" / "6_Documents.py"), default_timeout=90)
+    at = AppTest.from_file(str(PROJECT_ROOT / "admin_pages" / "6_Documents.py"), default_timeout=90)
     at.run()
     assert not at.exception
     assert any("Academy templates" in t.label for t in at.tabs)

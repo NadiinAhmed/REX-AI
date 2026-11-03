@@ -19,7 +19,7 @@ verified against `main` @ `e8c17b0` (119 tests passing). Nothing here is a measu
 ## 2. Big picture
 
 ```
-            Streamlit (chat + pages/4_Marketing.py)
+            Streamlit (chat + admin_pages/4_Marketing.py)
                           │
                     AgentRegistry ── dispatch("marketing", AgentRequest)
                           │
@@ -213,7 +213,7 @@ rate-limited, so the script throttles and caches.
 
 New: `src/marketing/{__init__,models,platforms,prompt_builder,generator,claim_validator,evaluator,facts}.py`,
 `src/agents/marketing_agent.py`, `src/services/{offer_service,approval_service}.py`,
-`migrations/versions/0003_marketing_and_offers.py`, `pages/4_Marketing.py`,
+`migrations/versions/0003_marketing_and_offers.py`, `admin_pages/4_Marketing.py`,
 `evaluation/marketing/{dataset.jsonl,run_marketing_eval.py}`, tests, `docs/marketing_agent.md`.
 
 Edited (additions only): `src/db/models.py`, `src/db/repositories.py`, `src/bootstrap.py`,

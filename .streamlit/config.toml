@@ -1,0 +1,12 @@
+# Andalusia Academy theme, taken from the academy's programs portfolio (see src/ui_theme.py).
+[theme]
+base = "light"
+primaryColor = "#6B1F1F"              # maroon: primary buttons, links, focus
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#FBF7F2"  # cream: sidebar, inputs, chat bubbles
+textColor = "#3B3434"
+borderColor = "#DCC7AF"               # tan card borders
+baseRadius = "small"
+
+[client]
+showSidebarNavigation = true

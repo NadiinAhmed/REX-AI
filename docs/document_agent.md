@@ -78,7 +78,7 @@ addresses validated and de-duplicated); the PDF is attached; the log records the
 | LLM helpers | `src/documents/llm_helpers.py` |
 | Table | `generated_documents` (migration `0004_documents`); `document_templates` (migration `0005_document_templates`) |
 | Academy templates | `src/documents/academy_templates.py`; `DocumentTemplateRepository`; page tab **Academy templates** |
-| Page | `pages/6_Documents.py` |
+| Page | `admin_pages/6_Documents.py` |
 | Reads from Agent 3 | `CurriculumService.approved_for_course(course_id)` / `.get(curriculum_id)` / `.draft_for_course(course_id)` |
 
 Chat: `generate a participant guide for TRK-001` · `question bank for CUR-XXXXXX` · `types` · `list` · `DOC-XXXXXX` · `pdf DOC-XXXXXX`

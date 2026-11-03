@@ -114,7 +114,7 @@ def page(monkeypatch, test_env):
         monkeypatch.setenv(key, value)
     from src.ui_context import get_context
     get_context.clear()
-    at = AppTest.from_file(str(PROJECT_ROOT / "pages" / "6_Documents.py"), default_timeout=90)
+    at = AppTest.from_file(str(PROJECT_ROOT / "admin_pages" / "6_Documents.py"), default_timeout=90)
     at.run()
     yield at
     get_context.clear()

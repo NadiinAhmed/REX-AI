@@ -27,7 +27,7 @@ def page(monkeypatch, test_env, tmp_path):
         monkeypatch.setenv(key, value)
     from src.ui_context import get_context
     get_context.clear()                        # fresh AppContext with the temp database
-    at = AppTest.from_file(str(PROJECT_ROOT / "pages" / "3_RFP_Opportunities.py"), default_timeout=60)
+    at = AppTest.from_file(str(PROJECT_ROOT / "admin_pages" / "3_RFP_Opportunities.py"), default_timeout=60)
     at.run()
     yield at
     get_context.clear()
