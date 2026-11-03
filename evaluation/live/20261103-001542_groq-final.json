@@ -1,0 +1,128 @@
+{
+ "llm_status": "LLM enabled: groq / openai/gpt-oss-20b",
+ "provider": "groq",
+ "model": "openai/gpt-oss-20b",
+ "leads_saved": 1,
+ "results": [
+  {
+   "case": "recommend_en",
+   "messages": [
+    "I'm a fresh graduate, I want to work in software testing, I'm a beginner"
+   ],
+   "mode": "llm",
+   "seconds": 1.67,
+   "llm_abstained": false,
+   "sources": [
+    "TRK-001"
+   ],
+   "answer": "**Software Testing (TRK‑001)**  \n\n- **Description** – “Goes beyond traditional QA, equipping final‑year students with AI‑driven, cloud‑native and enterprise‑grade testing skills for modern software delivery.”  \n- **Skill level** – Not specified in the record.  \n- **Duration** – 100 hours of instruction.  \n- **Delivery format** – Not specified.  \n- **Fee** – Not available in the data.  \n- **Prerequisites** – None listed; the course is open to students with no prior testing experience.  \n\n**Why it fits a fresh graduate who is a beginner**\n\n- The course is designed for final‑year university students, a group that typically has little to no professional testing experience, so it should be approachable for someone just starting out.  \n- With no prerequisites, you can enroll directly after graduation.  \n- The curriculum covers a broad range of tools (Playwright, Cypress, Docker, GitHub Actions, etc.) and includes a capstone project that lets you build an AI‑augmented test suite and CI/CD pipeline—hands‑on experience that is valuable for entry‑level roles.  \n\n**Offers** – There are no active offers listed for this course at the moment.  \n\nFeel free to let me know if you’d like more details about any specific module or tool!"
+  },
+  {
+   "case": "recommend_ar",
+   "messages": [
+    "أنا خريج جديد وعايز أشتغل مطور تطبيقات موبايل"
+   ],
+   "mode": "llm",
+   "seconds": 0.78,
+   "llm_abstained": false,
+   "sources": [
+    "TRK-002"
+   ],
+   "answer": "مرحباً! بناءً على ملفك الشخصي، أود أن أوصيك بالتالي:\n\n### دورة **تطوير تطبيقات فلاتر** (Flutter Development)\n\n| ما يهمك | التفاصيل |\n|---------|-----------|\n| **ما يناسب هدفك** | الدورة موجهة لتطوير تطبيقات موبايل، وتفتح لك مساراً كـ **مطور Flutter مبتدئ** أو **مهندس ذكاء اصطناعي موبايل**. |\n| **المتطلبات** | لا توجد متطلبات مسبقة، لذا يمكنك الانضمام مباشرةً. |\n| **ما ستحصل عليه** | مشروع نهائي لتطبيق متعدد المنصات مع AI على الجهاز، مزامنة بيانات غير متصلة، تحديثات OTA، وخط CI/CD تلقائي. |\n| **الأسعار والجدول** | غير متوفر حالياً. |\n| **المدرب/البلد** | غير متوفر حالياً. |\n| **العروض الحالية** | لا توجد عروض معتمدة في الوقت الحالي. |\n\n> **لماذا هذه الدورة تناسبك؟**  \n> - **الموضوع**: تتطابق مع اهتمامك بتطوير تطبيقات موبايل.  \n> - **المسار المهني**: تفتح لك فرصاً كـ \"مطور Flutter مبتدئ\" أو \"مهندس ذكاء اصطناعي موبايل\".  \n\nإذا كان لديك أي سؤال آخر أو تحتاج إلى تفاصيل إضافية، فأنا هنا للمساعدة!"
+  },
+  {
+   "case": "course_question",
+   "messages": [
+    "Who is the instructor for Flutter?"
+   ],
+   "mode": "llm",
+   "seconds": 0.59,
+   "llm_abstained": false,
+   "sources": [
+    "TRK-002"
+   ],
+   "answer": "I’m sorry, but the instructor information for the Flutter Development course isn’t listed in the current records."
+  },
+  {
+   "case": "follow_up",
+   "messages": [
+    "I want to learn Flutter",
+    "how many hours?"
+   ],
+   "mode": "llm",
+   "seconds": 1.27,
+   "llm_abstained": false,
+   "sources": [
+    "TRK-002"
+   ],
+   "answer": "The Flutter Development course runs for **120 hours** of instruction."
+  },
+  {
+   "case": "document_question",
+   "messages": [
+    "Is the academy accredited?"
+   ],
+   "mode": "llm",
+   "seconds": 0.69,
+   "llm_abstained": false,
+   "sources": [
+    "andalusia_academy_portfolio_2026_2027.pdf, p.1",
+    "andalusia_academy_portfolio_2026_2027.pdf, p.2",
+    "andalusia_academy_portfolio_2026_2027.pdf, p.2",
+    "andalusia_academy_portfolio_2026_2027.pdf, p.9"
+   ],
+   "answer": "Yes – Andalusia Academy’s programs are ITIDA‑accredited, meaning they meet national professional standards and are recognized by employers in Egypt’s tech sector. [1] [3]"
+  },
+  {
+   "case": "unanswerable",
+   "messages": [
+    "Does the academy offer scholarships for international students?"
+   ],
+   "mode": "llm",
+   "seconds": 4.59,
+   "llm_abstained": true,
+   "sources": [],
+   "answer": "I couldn't find this in the academy's approved documents, so I can't answer it reliably. You can ask me about our programs, their content, tools, duration or career paths."
+  },
+  {
+   "case": "fee_not_published_ar",
+   "messages": [
+    "هل يمكن تقسيط رسوم مسار هندسة البيانات؟"
+   ],
+   "mode": "llm",
+   "seconds": 11.2,
+   "llm_abstained": false,
+   "sources": [
+    "TRK-003"
+   ],
+   "answer": "عذرًا، لا تتوفر معلومات حول رسوم مسار هندسة البيانات أو إمكانية تقسيطها في الوقت الحالي. كما لا توجد عروض سارية مفعول معلنة."
+  },
+  {
+   "case": "nickname",
+   "messages": [
+    "Who teaches the QA track?"
+   ],
+   "mode": "deterministic",
+   "seconds": 3.46,
+   "llm_abstained": false,
+   "sources": [
+    "TRK-001"
+   ],
+   "answer": "(The AI service is unavailable, so this is a rule-based answer.)\n\n**Software Testing** (TRK-001)\n- Instructor: not available in our current data"
+  },
+  {
+   "case": "lead_consent",
+   "messages": [
+    "I want to become a data engineer",
+    "I want to register",
+    "yes",
+    "Test Student, test.student@example.com"
+   ],
+   "mode": "deterministic",
+   "seconds": 14.53,
+   "llm_abstained": false,
+   "sources": [],
+   "answer": "Thank you, Test Student! Your details are saved and the academy team will contact you."
+  }
+ ]
+}

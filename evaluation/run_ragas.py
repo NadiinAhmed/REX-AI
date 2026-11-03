@@ -119,7 +119,11 @@ async def score_generation(samples: list[dict], settings) -> str:
     if provider not in JUDGE_BASE_URLS or not settings.api_key_for(provider):
         raise SystemExit("--judge needs LLM_PROVIDER=xai or groq and its API key in .env")
     client = AsyncOpenAI(api_key=settings.api_key_for(provider), base_url=JUDGE_BASE_URLS[provider])
-    llm = llm_factory(settings.llm_model, provider="openai", client=client)
+    # The judge can differ from the model that writes the answers: some models fail RAGAS's
+    # structured (JSON) output, e.g. Groq gpt-oss-20b returned "json_validate_failed".
+    judge_model = os.environ.get("JUDGE_MODEL", "").strip() or settings.llm_model
+    delay = float(os.environ.get("JUDGE_DELAY_SECONDS", "3"))      # free tiers are rate-limited
+    llm = llm_factory(judge_model, provider="openai", client=client)
     faith, recall, precision = Faithfulness(llm=llm), ContextRecall(llm=llm), ContextPrecisionWithReference(llm=llm)
     relevancy = None
     try:
@@ -129,20 +133,40 @@ async def score_generation(samples: list[dict], settings) -> str:
             "huggingface", model="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"))
     except Exception as exc:
         print(f"answer_relevancy skipped: {exc}")
+
+    async def measure(sample: dict, name: str, call) -> None:
+        """One score. A failed call (rate limit, invalid JSON) is recorded, never estimated."""
+        for attempt in range(3):
+            try:
+                sample[name] = round((await call()).value, 4)
+                return
+            except Exception as exc:          # noqa: BLE001 - provider errors vary
+                last = f"{type(exc).__name__}: {str(exc)[:120]}"
+                await asyncio.sleep(delay * (attempt + 2) * 5 if "RateLimit" in last or "429" in last else delay)
+        sample.setdefault("judge_errors", []).append(f"{name}: {last}")
+        print(f"  {sample['id']} {name} not scored ({last})")
+
     for s in samples:
         if not (s["answerable"] and s["retrieved_contexts"]):
             continue
         ctxs = s["retrieved_contexts"]
-        s["faithfulness"] = round((await faith.ascore(user_input=s["question"], response=s["response"],
-                                                      retrieved_contexts=ctxs)).value, 4)
-        s["llm_context_recall"] = round((await recall.ascore(user_input=s["question"], retrieved_contexts=ctxs,
-                                                             reference=s["reference"])).value, 4)
-        s["llm_context_precision"] = round((await precision.ascore(user_input=s["question"], reference=s["reference"],
-                                                                   retrieved_contexts=ctxs)).value, 4)
-        if relevancy is not None:
-            s["answer_relevancy"] = round((await relevancy.ascore(user_input=s["question"],
-                                                                  response=s["response"])).value, 4)
-    return f"{provider}/{settings.llm_model}"
+        q, ref = s["question"], s["reference"]
+        # Faithfulness/relevancy judge the LLM's answer. If generation fell back to rule-based
+        # excerpts (LLM unavailable), there is no LLM answer to judge: skip, do not count it.
+        if s.get("response_mode") == "llm" and not s["abstained"]:
+            await measure(s, "faithfulness", lambda: faith.ascore(user_input=q, response=s["response"],
+                                                                 retrieved_contexts=ctxs))
+            if relevancy is not None:
+                await measure(s, "answer_relevancy", lambda: relevancy.ascore(user_input=q, response=s["response"]))
+        else:
+            s["judge_skipped"] = f"generation mode {s.get('response_mode')}"
+        await measure(s, "llm_context_recall", lambda: recall.ascore(user_input=q, retrieved_contexts=ctxs,
+                                                                     reference=ref))
+        await measure(s, "llm_context_precision", lambda: precision.ascore(user_input=q, reference=ref,
+                                                                           retrieved_contexts=ctxs))
+        print(f"  judged {s['id']}")
+        await asyncio.sleep(delay)
+    return f"{provider}/{judge_model}"
 
 
 METRICS = ["id_context_precision", "id_context_recall", "nonllm_context_precision", "nonllm_context_recall",
@@ -159,10 +183,18 @@ def summarize(samples: list[dict]) -> dict:
     for lang in ("en", "ar"):
         sub = [s for s in answerable if s["lang"] == lang]
         out[f"id_context_recall_{lang}"] = mean("id_context_recall", sub)
-    out["rex_answered_rate_on_answerable"] = {
-        "mean": round(sum(not s["abstained"] for s in answerable) / len(answerable), 4), "n": len(answerable)}
-    out["rex_correct_abstention_rate_on_unanswerable"] = {
-        "mean": round(sum(s["abstained"] for s in unanswerable) / len(unanswerable), 4), "n": len(unanswerable)}
+    if answerable:
+        out["rex_answered_rate_on_answerable"] = {
+            "mean": round(sum(not s["abstained"] for s in answerable) / len(answerable), 4), "n": len(answerable)}
+    if unanswerable:
+        out["rex_correct_abstention_rate_on_unanswerable"] = {
+            "mean": round(sum(s["abstained"] for s in unanswerable) / len(unanswerable), 4), "n": len(unanswerable)}
+    errors = sum(len(s.get("judge_errors", [])) for s in samples)
+    skipped = sum(1 for s in samples if s.get("judge_skipped"))
+    if errors or skipped:
+        # Reported, not hidden: these scores are missing, so the means above cover fewer questions (see "n").
+        out["judge_calls_not_scored"] = errors
+        out["answers_not_judged_llm_fallback"] = skipped
     return out
 
 
