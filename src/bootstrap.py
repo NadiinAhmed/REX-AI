@@ -295,6 +295,10 @@ def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database
         from src.rfp.ai import TenderAI
 
         repository = RfpRepository(db)
+        if "file" not in settings.rfp_sources:
+            removed = repository.delete_synthetic()      # demo rows from earlier scans are not real tenders
+            if removed:
+                logger.info("Removed %d synthetic demo tender(s): the demo feed is not a configured source", removed)
         use_summaries = llm is not None and settings.rfp_llm_summaries != "off"
         use_ai = llm is not None and settings.rfp_ai != "off"
         if llm is None and "on" in (settings.rfp_ai, settings.rfp_llm_summaries):
@@ -313,13 +317,21 @@ def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database
 
 
 def build_rfp_sources(settings: Settings) -> list:
-    """Tender sources in the order of RFP_SOURCES: the live World Bank API and/or the JSON feed file."""
+    """Tender sources in the order of RFP_SOURCES.
+
+    Live: World Bank API (Egypt), Etimad (Saudi Arabia), UNGM (both). "file" = the JSON feed file
+    (the synthetic demo feed, used by the tests).
+    """
+    from src.rfp.etimad import EtimadSource
     from src.rfp.sources import JsonFileSource
+    from src.rfp.ungm import UngmSource
     from src.rfp.worldbank import WorldBankSource
 
+    timeout = settings.rfp_http_timeout_seconds
     available = {
-        "worldbank": lambda: WorldBankSource(rows=settings.rfp_worldbank_rows,
-                                             timeout=settings.rfp_http_timeout_seconds),
+        "worldbank": lambda: WorldBankSource(rows=settings.rfp_worldbank_rows, timeout=timeout),
+        "etimad": lambda: EtimadSource(max_pages=settings.rfp_max_pages, timeout=timeout),
+        "ungm": lambda: UngmSource(max_pages=settings.rfp_max_pages, timeout=timeout),
         "file": lambda: JsonFileSource(settings.rfp_feed_path),
     }
     return [available[name]() for name in settings.rfp_sources]

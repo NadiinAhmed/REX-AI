@@ -98,9 +98,10 @@ class Settings:
     rfp_llm_summaries: str = "auto"      # auto = on whenever an LLM is configured; on | off
     rfp_ai: str = "auto"                 # LLM review + notice analysis: auto | on | off
     rfp_ai_max_calls: int = 20           # LLM calls per scan for review + analysis (cost / rate limits)
-    rfp_sources: tuple[str, ...] = ("worldbank", "file")   # worldbank = live API, file = RFP_FEED_PATH
+    rfp_sources: tuple[str, ...] = ("worldbank", "etimad", "ungm")   # live sources; "file" = RFP_FEED_PATH (demo/tests)
     rfp_worldbank_rows: int = 100        # newest notices read per country per scan
     rfp_http_timeout_seconds: float = 20.0
+    rfp_max_pages: int = 3               # result pages read per search (Etimad / UNGM)
     # --- Agent 4: optional e-mail distribution of APPROVED documents (off unless SMTP_HOST is set) -----
     smtp_host: str | None = None
     smtp_port: int = 587
@@ -148,12 +149,12 @@ def _database_url(env: dict[str, str]) -> str:
     return url
 
 
-SUPPORTED_RFP_SOURCES = ("worldbank", "file")
+SUPPORTED_RFP_SOURCES = ("worldbank", "etimad", "ungm", "file")
 
 
 def _rfp_sources(env: dict[str, str]) -> tuple[str, ...]:
-    """RFP_SOURCES=worldbank,file (comma-separated, order kept, duplicates removed)."""
-    raw = env.get("RFP_SOURCES", "worldbank,file")
+    """RFP_SOURCES=worldbank,etimad,ungm (comma-separated, order kept, duplicates removed)."""
+    raw = env.get("RFP_SOURCES", "worldbank,etimad,ungm")
     names = tuple(dict.fromkeys(s.strip().lower() for s in raw.split(",") if s.strip()))
     unknown = [n for n in names if n not in SUPPORTED_RFP_SOURCES]
     if unknown or not names:
@@ -207,6 +208,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         rfp_sources=_rfp_sources(env),
         rfp_worldbank_rows=_number(env, "RFP_WORLDBANK_ROWS", "100", int, minimum=1),
         rfp_http_timeout_seconds=_number(env, "RFP_HTTP_TIMEOUT_SECONDS", "20", minimum=1),
+        rfp_max_pages=_number(env, "RFP_MAX_PAGES", "3", int, minimum=1),
         smtp_host=env.get("SMTP_HOST", "").strip() or None,
         smtp_port=_number(env, "SMTP_PORT", "587", int, minimum=1),
         smtp_user=env.get("SMTP_USER", "").strip() or None,

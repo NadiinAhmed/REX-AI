@@ -147,10 +147,10 @@ def test_offline_api_does_not_stop_the_demo_feed(courses):
 
 
 def test_rfp_sources_setting():
-    assert load_settings({}).rfp_sources == ("worldbank", "file")
+    assert load_settings({}).rfp_sources == ("worldbank", "etimad", "ungm")
     assert load_settings({"RFP_SOURCES": " file , worldbank,file"}).rfp_sources == ("file", "worldbank")
     with pytest.raises(ConfigError):
-        load_settings({"RFP_SOURCES": "etimad"})
+        load_settings({"RFP_SOURCES": "tendersinfo"})
 
 
 def test_bootstrap_builds_sources_in_order():

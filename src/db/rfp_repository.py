@@ -110,6 +110,14 @@ class RfpRepository:
             row.status = status.value
             return True
 
+    def delete_synthetic(self) -> int:
+        """Delete every row that came from a synthetic (demo) feed. Returns how many were deleted."""
+        with self._db.session() as s:
+            rows = s.scalars(select(RfpOpportunityRecord).where(RfpOpportunityRecord.synthetic.is_(True))).all()
+            for row in rows:
+                s.delete(row)
+            return len(rows)
+
     def expire_past_deadlines(self, today: date) -> int:
         """Mark stored live opportunities whose deadline has passed. Returns how many changed."""
         with self._db.session() as s:

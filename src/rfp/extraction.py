@@ -152,15 +152,52 @@ CATEGORY_TERMS: dict[Category, tuple[str, ...]] = {
 TRAINING_SIGNALS: tuple[str, ...] = (
     "training", "train", "trainees", "courses", "course", "education", "educational", "learning",
     "capacity building", "upskilling", "reskilling", "bootcamp", "workshops", "curriculum",
-    "professional development", "تدريب", "التدريب", "تدريبية", "تعليم", "تعليمية", "دورات", "تأهيل",
-    "بناء القدرات", "تعلم", "رفع كفاءة")
+    "professional development", "تدريب", "التدريب", "تدريبية", "تعليم", "تعليمية", "دورات",
+    "بناء القدرات", "تعلم", "رفع كفاءة", "أكاديمية", "تهيئة الموظفين", "تطوير المهارات",
+    # "تأهيل" alone also means renovating a building, a well or a kitchen: only people-qualifying phrases count.
+    "برنامج تأهيل", "برامج تأهيل", "تدريب وتأهيل", "تأهيل الموظفين", "تأهيل منسوبي", "تأهيل مسؤولي",
+    "تأهيل الكوادر", "تأهيل العاملين", "تأهيل المعلمين", "تأهيل القيادات", "تأهيل الخريجين", "تأهيل الشباب")
+
+
+# Goods and works: "furnishing a training wing", "maintenance of training centres" and "rehabilitation of a
+# building" (تأهيل مبنى) mention training words but buy furniture, maintenance or construction, not training.
+GOODS_WORKS_TERMS: tuple[str, ...] = (
+    "supply of", "supply and installation", "construction of", "maintenance of", "furnishing", "furniture",
+    "printing of", "cleaning services", "installation and commissioning", "installation of", "commissioning of",
+    "procurement installation", "hotel services", "catering services", "venue", "accommodation services",
+    "توريد", "تركيب", "صيانة", "تأثيث", "أثاث", "نظافة", "تشغيل وصيانة", "إنشاء", "ترميم", "تأهيل مبنى",
+    "تأهيل مباني", "تأهيل المبنى", "إعادة تأهيل", "طباعة", "موكيت", "استبدال", "تكييف", "إعاشة", "سفلتة",
+    "إنارة", "تجهيزات", "معدات", "أجهزة", "ماكينة", "ماكينات", "مولدات", "مطبخ", "آبار", "تنظيف",
+    "الربط والتكامل", "التكامل التقني")
+# Phrases that clearly ask for a training SERVICE: they keep a listing even if a goods word appears later.
+TRAINING_SERVICE_TERMS: tuple[str, ...] = (
+    "training services", "training programme", "training program", "capacity building", "training of",
+    "provision of training", "خدمات تدريب", "خدمات التدريب", "خدمات تدريبية", "برنامج تدريبي",
+    "برامج تدريبية", "دورات تدريبية", "تدريب الموظفين", "تدريب منسوبي", "تدريب العاملين", "تدريب وتأهيل",
+    "بناء القدرات", "تطوير المهارات", "أكاديمية", "تهيئة الموظفين")
+_TITLE_START_WORDS = 4
+# As the FIRST word, these mean "procure": تأمين ميداليات = buying medals, شراء = purchase.
+_PURCHASE_FIRST_WORDS = ("تامين", "شراء")
+
+
+def is_goods_or_works(raw: RawTender) -> bool:
+    """A goods/works purchase that only mentions training (e.g. furniture for a training centre)."""
+    title = normalize_text(raw.title)
+    words = title.split()
+    opening = " ".join(words[:_TITLE_START_WORDS])
+    if words and words[0] in _PURCHASE_FIRST_WORDS:   # "تأمين ميداليات ..." = buying medals ("التأمين" = insurance)
+        return True
+    if _has_term(opening, GOODS_WORKS_TERMS):          # "توريد ..." / "صيانة ..." / "Supply of ...": what is bought
+        return True
+    text = normalize_text(" ".join(filter(None, [raw.title, raw.description])))
+    return _has_term(text, GOODS_WORKS_TERMS) and not _has_term(text, TRAINING_SERVICE_TERMS)
 
 
 def classify(raw: RawTender) -> tuple[list[Category], bool]:
     """Return (categories, is_training_related)."""
     text = normalize_text(" ".join(filter(None, [raw.title, raw.category, raw.description])))
     cats = [c for c, terms in CATEGORY_TERMS.items() if _has_term(text, terms)]
-    return cats, _has_term(text, TRAINING_SIGNALS)
+    return cats, _has_term(text, TRAINING_SIGNALS) and not is_goods_or_works(raw)
 
 
 # ----------------------------------------------------------------------------- assemble
