@@ -61,13 +61,21 @@ _ATTRIBUTE_PATTERNS: dict[str, str] = {
     "career_paths": r"\b(career|jobs?|opportunit\w*)\b|" + _ar("وظائف", "وظيفة", "فرص", "فرصة", "شغل"),
     # "offer" only as a noun ("any offer?", "offers on X"). As a verb ("Does the academy offer
     # scholarships?") it is a general question, not a question about a course discount.
-    "promotions": (r"\b(discounts?|promotions?|promo)\b|\b(any|an|special|current|latest|new)\s+offers?\b"
+    # Noun signals: a word that can only precede a noun ("the/any/have offers"); "do you offer"
+    # stays a verb. Bug found 2026-11-11: "I want to know the offers"
+    # and "does it have offer" were not recognised as offer questions.
+    "promotions": (r"\b(discounts?|promotions?|promo)\b"
+                   r"|\b(any|an|the|special|current|latest|new|your|has|have|got)\s+offers?\b"
                    r"|\boffers?\s+(on|for)\s+(the|this|that|it|[a-z]{2,4}-\d{3})\b|"
                    + _ar("خصم", "خصومات", "عرض", "عروض")),
 }
 # Document fallback for topics missing from the catalog: keep only passages scoring at least this
 # fraction of the best one, so a page that merely shares a word is not shown as evidence.
 DOC_FALLBACK_RELATIVE_SCORE = 0.6
+
+# Words that point back at a course already shown (used for offer questions).
+_POINTER_RE = re.compile(r"\b(it|this|these|those|them|one)\b|\bthat\b(?!\s+(has|have|had|is|are|offers?|includes?)\b)|" + _ar(
+    "ده", "دي", "دا", "هذا", "هذه", "هذي", "عليه", "عليها", "فيه", "فيها"))
 
 _ORDINALS = {
     0: r"\b(first|1st)\b|الاول|اول واحد", 1: r"\b(second|2nd)\b|الثاني|التاني", 2: r"\b(third|3rd)\b|الثالث|التالت",
@@ -155,7 +163,7 @@ class RexAssistant(Agent):
     name = "rex_assistant"
     description = "REX Assistant: bilingual course recommendations and academy Q&A"
 
-    ROUTES = ("lead_capture", "catalog_overview", "course_question", "clarify_course",
+    ROUTES = ("lead_capture", "catalog_overview", "offers_overview", "course_question", "clarify_course",
               "document_question", "recommend", "follow_up")
 
     def __init__(
@@ -251,6 +259,10 @@ class RexAssistant(Agent):
             attributes = ["delivery_format"]
         out |= {"turn": turn, "attributes": attributes, "course": course, "explicit_course": explicit}
 
+        # An implicit course (the one shown last) only counts when the message points at it
+        # ("does it have an offer?"); otherwise "what discounts do you have?" stuck to that course.
+        if "promotions" in attributes and not explicit and not self._points_at_a_course(norm):
+            return out | {"route": "offers_overview"}
         if _CATALOG_RE.search(norm) and not turn.has_topic():
             return out | {"route": "catalog_overview"}
         # A course named in the message is always about that course. A course referenced
@@ -259,6 +271,8 @@ class RexAssistant(Agent):
             if explicit and not attributes and out["is_question"] and self._passages is not None:
                 return out | {"route": "document_question"}     # e.g. "Is Flutter good for beginners?"
             return out | {"route": "course_question"}
+        # "What discounts do you have?" names no course: it asks about the whole catalog, so list
+        # every active offer instead of asking "which course?".
         if attributes and not turn.has_topic():
             return out | {"route": "clarify_course"}
         if self._merge_profile(s["prior"], turn).has_topic():
@@ -338,6 +352,34 @@ class RexAssistant(Agent):
         return {"profile": s["prior"], "response": AgentResponse(
             agent_name=self.name, text="\n".join(l for l in lines if l), mode=ResponseMode.DETERMINISTIC,
             sources=[self._source(c) for c in courses])}
+
+    def _node_offers_overview(self, s: RexState) -> dict:
+        """Every approved, currently valid offer across the catalog (from the shared OfferService)."""
+        lang = s["lang"]
+        with_offers, unknown = [], False
+        for c in self._retriever.all_courses():
+            offers = self._active_offers(c)
+            if offers is None:
+                unknown = True
+            elif offers:
+                with_offers.append((c, offers))
+        if with_offers:
+            lines = [self._t(lang, "These courses have an approved offer right now:",
+                             "هذه الدورات عليها عرض معتمد حالياً:")]
+            lines += [f"- **{self._title(c, lang)}** ({c.course_id}): " + "; ".join(o.describe(lang) for o in offers)
+                      for c, offers in with_offers]
+        elif unknown:
+            lines = [self._t(lang, "I couldn't check the current offers right now. Please ask the academy directly.",
+                             "تعذر التحقق من العروض الحالية الآن. يرجى سؤال الأكاديمية مباشرة.")]
+        else:
+            lines = [self._t(lang, "There are no approved offers on any course at the moment.",
+                             "لا توجد عروض معتمدة على أي دورة حالياً.")]
+        if with_offers and unknown:
+            lines.append(self._t(lang, "(Offers for some courses could not be checked.)",
+                                 "(تعذر التحقق من عروض بعض الدورات.)"))
+        return {"profile": s["prior"], "response": AgentResponse(
+            agent_name=self.name, text="\n".join(lines), mode=ResponseMode.DETERMINISTIC,
+            sources=[self._source(c) for c, _ in with_offers])}
 
     def _node_lead_capture(self, s: RexState) -> dict:
         lang, lead, message = s["lang"], dict(s["lead"]), s["message"]
@@ -697,6 +739,11 @@ class RexAssistant(Agent):
         if len(last_ids) == 1 and self._asked_attributes(message):
             return self._retriever.get_by_id(last_ids[0]), False
         return None, False
+
+    @staticmethod
+    def _points_at_a_course(norm: str) -> bool:
+        """'does it have an offer?', 'the second one', 'الكورس ده' -> True. 'any discounts?' -> False."""
+        return bool(_POINTER_RE.search(norm) or any(re.search(p, norm) for p in _ORDINALS.values()))
 
     @staticmethod
     def _asked_attributes(message: str) -> list[str]:
