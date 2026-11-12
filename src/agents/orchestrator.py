@@ -59,6 +59,10 @@ class AgentProfile:
     command: str                      # the slash command shown to users
     aliases: tuple[str, ...]          # words accepted in "/x", "switch to x" and clarification answers
     staff_only: bool
+    # Sticky: a message with no keywords goes back to this agent when it was the last one used (a
+    # conversation). Course Launch only understands launch sentences and LP-commands, so after it,
+    # an unrelated question ("what offers do you have?") must go to REX instead.
+    sticky: bool = True
 
     def label(self, lang: str) -> str:
         return self.label_ar if lang == "ar" else self.label_en
@@ -74,7 +78,7 @@ AGENT_PROFILES: tuple[AgentProfile, ...] = (
     AgentProfile("document_generation", "Document Generation", "إعداد المستندات", "/documents",
                  ("documents", "document", "docs", "doc", "مستندات", "المستندات"), staff_only=True),
     AgentProfile("course_launch", "Course Launch (course + curriculum + offer + e-mail)", "إطلاق مقرر (مقرر + منهج + عرض + إيميل)",
-                 "/launch", ("launch", "اطلاق", "إطلاق"), staff_only=True),
+                 "/launch", ("launch", "اطلاق", "إطلاق"), staff_only=True, sticky=False),
     AgentProfile("marketing", "Marketing (drafts need approval)", "التسويق (المسودات تحتاج اعتماد)", "/marketing",
                  ("marketing", "تسويق", "التسويق"), staff_only=True),
 )
@@ -303,7 +307,7 @@ class OrchestratorAgent(Agent):
             return {"decision": RoutingDecision("clarify", None, message, "ambiguous", tuple(best), scores)}
 
         # 6-7. follow-up or default
-        if active:
+        if active and (PROFILES[active].sticky if active in PROFILES else True):
             return {"decision": RoutingDecision("dispatch", active, message, "follow_up", scores=scores)}
         return {"decision": RoutingDecision("dispatch", REX, message, "default", scores=scores)}
 

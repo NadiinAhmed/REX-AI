@@ -168,3 +168,16 @@ def test_offer_as_a_verb_is_not_an_offer_question():
     agent = _official_agent(FakeOffers([offer("TRK-002")]))
     assert ask(agent, "Does the academy offer certificates?").data["intent"] != "offers_overview"
     assert ask(agent, "What programs do you offer?").data["intent"] == "catalog_overview"
+
+
+def test_this_or_that_before_a_non_course_word_is_a_general_question():
+    agent = _official_agent(FakeOffers([offer("TRK-002")]))
+    first = ask(agent, "do you have flutter course")
+    for text in ["I want to know the offers that academy has ?", "does this academy have offers?"]:
+        r = agent.handle(AgentRequest(message=text, state=first.state))
+        assert r.data["intent"] == "offers_overview", text
+    for text in ["does that course have an offer?", "is there a discount on this one?", "does that have a discount?"]:
+        r = agent.handle(AgentRequest(message=text, state=first.state))
+        assert r.data["intent"] == "course_question" and "15%" in r.text, text
+    r = agent.handle(AgentRequest(message="which courses that have discounts?", state=first.state))
+    assert r.data["intent"] == "offers_overview"

@@ -74,7 +74,11 @@ _ATTRIBUTE_PATTERNS: dict[str, str] = {
 DOC_FALLBACK_RELATIVE_SCORE = 0.6
 
 # Words that point back at a course already shown (used for offer questions).
-_POINTER_RE = re.compile(r"\b(it|this|these|those|them|one)\b|\bthat\b(?!\s+(has|have|had|is|are|offers?|includes?)\b)|" + _ar(
+# "this/that/these/those" point at a course only before a course word or at the end ("is that
+# discounted?"); "offers that the academy has" / "does this academy have offers" are general questions.
+_POINTER_RE = re.compile(r"\b(it|them|one)\b|\b(this|that|these|those)\b(?=\s*(?:courses?|ones?|tracks?|programs?"
+                         r"|class(?:es)?|[?.!,]|$))|\b(?:does|do|did|is|are|will|can|would)\s+(?:this|that|these|those)\b"
+                         r"(?!\s+(?:academy|school|center|centre)\b)|" + _ar(
     "ده", "دي", "دا", "هذا", "هذه", "هذي", "عليه", "عليها", "فيه", "فيها"))
 
 _ORDINALS = {

@@ -162,3 +162,32 @@ def test_a_new_launch_is_refused_while_a_plan_is_open_and_cancel_closes_it(ctx):
     assert chat.say('Launch a new course "Other" covering X, email ali@example.com').data["intent"] == "plan_open"
     assert chat.say(f"cancel {pid}").data["intent"] == "launch_cancelled"
     assert launch(chat, 'Launch a new course "Other Course" covering Python, email ali@example.com')
+
+
+# ------------------------------------------------------------------ routing after a launch (bug 2026-11-12)
+def test_an_unrelated_question_after_a_launch_goes_to_rex(ctx):
+    """Found in the live app: after 'send LP-…', "I want to know the offers that academy has ?" stayed
+    with the launch agent (no keyword matched, so the last agent kept it) and was read as a new launch."""
+    chat = Chat(ctx)
+    pid = launch(chat)
+    chat.say(f"approve {pid} as Nadin")
+    chat.say(f"send {pid}")
+    r = chat.say("I want to know the offers that academy has ?")
+    assert r.agent_name == "rex_assistant" and r.data["intent"] == "offers_overview", r.text
+    assert "TRK-006" in r.text and "20%" in r.text
+
+
+def test_a_question_between_approve_and_send_does_not_lose_the_plan(ctx):
+    chat = Chat(ctx)
+    pid = launch(chat)
+    chat.say(f"approve {pid} as Nadin")
+    assert chat.say("what discounts do you have?").agent_name == "rex_assistant"
+    r = chat.say(f"send {pid}")                                       # the LP id routes back to the launch
+    assert r.agent_name == "course_launch" and r.data["intent"] == "launch_sent", r.text
+
+
+def test_missing_details_still_stay_with_the_launch(ctx):
+    chat = Chat(ctx)
+    chat.say('Launch a new course "Computer Networks" covering TCP/IP and Routing')
+    r = chat.say("nadin@example.com")                                 # no keywords, but a reply is expected
+    assert r.agent_name == "course_launch" and r.data["intent"] == "launch_prepared", r.text
