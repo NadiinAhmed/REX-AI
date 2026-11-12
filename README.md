@@ -2,6 +2,7 @@
 
 Graduation project MVP for Andalusia Academy. Five planned agents share one database, one course
 catalog and one knowledge base. **All five agents are implemented.**
+Full project documentation: [docs/PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md).
 
 | Agent | Status |
 |---|---|
@@ -121,6 +122,9 @@ staff sign-in in the sidebar, the other four agents are reachable too (`/help` l
 Details: [docs/orchestrator.md](docs/orchestrator.md).
 
 ## Documentation
+**Start here: [full project documentation](docs/PROJECT_DOCUMENTATION.md)**, one document covering the architecture, all five agents,
+the orchestrator, setup, testing and evaluation, the team's contributions and the limitations.
+
 [Architecture](docs/architecture.md) · [RAG workflow](docs/rag_workflow.md) ·
 [Database schema](docs/database_schema.md) · [MCP](docs/mcp.md) · [Evaluation](docs/evaluation.md) ·
 [Testing](docs/testing.md) · [Curriculum agent](docs/curriculum_agent.md) · [Document agent](docs/document_agent.md) · [Marketing Agent](docs/marketing_agent.md) · [Agent contract](docs/interfaces.md) · [Agent 1 audit](docs/agent1_audit.md) ·
