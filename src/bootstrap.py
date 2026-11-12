@@ -275,6 +275,8 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
                                                                  curriculum_service)
     registry.register(marketing_agent)
     distribution = build_distribution(settings, db, marketing_repo, approvals)
+    register_launch_agent(registry, curriculum_service, courses, offers, marketing_agent, approvals,
+                          distribution, leads, warnings)
     from src.agents.orchestrator import OrchestratorAgent
     orchestrator = OrchestratorAgent(registry)
     return AppContext(registry=registry, dataset=dataset, course_count=len(retriever.all_courses()),
@@ -283,6 +285,19 @@ def build_app(settings: Settings, llm: LLMService | None = None, use_configured_
                       rfp_repository=rfp_repository, curriculum_service=curriculum_service,
                       document_service=document_service, offers=offers, marketing=marketing_repo,
                       approvals=approvals, distribution=distribution, orchestrator=orchestrator)
+
+
+def register_launch_agent(registry: AgentRegistry, curriculum_service, courses: CourseRepository, offers: OfferService,
+                          marketing_agent, approvals, distribution, leads: LeadRepository, warnings: list[str]) -> None:
+    """Course Launch workflow (staff). It only chains existing services, so it needs Agent 3 (curriculum)."""
+    if curriculum_service is None:
+        warnings.append("Course Launch is unavailable because the Curriculum agent did not start.")
+        return
+    from src.agents.course_launch_agent import CourseLaunchAgent
+    from src.workflows.course_launch import CourseLaunchWorkflow
+    registry.register(CourseLaunchAgent(CourseLaunchWorkflow(
+        curriculum=curriculum_service, courses=courses, offers=offers, marketing=marketing_agent,
+        approvals=approvals, distribution=distribution, leads=leads)))
 
 
 def register_rfp_agent(registry: AgentRegistry, settings: Settings, db: Database,

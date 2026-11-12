@@ -99,3 +99,10 @@ Tests: `pytest tests/test_orchestrator.py tests/test_app_ui.py`.
   or REX. An optional LLM classifier can be injected for uncertain cases later.
 - Multi-step workflows across agents (e.g. curriculum approved → marketing campaign) are the next
   step: the orchestrator is where they will be coordinated.
+
+## Course Launch workflow (staff)
+
+`launch … course` (or `اطلق … كورس`), a plan ID (`LP-1A2B3C`) and `/launch` route to the staff-only
+`course_launch` agent with weight 4, so a launch sentence that also mentions a curriculum and a campaign
+is not split between the Curriculum and Marketing agents. While it is asking for missing details,
+`expects_reply` keeps the next message with it. See [course_launch.md](course_launch.md).
