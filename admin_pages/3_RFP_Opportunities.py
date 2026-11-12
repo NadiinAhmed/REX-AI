@@ -28,8 +28,10 @@ if repo is None or AGENT not in {a.name for a in ctx.registry.list_agents() if a
     st.stop()
 agent = ctx.registry.get(AGENT)
 st.caption("Sources: " + " · ".join(
-    {"worldbank": "World Bank Procurement API (live, real notices)",
-     "file": "tender feed file"}.get(s, s) for s in (ctx.settings.rfp_sources if ctx.settings else ())))
+    {"worldbank": "World Bank Procurement API (live, Egypt)",
+     "etimad": "Etimad (live, Saudi government tenders)",
+     "ungm": "UN Global Marketplace (live, Egypt + Saudi Arabia)",
+     "file": "demo feed file (synthetic)"}.get(s, s) for s in (ctx.settings.rfp_sources if ctx.settings else ())))
 st.caption(f"LLM: {ctx.llm_status}")
 
 # ------------------------------------------------------------------ scan

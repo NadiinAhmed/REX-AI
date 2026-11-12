@@ -8,7 +8,7 @@ qualify?" assessment, and stores the result in the shared database for the dashb
 
 | Requirement | Where |
 |---|---|
-| Search approved sources | `src/rfp/worldbank.py` — **live World Bank Procurement Notices API** (real notices); `src/rfp/sources.py` — `TenderSource` protocol + `JsonFileSource` feed file |
+| Search approved sources | Live, real tenders: `src/rfp/worldbank.py` (**World Bank** API, Egypt), `src/rfp/etimad.py` (**Etimad**, Saudi government portal), `src/rfp/ungm.py` (**UN Global Marketplace**, Egypt + Saudi Arabia); `src/rfp/sources.py` — `TenderSource` protocol + `JsonFileSource` (synthetic demo feed, tests only) |
 | Read the real notice documents | `src/rfp/documents.py` — notice HTML → text; requirement sentences and the deadline read from the document when not given as fields |
 | Identify training categories (6 from the brief) | `extraction.classify()` — bilingual keyword rules |
 | Extract title, organization, country, deadline, eligibility, category, link, publication date, documents | `extraction.extract()` → `Opportunity` |
@@ -84,8 +84,8 @@ WEAK = no track match and requirements to verify. The text always says it is a f
 ## Use it
 - Dashboard: sidebar → **RFP Opportunities** → *Run scan*. Review an opportunity, mark it reviewed or dismissed, export CSV.
 - Chat: `scan` · `egypt` · `saudi` · `RFP-1A2B3C`, or in Arabic `ابحث` · `مصر` · `السعودية`.
-- Settings: `RFP_SOURCES=worldbank,file` (default: both), `RFP_FEED_PATH` (the feed file; default: the synthetic demo feed),
-  `RFP_WORLDBANK_ROWS` (newest notices per country, default 100), `RFP_HTTP_TIMEOUT_SECONDS` (20), `RFP_AI=auto|on|off`, `RFP_LLM_SUMMARIES=auto|on|off` (auto = on when an LLM is configured), `RFP_AI_MAX_CALLS` (20).
+- Settings: `RFP_SOURCES=worldbank,etimad,ungm` (default: the three live sources; add `file` for the synthetic demo feed), `RFP_FEED_PATH`,
+  `RFP_MAX_PAGES` (result pages per search on Etimad / UNGM, default 3), `RFP_WORLDBANK_ROWS` (newest notices per country, default 100), `RFP_HTTP_TIMEOUT_SECONDS` (20), `RFP_AI=auto|on|off`, `RFP_LLM_SUMMARIES=auto|on|off` (auto = on when an LLM is configured), `RFP_AI_MAX_CALLS` (20).
 
 ## Data
 
@@ -103,15 +103,30 @@ published by the borrowing government (e.g. an Egyptian ministry), and includes 
   scan may keep 0–3. The World Bank does not lend to Saudi Arabia, so the Saudi query normally returns 0.
 - If the API cannot be reached (no internet), the scan reports it and continues with the other sources.
 
-### Why not Etimad or Egypt's e-tenders portal?
-Saudi Etimad's API requires a Saudi commercial registration and a paid subscription; Egypt's portal has no public
-API. Both can be added later as new `TenderSource` classes once access exists.
+### Real tenders: Etimad (Saudi Arabia)
+Etimad (`tenders.etimad.sa`) is the official Saudi government procurement portal. Its tender list is public for
+visitors; the visitor page loads it from `GET /Tender/AllSupplierTendersForVisitorAsync`, which `EtimadSource` reads:
+open tenders only (`TenderCategory=2`), published in the last 3 months (`PublishDateId=5`), searched with Arabic
+training keywords (`تدريب`, `تأهيل`, `دورات`, `بناء القدرات`…), 24 rows per page, pages read in order with a 1-second
+pause. Each row gives the Arabic tender name, agency, type, activity, Gregorian dates and the link to its public
+details page. Bidding and the tender booklet need a supplier account. This endpoint is not a documented API, so
+a change on Etimad's side is reported on the dashboard and the other sources still run.
 
-### Demo feed (kept as a second source)
+### Real tenders: UN Global Marketplace (Egypt + Saudi Arabia)
+UN agencies (UNDP, UNICEF, UNIDO, UNESCO…) publish their notices on UNGM (`www.ungm.org`), including their country
+offices in Egypt and Saudi Arabia, which often ask for training and capacity building. `UngmSource` reads UNGM's
+country IDs from the public notice page, then calls the page's search (`POST /Public/Notice/Search`) for **active**
+notices in Egypt and Saudi Arabia. If the IDs cannot be found it searches training keywords and keeps only rows whose
+country is Egypt or Saudi Arabia. The HTML parsing lives in `parse_rows()` so it is easy to adjust.
+
+Check the live sources from your own internet connection (nothing is stored):
+`python -m src.rfp.check_sources` (or one source: `python -m src.rfp.check_sources etimad`).
+
+### Demo feed (tests only)
 `data/rfp/sample_tenders.json` is a **synthetic** feed: invented organizations (marked "fictional") and
 `example.com` links, built so every rule is exercised. It is labelled synthetic in the feed, the database,
-the chat and the dashboard. To use real listings: export them into the same JSON shape and set
-`RFP_FEED_PATH`, or add a new `TenderSource` class. Nothing else changes.
+the chat and the dashboard. It is **not** scanned by default; the tests use it (`RFP_SOURCES=file`). When the
+demo feed is not a configured source, demo rows left from earlier scans are deleted at start-up.
 
 ## Tests (`python -m pytest tests/test_rfp_*.py`)
 | File | Covers |
@@ -121,10 +136,12 @@ the chat and the dashboard. To use real listings: export them into the same JSON
 | test_rfp_agent.py | migration, full demo-feed scan, idempotent re-scan, no re-alert, human decision kept, later expiry, broken feeds, chat EN + AR |
 | test_rfp_dashboard.py | headless dashboard: scan, Egypt alert banner, table, dismiss button |
 | test_rfp_ai.py | LLM steps with a fake LLM: rescue only with a real learning quote, invented requirements / deadlines / track IDs dropped, past AI deadline excludes, LLM failure keeps rules result, call limit, AI work kept on re-scan, never "qualifies", notice sent as data, settings |
+| test_rfp_live_sources.py | Etimad and UNGM with faked portals (offline): field mapping, in-order paging, keyword dedup, percent-encoded links, UNGM country IDs and fallback, only Egypt/Saudi kept, both markets in one scan, demo rows removed, live-only default |
 | test_rfp_worldbank.py | World Bank source with a faked API (offline): field mapping, award notices skipped, notice-document parsing (requirements, deadline), goods vs training, API unreachable, real + demo sources together, `RFP_SOURCES` setting |
 
 ## Known limitations (next sprint)
-- Live data comes from the World Bank API only: Egypt, few open training notices; no Saudi coverage. Etimad (Saudi) needs a commercial registration.
+- Etimad and UNGM are read through their public web endpoints, not documented APIs: they can change without notice.
+- Egypt's own government portal (EPS-GAGS / etenders.gov.eg) is not connected yet; Egypt comes from the World Bank and UNGM.
 - Hijri deadlines are not converted.
 - Alerts are in-app only (no email/WhatsApp yet).
 - Without an LLM, relevance and requirements are keyword-based. With an LLM, unusual wording is caught, but only verified parts are used, so some correct LLM findings may also be dropped.
