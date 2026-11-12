@@ -17,7 +17,9 @@ def test_app_builds_in_deterministic_mode(ctx):
     assert ctx.course_count >= 5 and ctx.dataset.is_synthetic
     assert "deterministic" in ctx.llm_status
     implemented = [a.name for a in ctx.registry.list_agents() if a.status == AgentStatus.IMPLEMENTED]
-    assert implemented == ["rex_assistant", "rfp_research", "curriculum", "document_generation", "marketing"]   # Agents 1-5
+    # Agents 1-5, then the Course Launch workflow (staff), which chains agents 3 and 5 and has no own business data
+    assert implemented == ["rex_assistant", "rfp_research", "curriculum", "document_generation", "marketing",
+                           "course_launch"]
 
 
 def test_full_bilingual_conversation_through_registry(ctx):

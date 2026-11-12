@@ -126,3 +126,58 @@ def test_end_to_end_only_approved_and_current_offers_reach_the_chatbot(test_env)
     ctx.offers.approve(pending, "Dr. Reviewer")
     r = ask(rex, question)
     assert "Pending deal: 50%" in r.text and "30%" not in r.text
+
+
+# ------------------------------------------------------------------ offers overview (bug 2026-11-11)
+def _official_agent(offer_source):
+    from src.knowledge_base.loader import load_catalog
+    from src.knowledge_base.retriever import KeywordRetriever
+    return RexAssistant(KeywordRetriever(load_catalog(OFFICIAL).courses), offers=offer_source)
+
+
+def test_general_offer_questions_list_every_active_offer_instead_of_asking_which_course():
+    agent = _official_agent(FakeOffers([offer("TRK-002"), offer("TRK-004", pct=10)]))
+    for text in ["I want to know the offers ?", "what discounts you have ?",
+                 "I mean any course that has discount", "عندكم عروض؟"]:
+        r = ask(agent, text)
+        assert r.data["intent"] == "offers_overview", text
+        assert "TRK-002" in r.text and "TRK-004" in r.text and "15%" in r.text and "10%" in r.text
+
+
+def test_offers_overview_says_none_or_unknown_honestly():
+    assert "no approved offers" in ask(_official_agent(FakeOffers()), "any discounts?").text
+    assert "couldn't check" in ask(_official_agent(FakeOffers(fail=True)), "any discounts?").text
+
+
+def test_general_offer_question_after_a_course_is_not_stuck_to_that_course():
+    agent = _official_agent(FakeOffers([offer("TRK-002"), offer("TRK-004", pct=10)]))
+    first = ask(agent, "do you have flutter course")
+    r = agent.handle(AgentRequest(message="what discounts you have ?", state=first.state))
+    assert r.data["intent"] == "offers_overview" and "TRK-004" in r.text
+
+
+def test_pronoun_offer_question_still_answers_for_the_course_being_discussed():
+    agent = _official_agent(FakeOffers([offer("TRK-002")]))
+    first = ask(agent, "do you have flutter course")
+    for text in ["does it have offer", "does it have a discount?", "فيه خصم عليه؟"]:
+        r = agent.handle(AgentRequest(message=text, state=first.state))
+        assert r.data["intent"] == "course_question" and "15%" in r.text, text
+
+
+def test_offer_as_a_verb_is_not_an_offer_question():
+    agent = _official_agent(FakeOffers([offer("TRK-002")]))
+    assert ask(agent, "Does the academy offer certificates?").data["intent"] != "offers_overview"
+    assert ask(agent, "What programs do you offer?").data["intent"] == "catalog_overview"
+
+
+def test_this_or_that_before_a_non_course_word_is_a_general_question():
+    agent = _official_agent(FakeOffers([offer("TRK-002")]))
+    first = ask(agent, "do you have flutter course")
+    for text in ["I want to know the offers that academy has ?", "does this academy have offers?"]:
+        r = agent.handle(AgentRequest(message=text, state=first.state))
+        assert r.data["intent"] == "offers_overview", text
+    for text in ["does that course have an offer?", "is there a discount on this one?", "does that have a discount?"]:
+        r = agent.handle(AgentRequest(message=text, state=first.state))
+        assert r.data["intent"] == "course_question" and "15%" in r.text, text
+    r = agent.handle(AgentRequest(message="which courses that have discounts?", state=first.state))
+    assert r.data["intent"] == "offers_overview"

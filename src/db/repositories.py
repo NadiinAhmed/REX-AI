@@ -60,6 +60,17 @@ class CourseRepository:
                 raise ValueError(f"Course {course.course_id} already exists.")
             s.add(self._to_record(course))
 
+    def set_fee(self, course_id: str, amount: float, currency: str) -> Course:
+        """Set the fee of ONE approved course (the Course Launch workflow stores the fee a named staff
+        member approved). Validated through the Course model; other agents see it via version()."""
+        with self._db.session() as s:
+            row = s.get(CourseRecord, course_id.strip().upper())
+            if row is None or not row.approved:
+                raise ValueError(f"No approved course with id {course_id}.")
+            course = Course.model_validate({**row.data, "fee": {"amount": amount, "currency": currency}})
+            row.data = course.model_dump(mode="json")      # reassign so the JSON change is saved
+            return course
+
     def next_id(self, prefix: str = "TRK") -> str:
         """The next free id in the PREFIX-NNN series, e.g. TRK-006 after TRK-005."""
         with self._db.session() as s:
